@@ -35,6 +35,6 @@ def run(filename):
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python Type Inference Project.');
-    parser.add_argument('filename', help="filename of python source");
+    parser.add_argument('filename', help='filename of python source');
     args = parser.parse_args();
     run(args.filename);

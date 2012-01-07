@@ -39,11 +39,11 @@ class TIVisitor(ast.NodeVisitor):
             varNode = VarTypeGraphNode(node.id)
             self.varDict.add(node.id, varNode)
         node.link = varNode
-        if node.id == "True":
+        if node.id == 'True':
             self.visit_True(node)
-        elif node.id == "False":
+        elif node.id == 'False':
             self.visit_False(node)
-        elif node.id == "None":
+        elif node.id == 'None':
             self.visit_None(node)
         
     def visit_Assign(self, node):
