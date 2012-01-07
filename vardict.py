@@ -10,8 +10,8 @@ class VarDict(object):
     def __init__(self, parent = None):
         self.parent = None
         self.variables = {}
-    def append(self, name, graph_node):
-        self.variables[name] = graph_node
+    def add(self, name, varNode):
+        self.variables[name] = varNode
     def find(self, name):
         if name in self.variables:
             return self.variables[name]
