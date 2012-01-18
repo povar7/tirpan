@@ -48,7 +48,9 @@ class TIVisitor(ast.NodeVisitor):
         
     def visit_Assign(self, node):
         self.generic_visit(node)
-        node.link = AssignTypeGraphNode(node)
+        for target in node.targets:
+            node.value.link.addDependency(target.link)
+        node.link = node.value.link
 
     def visit_List(self,node):
         self.generic_visit(node)

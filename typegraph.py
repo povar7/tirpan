@@ -12,6 +12,16 @@ class TypeGraphNode(object):
     def addDependency(self, dep):
         if dep and dep not in self.deps:
             self.deps.append(dep)
+            dep.appendTypes(self.nodeType)
+            
+    def appendTypes(self, typeSet):
+        tmp = self.nodeType
+        self.childTypes(typeSet)
+        if len(self.nodeType - tmp) != 0:
+            for dep in self.deps:
+                dep.appendTypes(self.nodeType)
+    def childTypes(self, typeSet):
+        self.nodeType = self.nodeType.union(typeSet)
         
 class ConstTypeGraphNode(TypeGraphNode):
     def __init__(self, value):
