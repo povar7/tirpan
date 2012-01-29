@@ -27,12 +27,7 @@ class TIParser(object):
     
     def walk(self):
         self.visitor.visit(self.ast)
-        try:
-            verbose = __main__.verbose
-        except AttributeError:
-            import tirpan
-            verbose = tirpan.verbose 
-        if verbose:
-            print 'File "' + self.visitor.filename + '":'
-            for var in self.visitor.varDict.variables.iteritems():
-                print var[0], ':', var[1].nodeType
+        if __main__.verbose:
+            if isinstance(self.ast, ast.Module):
+                print 'File "' + self.visitor.filename + '":'
+                self.ast.link.get_scope().print_variables()

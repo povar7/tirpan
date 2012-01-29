@@ -9,14 +9,11 @@ import ast
 import __main__
 
 from typegraph import *
-from vardict   import VarDict
 
 class TIVisitor(ast.NodeVisitor):
-    varDict  = None
     filename = None 
 
     def __init__(self, filename):
-        self.varDict = VarDict()
         self.filename = filename
 
     def visit_Num(self, node):
@@ -38,11 +35,7 @@ class TIVisitor(ast.NodeVisitor):
         noneNode.addDependency(node.link) 
         
     def visit_Name(self, node):
-        varNode = self.varDict.find(node.id)
-        if not varNode:
-            varNode = VarTypeGraphNode(node.id)
-            self.varDict.add(node.id, varNode)
-        node.link = varNode
+        node.link = __main__.current_scope.find_or_add(node.id)
         if node.id == 'True':
             self.visit_True(node)
         elif node.id == 'False':
@@ -69,9 +62,9 @@ class TIVisitor(ast.NodeVisitor):
         node.link = TupleTypeGraphNode(node)
 
     def visit_Import(self, node):
-        try:
-            import_files = __main__.import_files
-        except AttributeError:
-            import tirpan
-            import_files = tirpan.import_files
-        import_files(self.filename, [alias.name for alias in node.names])
+        __main__.import_files(self.filename, node.names)
+
+    def visit_Module(self, node):
+        __main__.current_scope = node.link.get_scope()
+        self.generic_visit(node)
+        __main__.current_scope = __main__.current_scope.get_parent()

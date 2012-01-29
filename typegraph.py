@@ -4,6 +4,8 @@ Created on 11.12.2011
 @author: ramil
 '''
 
+from scope import Scope
+
 class TypeGraphNode(object):
     def __init__(self):
         self.deps = []
@@ -17,11 +19,16 @@ class TypeGraphNode(object):
     def appendTypes(self, typeSet):
         tmp = self.nodeType
         self.childTypes(typeSet)
-        if len(self.nodeType - tmp) != 0:
-            for dep in self.deps:
-                dep.appendTypes(self.nodeType)
+        #XXX Start of a temporarily disabled code
+        #if len(self.nodeType - tmp) != 0:
+        #    for dep in self.deps:
+        #        dep.appendTypes(self.nodeType)
+        #XXX End of a temporarily disabled code
     def childTypes(self, typeSet):
-        self.nodeType = self.nodeType.union(typeSet)
+        pass
+        #XXX Start of a temporarily disabled code
+        #self.nodeType = self.nodeType.union(typeSet)
+        #XXX End of a temporarily disabled code
         
 class ConstTypeGraphNode(TypeGraphNode):
     def __init__(self, value):
@@ -32,8 +39,11 @@ class ConstTypeGraphNode(TypeGraphNode):
 class VarTypeGraphNode(TypeGraphNode):
     def __init__(self, name):
         super(VarTypeGraphNode, self).__init__()
-        self.nodeType = set()
+        self.nodeType  = set()
+        self.nodeValue = set()
         self.name = name
+    def add_value(self, value):
+        self.nodeValue = self.nodeValue.union(set([value]))
 
 class ListTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
@@ -76,3 +86,12 @@ class AssignTypeGraphNode(TypeGraphNode):
         for target in node.targets:
             self.addDependency(target.link) 
 
+class ModuleTypeGraphNode(TypeGraphNode):
+    def __init__(self, ast, name, parent_scope):
+        super(ModuleTypeGraphNode, self).__init__()
+        self.nodeType = None
+        self.ast      = ast
+        self.name     = name
+        self.scope    = Scope(parent_scope)
+    def get_scope(self):
+        return self.scope 

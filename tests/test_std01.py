@@ -10,20 +10,30 @@ import unittest
 import os
 from os import sys
 tests_dir      = os.path.dirname(sys.argv[0])
-test_file_name = 'sample01.py'
+test_file_name = os.path.join(tests_dir, 'std01.py')
 sys.path.append(os.path.join(tests_dir, '..'))
 
-from tiparser import TIParser
-from utils    import findNode
-
+from importer  import Importer
+from scope     import Scope
+from tiparser  import TIParser
 from typegraph import *
 
+from utils     import findNode
+
+import tirpan
+
 class TestTirpan(unittest.TestCase):
+    classIsSetup = False
+
     def setUp(self):
-        app = TIParser(os.path.join(tests_dir, test_file_name))
-        app.walk()
-        self.ast = app.ast
-        
+        global current_scope, importer, verbose
+        current_scope = None
+        importer      = Importer()
+        verbose       = False
+        tirpan.run(test_file_name)
+        import __main__
+        self.ast = __main__.importer.imported_files['__main__'].ast
+
     def test_walk_int(self):
         node = findNode(self.ast, line=1, col=6)
         self.assertTrue(node is not None, 'required node was not found')
