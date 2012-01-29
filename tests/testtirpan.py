@@ -4,8 +4,13 @@ Created on 07.01.2012
 @author: bronikkk
 '''
 
-import unittest
 import ast
+import os
+import unittest
+
+from os import sys
+tests_dir = os.path.dirname(sys.argv[0])
+sys.path.append(os.path.join(tests_dir, '..'))
 
 from tirpan import Tirpan
 from utils  import findNode
@@ -14,7 +19,7 @@ from typegraph import *
 
 class TestTirpan(unittest.TestCase):
     def setUp(self):
-        app = Tirpan('tests/sample01.py')
+        app = Tirpan(os.path.join(tests_dir, 'sample01.py'))
         app.walk()
         self.ast = app.ast
         
