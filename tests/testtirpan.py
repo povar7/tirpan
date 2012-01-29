@@ -5,21 +5,22 @@ Created on 07.01.2012
 '''
 
 import ast
-import os
 import unittest
 
+import os
 from os import sys
-tests_dir = os.path.dirname(sys.argv[0])
+tests_dir      = os.path.dirname(sys.argv[0])
+test_file_name = 'sample01.py'
 sys.path.append(os.path.join(tests_dir, '..'))
 
-from tirpan import Tirpan
-from utils  import findNode
+from tiparser import TIParser
+from utils    import findNode
 
 from typegraph import *
 
 class TestTirpan(unittest.TestCase):
     def setUp(self):
-        app = Tirpan(os.path.join(tests_dir, 'sample01.py'))
+        app = TIParser(os.path.join(tests_dir, test_file_name))
         app.walk()
         self.ast = app.ast
         

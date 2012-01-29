@@ -6,14 +6,18 @@ Created on 03.01.2012
 
 import ast
 
+import __main__
+
 from typegraph import *
 from vardict   import VarDict
- 
-class TIVisitor(ast.NodeVisitor):
-    varDict = None
 
-    def __init__(self):
-        self.varDict   = VarDict()
+class TIVisitor(ast.NodeVisitor):
+    varDict  = None
+    filename = None 
+
+    def __init__(self, filename):
+        self.varDict = VarDict()
+        self.filename = filename
 
     def visit_Num(self, node):
         node.link = ConstTypeGraphNode(node.n)
@@ -63,3 +67,11 @@ class TIVisitor(ast.NodeVisitor):
     def visit_Tuple(self, node):
         self.generic_visit(node)
         node.link = TupleTypeGraphNode(node)
+
+    def visit_Import(self, node):
+        try:
+            import_files = __main__.import_files
+        except AttributeError:
+            import tirpan
+            import_files = tirpan.import_files
+        import_files(self.filename, [alias.name for alias in node.names])
