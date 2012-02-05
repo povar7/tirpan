@@ -8,7 +8,8 @@ import ast
 
 import __main__
 
-from typegraph import *
+from typegraph    import *
+from errorprinter import *
 
 class TIVisitor(ast.NodeVisitor):
     filename = None 
@@ -88,3 +89,15 @@ class TIVisitor(ast.NodeVisitor):
         __main__.current_scope = funcDefNode.getParams()
         self.visit(node.args) 
         __main__.current_scope = __main__.current_scope.getParent()
+
+    def visit_Call(self, node):
+        node.link = CallTypeGraphNode()
+        funcName  = node.func.id
+        varNode   = __main__.current_scope.find(funcName)
+        if not varNode:
+            __main__.error_printer.printError(CallNotResolvedError(funcName))
+            return
+        funcsList = list(varNode.nodeValue)
+        if len(funcsList) == 0:
+            __main__.error_printer.printError(CallNotResolvedError(funcName))
+            return

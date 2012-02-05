@@ -100,11 +100,17 @@ class ModuleTypeGraphNode(TypeGraphNode):
 class FuncDefTypeGraphNode(TypeGraphNode):
     def __init__(self, ast, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()
-        self.nodeType = None
-        self.ast      = ast
-        self.scope    = None
-        self.params   = Scope(parent_scope)
+        self.nodeType  = None
+        self.ast       = ast
+        self.scope     = None
+        self.params    = Scope(parent_scope)
+        self.templates = []
     def getParams(self):
         return self.params 
     def getScope(self):
         return self.scope 
+
+class CallTypeGraphNode(TypeGraphNode):
+    def __init__(self):
+        super(CallTypeGraphNode, self).__init__()
+        self.nodeType = None
