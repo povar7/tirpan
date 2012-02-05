@@ -25,6 +25,14 @@ def getCol (node):
     offset = getattr(node, 'col_offset', None)
     return offset + 1 if offset else None
 
+def getFile(node):
+    module = getattr(node, 'filelink', None)
+    try:
+        name = module.name
+    except AttributeError:
+        name = None
+    return name
+
 def findNode(tree, **kwargs):
     try:
         line = kwargs['line']

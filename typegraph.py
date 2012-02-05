@@ -64,8 +64,9 @@ class VarTypeGraphNode(TypeGraphNode):
         super(VarTypeGraphNode, self).__init__()
         self.nodeType  = set()
         self.nodeValue = set()
-        self.name = name
-    def add_value(self, value):
+        self.name      = name
+        self.parent    = None
+    def addValue(self, value):
         self.nodeValue = self.nodeValue.union(set([value]))
                         
     def elem_types(self):
@@ -129,6 +130,23 @@ class ModuleTypeGraphNode(TypeGraphNode):
         self.ast      = ast
         self.name     = name
         self.scope    = Scope(parent_scope)
-    def get_scope(self):
+    def getScope(self):
         return self.scope 
 
+class FuncDefTypeGraphNode(TypeGraphNode):
+    def __init__(self, ast, parent_scope):
+        super(FuncDefTypeGraphNode, self).__init__()
+        self.nodeType  = None
+        self.ast       = ast
+        self.scope     = None
+        self.params    = Scope(parent_scope)
+        self.templates = []
+    def getParams(self):
+        return self.params 
+    def getScope(self):
+        return self.scope 
+
+class CallTypeGraphNode(TypeGraphNode):
+    def __init__(self):
+        super(CallTypeGraphNode, self).__init__()
+        self.nodeType = None

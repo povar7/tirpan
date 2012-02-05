@@ -8,7 +8,8 @@ import ast
 
 import __main__
 
-from typegraph import *
+from typegraph    import *
+from errorprinter import *
 
 class TIVisitor(ast.NodeVisitor):
     filename = None 
@@ -73,9 +74,42 @@ class TIVisitor(ast.NodeVisitor):
         __main__.import_files(self.filename, node.names)
 
     def visit_Module(self, node):
-        __main__.current_scope = node.link.get_scope()
+        __main__.current_scope = node.link.getScope()
         self.generic_visit(node)
-        __main__.current_scope = __main__.current_scope.get_parent()
+        __main__.current_scope = __main__.current_scope.getParent()
+
+    def visit_arguments(self, node):
+        nonDefs = len(node.args) - len(node.defaults)
+        for i in range(len(node.args)):
+            arg    = node.args[i]
+            defPos = i - nonDefs
+            defVal = node.defaults[defPos] if defPos >= 0 else None
+            self.visit(arg)
+            if defVal:
+                self.visit(defVal)
+                defVal.link.addDependency(arg.link)
+            
+    def visit_FunctionDef(self, node):
+        funcDefNode = FuncDefTypeGraphNode(node.body, __main__.current_scope)
+        node.link   = __main__.current_scope.findOrAdd(node.name)
+        funcDefNode.addDependency(node.link)
+        node.link.addValue(funcDefNode)
+        __main__.current_scope = funcDefNode.getParams()
+        self.visit(node.args) 
+        __main__.current_scope = __main__.current_scope.getParent()
+
+    def visit_Call(self, node):
+        node.link = CallTypeGraphNode()
+        funcName  = node.func.id
+        varNode   = __main__.current_scope.find(funcName)
+        if not varNode:
+            __main__.error_printer.printError(CallNotResolvedError(node, funcName))
+            return
+        funcsList = list(varNode.nodeValue)
+        if len(funcsList) == 0:
+            __main__.error_printer.printError(CallNotResolvedError(node, funcName))
+            return
+
     def visit_For(self, node):
         self.generic_visit(node)
         node.iter.link.addDependency(DependencyType.AssignElem, node.target.link)

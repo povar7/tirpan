@@ -10,6 +10,7 @@ class Scope(object):
         self.variables = {}
 
     def add(self, name, varNode):
+        varNode.parent       = self
         self.variables[name] = varNode
 
     def find(self, name):
@@ -19,7 +20,7 @@ class Scope(object):
             return self.parent.find(name)
         return None
 
-    def find_or_add(self, name):
+    def findOrAdd(self, name):
         res = self.find(name)
         if not res:
             from typegraph import VarTypeGraphNode
@@ -27,9 +28,9 @@ class Scope(object):
             self.add(name, res)
         return res
  
-    def get_parent(self):
+    def getParent(self):
         return self.parent
 
-    def print_variables(self):
+    def printVariables(self):
         for var in self.variables.iteritems():
             print var[0], ':', var[1].nodeType

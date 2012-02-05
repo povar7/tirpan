@@ -7,9 +7,10 @@ Created on 29.01.2012
 
 import argparse
 
-from importer import Importer
-from scope    import Scope
-from tiparser import TIParser
+from errorprinter import ErrorPrinter
+from importer     import Importer
+from scope        import Scope
+from tiparser     import TIParser
 
 def import_files(mainfile, aliases):
     importer.import_files(mainfile, aliases)
@@ -32,6 +33,7 @@ if __name__ == '__main__':
 
     current_scope = None
     importer      = Importer()
+    error_printer = ErrorPrinter()
     verbose       = args.verbose
 
     run(args.filename);
