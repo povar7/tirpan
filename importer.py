@@ -46,7 +46,10 @@ class Importer(object):
             else:
                 parser = TIParser(filename)
                 imported_tree = parser.ast
-                imported_tree.link = ModuleTypeGraphNode(imported_tree, filename, __main__.current_scope)
+                module = ModuleTypeGraphNode(imported_tree, filename, __main__.current_scope)
+                imported_tree.link = module
+                for node in ast.walk(imported_tree):
+                    node.filelink = module 
                 self.imported_files[searchname] = imported_tree.link 
                 parser.walk()
             if __main__.current_scope:

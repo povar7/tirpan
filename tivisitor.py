@@ -95,9 +95,9 @@ class TIVisitor(ast.NodeVisitor):
         funcName  = node.func.id
         varNode   = __main__.current_scope.find(funcName)
         if not varNode:
-            __main__.error_printer.printError(CallNotResolvedError(funcName))
+            __main__.error_printer.printError(CallNotResolvedError(node, funcName))
             return
         funcsList = list(varNode.nodeValue)
         if len(funcsList) == 0:
-            __main__.error_printer.printError(CallNotResolvedError(funcName))
+            __main__.error_printer.printError(CallNotResolvedError(node, funcName))
             return
