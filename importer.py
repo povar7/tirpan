@@ -12,7 +12,7 @@ from os import sys
 import __main__
 
 from tiparser  import TIParser
-from typegraph import VarTypeGraphNode, ModuleTypeGraphNode
+from typegraph import VarTypeGraphNode, ModuleTypeGraphNode, DependencyType
 
 class Importer(object):
     def __init__(self):
@@ -53,4 +53,4 @@ class Importer(object):
                 var_name = alias.asname if alias.asname else alias.name
                 alias.link = __main__.current_scope.find_or_add(var_name)
                 alias.link.add_value(imported_tree.link)
-                imported_tree.link.addDependency(alias.link)
+                imported_tree.link.addDependency(DependencyType.Module, alias.link)
