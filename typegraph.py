@@ -132,6 +132,9 @@ class ModuleTypeGraphNode(TypeGraphNode):
         self.scope    = Scope(parent_scope)
     def getScope(self):
         return self.scope 
+    
+    def module_dep(self, dep):
+        pass
 
 class FuncDefTypeGraphNode(TypeGraphNode):
     def __init__(self, ast, parent_scope):

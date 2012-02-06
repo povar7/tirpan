@@ -18,7 +18,7 @@ class TIVisitor(ast.NodeVisitor):
         self.filename = filename
 
     def visit(self, node):
-        #print node
+        print node
         super(TIVisitor, self).visit(node)
 
     def visit_Num(self, node):
@@ -44,7 +44,7 @@ class TIVisitor(ast.NodeVisitor):
         elif node.id == 'None':
             self.visit_None(node)
         else:
-            node.link = __main__.current_scope.find_or_add(node.id)
+            node.link = __main__.current_scope.findOrAdd(node.id)
         
     def visit_Assign(self, node):
         target = node.targets[0]
