@@ -5,19 +5,25 @@ Created on 11.12.2011
 '''
 
 from scope import Scope
+from binops import *
+
 class DependencyType(object):
     Assign = "assign"
     AssignElem = "assign_elem"
     Elem = "elem"
     Key = "key"
     Module = "module"
+    BinOpLElem = "binop_lelem"
+    BinOpRElem = "binop_relem"
 
 
 class TypeGraphNode(object):
     def __init__(self):
         self.deps = {}
         self.rdeps = {}
-        nodeValue = None
+        self.nodeValue = None
+        self.nodeType  = set()
+
 
     def addDependency(self, dep_type, dep):
         if not dep_type in self.deps:
@@ -46,26 +52,27 @@ class TypeGraphNode(object):
         if len(new_types - dep.nodeType) > 0:
             dep.nodeType = dep.nodeType.union(new_types)
             dep.generic_dependency()
-    def elem_dep(self, dep):
-        pass
+    def elem_dep(self, dep): pass
 
-    def key_dep(self, dep):
-        pass
-
+    def key_dep(self, dep): pass
+    
+    def binop_lelem_dep(self, dep): dep.binop_dep()
+    
+    def binop_relem_dep(self, dep): dep.binop_dep()
     
 class ConstTypeGraphNode(TypeGraphNode):
     def __init__(self, value):
         super(ConstTypeGraphNode, self).__init__()
-        self.nodeType  = set([value.__class__])
+        self.nodeType  = set([value.__class__.__name__])
         self.nodeValue = value    
             
 class VarTypeGraphNode(TypeGraphNode):
     def __init__(self, name):
         super(VarTypeGraphNode, self).__init__()
-        self.nodeType  = set()
         self.nodeValue = set()
         self.name      = name
         self.parent    = None
+    
     def addValue(self, value):
         self.nodeValue = self.nodeValue.union(set([value]))
                         
@@ -77,9 +84,29 @@ class VarTypeGraphNode(TypeGraphNode):
                 if callable(m):
                     el_types = el_types.union(m()) 
         return el_types
-
-
-
+class BinOpTypeGraphNode(TypeGraphNode):
+    binop = BinOps()
+    def __init__(self, op):
+        super(BinOpTypeGraphNode, self).__init__()
+        self.op = op
+    
+    def operants_exist(self):
+        return DependencyType.BinOpLElem in self.rdeps and DependencyType.BinOpRElem in self.rdeps
+    
+    def binop_dep(self):
+        if self.operants_exist():
+            op1 = list(self.rdeps[DependencyType.BinOpLElem])[0]
+            op2 = list(self.rdeps[DependencyType.BinOpRElem])[0]
+            getattr(self.binop, self.op)(self, op1, op2) 
+            self.generic_dependency()
+     
+    def elem_types(self):
+        el_types = set()
+        for dep_type in self.rdeps:
+            for dep in self.rdeps[dep_type]:
+                m = getattr(dep, 'elem_types')
+                if callable(m): el_types = el_types.union(m()) 
+        return el_types
 
 class ListTypeGraphNode(TypeGraphNode):
     def __init__(self, node):

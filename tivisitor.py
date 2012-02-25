@@ -10,16 +10,13 @@ import __main__
 
 from typegraph    import *
 from errorprinter import *
+from binops import *
 
 class TIVisitor(ast.NodeVisitor):
     filename = None 
 
     def __init__(self, filename):
         self.filename = filename
-
-    def visit(self, node):
-        print node
-        super(TIVisitor, self).visit(node)
 
     def visit_Num(self, node):
         node.link = ConstTypeGraphNode(node.n)
@@ -111,6 +108,14 @@ class TIVisitor(ast.NodeVisitor):
             return
 
     def visit_For(self, node):
-        self.generic_visit(node)
+        self.visit(node.iter)
+        self.visit(node.target)
         node.iter.link.addDependency(DependencyType.AssignElem, node.target.link)
+        for nn in node.body: self.visit(nn)
+        
+    def visit_BinOp(self, node):
+        self.generic_visit(node)
+        node.link = BinOpTypeGraphNode(node.op.__class__.__name__.lower())
+        node.left.link.addDependency(DependencyType.BinOpLElem, node.link)            
+        node.right.link.addDependency(DependencyType.BinOpRElem, node.link)
 
