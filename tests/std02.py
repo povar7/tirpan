@@ -14,11 +14,16 @@
 #     b = 3
 #     a = k + 1
 
-a = 1 + 2 - 3 * 1.0
-c = [1] + ['sdfsdf']
-d = c 
-for k in d:
-	pass
-#b = a > 5
-b = 5
-c = b or False
+# #a = 1 + 2 - 3 * 1.0
+# d = [1] + ['sdfsdf']
+# #d = c
+# for k in d:
+# 	pass
+# # b = a > 5
+# # b = 5
+# # c = b or False
+# # k = None
+# d = [1.0]
+
+def foo(a, b):
+	return a + b
