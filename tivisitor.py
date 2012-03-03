@@ -119,3 +119,9 @@ class TIVisitor(ast.NodeVisitor):
         node.left.link.addDependency(DependencyType.BinOpLElem, node.link)            
         node.right.link.addDependency(DependencyType.BinOpRElem, node.link)
 
+    def visit_BoolOp(self, node):
+        node.link = ConstTypeGraphNode(False)
+
+    def visit_Compare(self, node):
+        node.link = ConstTypeGraphNode(False)
+
