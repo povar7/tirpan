@@ -6,6 +6,8 @@ Created on 11.12.2011
 
 from scope import Scope
 from binops import *
+from typenodes import *
+import copy
 
 class DependencyType(object):
     Assign = "assign"
@@ -23,6 +25,21 @@ class TypeGraphNode(object):
         self.rdeps = {}
         self.nodeValue = None
         self.nodeType  = set()
+
+    def get_atom_type_node(self, str):
+        if str == 'int':
+            return TypeInt()
+        elif str == 'float':
+            return TypeFloat()
+        elif str == 'str':
+            return TypeStr()
+        elif str == 'unicode':
+            return TypeUnicode()
+        elif str == 'bool':
+            return TypeBool()
+        else:
+            print str
+            exit(1)
 
 
     def addDependency(self, dep_type, dep):
@@ -52,9 +69,32 @@ class TypeGraphNode(object):
         if len(new_types - dep.nodeType) > 0:
             dep.nodeType = dep.nodeType.union(new_types)
             dep.generic_dependency()
-    def elem_dep(self, dep): pass
+    
+    def elem_dep(self, dep):
+        res = set()
+        while(len(dep.nodeType) > 0):
+            tt1 = dep.nodeType.pop()
+            for tt2 in self.nodeType:
+                tmp = copy.deepcopy(tt1)
+                tmp.add_elem(tt2)
+                res.add(tmp)
+        dep.nodeType = res
 
-    def key_dep(self, dep): pass
+    def key_dep(self, dep): 
+        res = set()
+        while(len(dep.nodeType) > 0):
+            tt1 = dep.nodeType.pop()
+            for tt2 in self.nodeType:
+                tmp = copy.deepcopy(tt1)
+                tmp.add_key(tt2)
+                res.add(tmp)
+        dep.nodeType = res
+
+    def elem_types(self):
+        el_types = set()
+        for tt in self.nodeType:
+            el_types |= tt.elem_types()
+        return el_types
     
     def binop_lelem_dep(self, dep): dep.binop_dep()
     
@@ -63,7 +103,8 @@ class TypeGraphNode(object):
 class ConstTypeGraphNode(TypeGraphNode):
     def __init__(self, value):
         super(ConstTypeGraphNode, self).__init__()
-        self.nodeType  = set([value.__class__.__name__])
+        tp = self.get_atom_type_node(value.__class__.__name__)
+        self.nodeType  = set([tp])
         self.nodeValue = value    
             
 class VarTypeGraphNode(TypeGraphNode):
@@ -76,14 +117,7 @@ class VarTypeGraphNode(TypeGraphNode):
     def addValue(self, value):
         self.nodeValue = self.nodeValue.union(set([value]))
                         
-    def elem_types(self):
-        el_types = set()
-        for dep_type in self.rdeps:
-            for dep in self.rdeps[dep_type]:
-                m = getattr(dep, 'elem_types')
-                if callable(m):
-                    el_types = el_types.union(m()) 
-        return el_types
+
 class BinOpTypeGraphNode(TypeGraphNode):
     binop = BinOps()
     def __init__(self, op):
@@ -99,48 +133,26 @@ class BinOpTypeGraphNode(TypeGraphNode):
             op2 = list(self.rdeps[DependencyType.BinOpRElem])[0]
             getattr(self.binop, self.op)(self, op1, op2) 
             self.generic_dependency()
-     
-    def elem_types(self):
-        el_types = set()
-        for dep_type in self.rdeps:
-            for dep in self.rdeps[dep_type]:
-                m = getattr(dep, 'elem_types')
-                if callable(m): el_types = el_types.union(m()) 
-        return el_types
 
 class ListTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
         super(ListTypeGraphNode, self).__init__()
-        self.nodeType  = set(['list'])
-        self.nodeValue = []
+        self.nodeType  = set([TypeList()])
+        self.nodeValue = None
         for elt in node.elts:
             link = elt.link
             link.addDependency(DependencyType.Elem, self)
-            self.nodeValue.append(link)
+            
         
-    def elem_types(self):
-        el_types = set()
-        for elem in self.rdeps[DependencyType.Elem]:
-            el_types = el_types.union(elem.nodeType)
-        return el_types
-
     
-class TupleTypeGraphNode(TypeGraphNode):
-    def __init__(self, node):
-        super(TupleTypeGraphNode, self).__init__()
-        self.nodeType  = set(['tuple'])
-        tempValue      = []
-        for elt in node.elts:
-            link = elt.link
-            link.addDependency(DependencyType.Elem, self)
-            tempValue.append(link)
-        self.nodeValue = tuple(tempValue)
+class TupleTypeGraphNode(ListTypeGraphNode):
+    pass;
 
 
 class DictTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
         super(DictTypeGraphNode, self).__init__()
-        self.nodeType  = set(['dict'])
+        self.nodeType  = set([TypeDict()])
         self.nodeValue = {}
         for i in range(len(node.keys)):
             keyLink   = node.keys[i].link

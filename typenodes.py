@@ -5,6 +5,9 @@ class TypeNode:
 	def instance_hash(self):
 		return None
 
+	def elem_types(self):
+		return set()
+
 	def __ne__(self, other):
 		return not (self == other)
 
@@ -15,6 +18,7 @@ class TypeNode:
 	def __hash__(self):
 		return hash( (self.__class__, self.instance_hash()) )
 
+
 class TypeInt(TypeNode):
 	pass;
 
@@ -22,6 +26,9 @@ class TypeFloat(TypeNode):
 	pass; 
 
 class TypeStr(TypeNode):
+	pass;
+
+class TypeUnicode(TypeNode):
 	pass;
 
 class TypeBool(TypeNode):
@@ -39,6 +46,9 @@ class TypeList(TypeNode):
 
 	def instance_hash(self):
 		return hash(tuple(self.elems))
+
+	def elem_types(self):
+		return self.elems
 
 class TypeTuple(TypeList):
 	pass;
@@ -59,6 +69,9 @@ class TypeDict(TypeNode):
 
 	def instance_hash(self):
 		return hash((tuple(self.elems), tuple(self.keys)))
+
+	def elem_types(self):
+		return self.elems
 
 
 		

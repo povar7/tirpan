@@ -11,7 +11,9 @@ class BinOps:
   }
   
   def add(self, parent, left, right):
-    result = left.nodeType & right.nodeType & set(self.simple_add_sub_types)
+    print ('Print', left.nodeType, right.nodeType)
+    result = left.nodeType & right.nodeType 
+    print result
     result |= self.get_complex_types(self.add_sub_types, left, right)
     parent.nodeType |= result
   
