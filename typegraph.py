@@ -5,7 +5,6 @@ Created on 11.12.2011
 '''
 
 from scope import Scope
-from binops import *
 from typenodes import *
 import copy
 
@@ -14,10 +13,8 @@ class DependencyType(object):
     AssignElem = "assign_elem"
     Elem = "elem"
     Key = "key"
+    Val = "val"
     Module = "module"
-    BinOpLElem = "binop_lelem"
-    BinOpRElem = "binop_relem"
-
 
 class TypeGraphNode(object):
     def __init__(self):
@@ -90,16 +87,22 @@ class TypeGraphNode(object):
                 res.add(tmp)
         dep.nodeType = res
 
+    def val_dep(self, dep):
+        res = set()
+        while(len(dep.nodeType) > 0):
+            tt1 = dep.nodeType.pop()
+            for tt2 in self.nodeType:
+                tmp = copy.deepcopy(tt1)
+                tmp.add_val(tt2)
+                res.add(tmp)
+        dep.nodeType = res
+
     def elem_types(self):
         el_types = set()
         for tt in self.nodeType:
             el_types |= tt.elem_types()
         return el_types
-    
-    def binop_lelem_dep(self, dep): dep.binop_dep()
-    
-    def binop_relem_dep(self, dep): dep.binop_dep()
-    
+   
 class ConstTypeGraphNode(TypeGraphNode):
     def __init__(self, value):
         super(ConstTypeGraphNode, self).__init__()
@@ -117,23 +120,6 @@ class VarTypeGraphNode(TypeGraphNode):
     def addValue(self, value):
         self.nodeValue = self.nodeValue.union(set([value]))
                         
-
-class BinOpTypeGraphNode(TypeGraphNode):
-    binop = BinOps()
-    def __init__(self, op):
-        super(BinOpTypeGraphNode, self).__init__()
-        self.op = op
-    
-    def operants_exist(self):
-        return DependencyType.BinOpLElem in self.rdeps and DependencyType.BinOpRElem in self.rdeps
-    
-    def binop_dep(self):
-        if self.operants_exist():
-            op1 = list(self.rdeps[DependencyType.BinOpLElem])[0]
-            op2 = list(self.rdeps[DependencyType.BinOpRElem])[0]
-            getattr(self.binop, self.op)(self, op1, op2) 
-            self.generic_dependency()
-
 class ListTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
         super(ListTypeGraphNode, self).__init__()
@@ -142,12 +128,15 @@ class ListTypeGraphNode(TypeGraphNode):
         for elt in node.elts:
             link = elt.link
             link.addDependency(DependencyType.Elem, self)
-            
-        
     
-class TupleTypeGraphNode(ListTypeGraphNode):
-    pass;
-
+class TupleTypeGraphNode(TypeGraphNode):
+    def __init__(self, node):
+        super(TupleTypeGraphNode, self).__init__()
+        self.nodeType  = set([TypeTuple()])
+        self.nodeValue = None
+        for elt in node.elts:
+            link = elt.link
+            link.addDependency(DependencyType.Elem, self)
 
 class DictTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
@@ -157,10 +146,9 @@ class DictTypeGraphNode(TypeGraphNode):
         for i in range(len(node.keys)):
             keyLink   = node.keys[i].link
             valueLink = node.values[i].link
-            keyLink.addDependency(DependencyType.Key, self)
-            valueLink.addDependency(DependencyType.Elem, self)
+            keyLink  .addDependency(DependencyType.Key, self)
+            valueLink.addDependency(DependencyType.Val, self)
             self.nodeValue[keyLink] = valueLink
-
 
 class ModuleTypeGraphNode(TypeGraphNode):
     def __init__(self, ast, name, parent_scope):

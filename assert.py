@@ -72,7 +72,7 @@ class AssertGenerator():
             self.generate_iteration(type_node.elems, 'elem')
         elif isinstance(type_node, TypeDict):
             self.generate_iteration(type_node.keys, 'elem.keys()')
-            self.generate_iteration(type_node.elems, 'elem.values()')
+            self.generate_iteration(type_node.vals, 'elem.values()')
         self.add_line('return True')
         self.tabs_level = tabs_level
         return func_name
@@ -112,7 +112,7 @@ def test_002():
 def test_003():
     type003 = TypeDict()
     type003.add_key(type_str)
-    type003.add_elem(type_unicode)
+    type003.add_val(type_unicode)
     assert_generator.generate(type003)
 
 test_001()

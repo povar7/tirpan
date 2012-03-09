@@ -4,15 +4,13 @@ Created on 07.01.2012
 @author: bronikkk
 '''
 
-import ast
 import unittest
+from test_utils import *
 
-import os
-from os import sys
-tests_dir        = os.path.dirname(sys.argv[0])
-test_file_name_1 = os.path.abspath(os.path.join(tests_dir, 'import01_1.py'))
-test_file_name_2 = os.path.abspath(os.path.join(tests_dir, 'import01_2.py'))
-sys.path.append(os.path.join(tests_dir, '..'))
+test_file_name_1 = get_test_file_name('import01_1.py')
+test_file_name_2 = get_test_file_name('import01_2.py')
+
+import ast
 
 from importer  import Importer
 from scope     import Scope

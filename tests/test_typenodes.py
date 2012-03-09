@@ -1,10 +1,5 @@
 import unittest
-
-import os
-from os import sys
-
-tests_dir = os.path.dirname(sys.argv[0])
-sys.path.append(os.path.join(tests_dir, '..'))
+from test_utils import *
 
 from typenodes import *
 
@@ -141,22 +136,22 @@ class TestTypeNodes(unittest.TestCase):
 
     def test_eq_dicts(self):
         l1 = TypeDict()
-        l1.add_elem(TypeInt())
         l1.add_key(TypeStr())
+        l1.add_val(TypeInt())
         l2 = TypeDict()
-        l2.add_elem(TypeInt())
         l2.add_key(TypeStr())
+        l2.add_val(TypeInt())
         self.assertTrue(l2 == l1)
         testset = set([l1, l2])
         self.assertEqual(len(testset), 1)
 
     def test_ne_dicts(self):
         l1 = TypeDict()
-        l1.add_elem(TypeInt())
         l1.add_key(TypeStr())
+        l1.add_val(TypeInt())
         l2 = TypeDict()
         l2.add_key(TypeInt())
-        l2.add_elem(TypeStr())
+        l2.add_val(TypeStr())
         self.assertFalse(l2 == l1)
         testset = set([l1, l2])
         self.assertEqual(len(testset), 2)
@@ -166,13 +161,13 @@ class TestTypeNodes(unittest.TestCase):
         l1.add_elem(TypeStr())
         l1.add_elem(TypeStr())
         d1 = TypeDict()
-        d1.add_elem(l1)
         d1.add_key(TypeStr())
+        d1.add_val(l1)
         l2 = TypeList()
         l2.add_elem(TypeStr())
         d2 = TypeDict()
-        d2.add_elem(l2)
         d2.add_key(TypeStr())
+        d2.add_val(l2)
         testset = set([d1, d2])
         self.assertEqual(len(testset), 1)
         self.assertTrue(d2 == d1)
@@ -182,14 +177,14 @@ class TestTypeNodes(unittest.TestCase):
         l1.add_elem(TypeStr())
         l1.add_elem(TypeStr())
         d1 = TypeDict()
-        d1.add_elem(l1)
         d1.add_key(TypeStr())
+        d1.add_val(l1)
         l2 = TypeList()
         l2.add_elem(TypeStr())
         l2.add_elem(TypeInt())
         d2 = TypeDict()
-        d2.add_elem(l2)
-        d2.add_elem(TypeStr())
+        d2.add_val(l2)
+        d2.add_val(TypeStr())
         self.assertFalse(d2 == d1)
         testset = set([d1, d2])
         self.assertEqual(len(testset), 2)

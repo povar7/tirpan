@@ -68,23 +68,23 @@ class TypeTuple(TypeListOrTuple):
 
 class TypeDict(TypeNode):
     def __init__(self):
-        self.elems = set([])
         self.keys = set([])
+        self.vals = set([])
 
-    def add_elem(self, elem):
-        self.elems.add(elem)
+    def add_val(self, val):
+        self.vals.add(val)
 
     def add_key(self, key):
         self.keys.add(key)
 
     def instance_eq_to(self, other):
-        return (self.elems == other.elems) and (self.keys == other.keys)
+        return (self.keys == other.keys) and (self.vals == other.vals) 
 
     def instance_hash(self):
-        return hash((tuple(self.elems), tuple(self.keys)))
+        return hash((tuple(self.keys), tuple(self.vals)))
 
     def elem_types(self):
-        return self.elems
+        return self.vals
 
     def __str__(self):
         return 'dict'
