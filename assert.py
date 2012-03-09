@@ -1,62 +1,4 @@
-class TypeDescrNode(object):
-    pass
-
-class TypeInt(TypeDescrNode):
-    def __str__(self):
-        return 'int'
-    pass
-
-class TypeLong(TypeDescrNode):
-    def __str__(self):
-        return 'long'
-    pass
-
-class TypeFloat(TypeDescrNode):
-    def __str__(self):
-        return 'float'
-    pass
-
-class TypeComplex(TypeDescrNode):
-    def __str__(self):
-        return 'complex'
-    pass
-
-class TypeStr(TypeDescrNode):
-    def __str__(self):
-        return 'str'
-    pass
-
-class TypeUnicode(TypeDescrNode):
-    def __str__(self):
-        return 'unicode'
-    pass
-
-class TypeList(TypeDescrNode):
-    def __init__(self):
-        self.elems = set()
-    def __str__(self):
-        return 'list'
-    def add_elem(self, type_node):
-        self.elems = self.elems.union(set([type_node]))
-
-class TypeTuple(TypeDescrNode):
-    def __init__(self):
-        self.elems = set()
-    def __str__(self):
-        return 'tuple'
-    def add_elem(self, type_node):
-        self.elems = self.elems.union(set([type_node]))
-
-class TypeDict(TypeDescrNode):
-    def __init__(self):
-        self.keys = set()
-        self.vals = set()
-    def __str__(self):
-        return 'dict'
-    def add_key(self, type_node):
-        self.keys = self.keys.union(set([type_node]))
-    def add_val(self, type_node):
-        self.vals = self.vals.union(set([type_node]))
+from typenodes import *
 
 class AssertGenerator():
     def flush(self):
@@ -130,7 +72,7 @@ class AssertGenerator():
             self.generate_iteration(type_node.elems, 'elem')
         elif isinstance(type_node, TypeDict):
             self.generate_iteration(type_node.keys, 'elem.keys()')
-            self.generate_iteration(type_node.vals, 'elem.values()')
+            self.generate_iteration(type_node.elems, 'elem.values()')
         self.add_line('return True')
         self.tabs_level = tabs_level
         return func_name
@@ -170,7 +112,7 @@ def test_002():
 def test_003():
     type003 = TypeDict()
     type003.add_key(type_str)
-    type003.add_val(type_unicode)
+    type003.add_elem(type_unicode)
     assert_generator.generate(type003)
 
 test_001()

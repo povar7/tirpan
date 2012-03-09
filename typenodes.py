@@ -1,77 +1,90 @@
 class TypeNode:
-	def instance_eq_to(self, other):
-		return True
+    def instance_eq_to(self, other):
+        return True
 
-	def instance_hash(self):
-		return None
+    def instance_hash(self):
+       return None
 
-	def elem_types(self):
-		return set()
+    def elem_types(self):
+        return set()
 
-	def __ne__(self, other):
-		return not (self == other)
+    def __ne__(self, other):
+        return not (self == other)
 
-	def __eq__(self, other):
-		res = self.__class__ == other.__class__
-		return res and self.instance_eq_to(other)
+    def __eq__(self, other):
+        res = self.__class__ == other.__class__
+        return res and self.instance_eq_to(other)
 
-	def __hash__(self):
-		return hash( (self.__class__, self.instance_hash()) )
-
+    def __hash__(self):
+        return hash((self.__class__, self.instance_hash()))
 
 class TypeInt(TypeNode):
-	pass;
+    def __str__(self):
+        return 'int'
+
+class TypeLong(TypeNode):
+    def __str__(self):
+        return 'long'
 
 class TypeFloat(TypeNode):
-	pass; 
+    def __str__(self):
+        return 'float'
+
+class TypeComplex(TypeNode):
+    def __str__(self):
+        return 'complex'
 
 class TypeStr(TypeNode):
-	pass;
+    def __str__(self):
+        return 'str'
 
 class TypeUnicode(TypeNode):
-	pass;
+    def __str__(self):
+        return 'unicode'
 
-class TypeBool(TypeNode):
-	pass;
+class TypeListOrTuple(TypeNode):
+    def __init__(self):
+        self.elems = set([])
 
-class TypeList(TypeNode):
-	def __init__(self):
-		self.elems = set([])
+    def add_elem(self, elem):
+        self.elems.add(elem)
 
-	def add_elem(self, elem):
-		self.elems.add(elem)
+    def instance_eq_to(self, other):
+        return self.elems == other.elems
 
-	def instance_eq_to(self, other):
-		return self.elems == other.elems
+    def instance_hash(self):
+        return hash(tuple(self.elems))
 
-	def instance_hash(self):
-		return hash(tuple(self.elems))
+    def elem_types(self):
+        return self.elems
 
-	def elem_types(self):
-		return self.elems
+class TypeList(TypeListOrTuple):
+    def __str__(self):
+        return 'list'
 
-class TypeTuple(TypeList):
-	pass;
+class TypeTuple(TypeListOrTuple):
+    def __str__(self):
+        return 'tuple'
 
 class TypeDict(TypeNode):
-	def __init__(self):
-		self.elems = set([])
-		self.keys = set([])
+    def __init__(self):
+        self.elems = set([])
+        self.keys = set([])
 
-	def add_elem(self, elem):
-		self.elems.add(elem)
+    def add_elem(self, elem):
+        self.elems.add(elem)
 
-	def add_key(self, key):
-		self.keys.add(key)
+    def add_key(self, key):
+        self.keys.add(key)
 
-	def instance_eq_to(self, other):
-		return (self.elems == other.elems) and (self.keys == other.keys)
+    def instance_eq_to(self, other):
+        return (self.elems == other.elems) and (self.keys == other.keys)
 
-	def instance_hash(self):
-		return hash((tuple(self.elems), tuple(self.keys)))
+    def instance_hash(self):
+        return hash((tuple(self.elems), tuple(self.keys)))
 
-	def elem_types(self):
-		return self.elems
+    def elem_types(self):
+        return self.elems
 
-
-		
+    def __str__(self):
+        return 'dict'
