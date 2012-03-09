@@ -32,5 +32,11 @@ class Scope(object):
         return self.parent
 
     def printVariables(self):
-        for var in self.variables.iteritems():
-            print var[0], ':', var[1].nodeType
+        for var in self.variables.values():
+            print var.name, ':', var.nodeType
+
+    def linkParamsAndArgs(self, args):
+        for var in self.variables.values():
+            index = var.paramNumber - 1
+            if index < len(args):
+                var.nodeType = set([args[index]])

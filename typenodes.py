@@ -1,3 +1,9 @@
+'''
+Created on 03.03.2012
+
+@author: ramil
+'''
+
 class TypeNode:
     def instance_eq_to(self, other):
         return True
@@ -41,6 +47,10 @@ class TypeStr(TypeNode):
 class TypeUnicode(TypeNode):
     def __str__(self):
         return 'unicode'
+
+class TypeBool(TypeNode):
+    def __str__(self):
+        return 'bool'
 
 class TypeListOrTuple(TypeNode):
     def __init__(self):

@@ -81,6 +81,7 @@ class TIVisitor(ast.NodeVisitor):
             defPos = i - nonDefs
             defVal = node.defaults[defPos] if defPos >= 0 else None
             self.visit(arg)
+            arg.link.setParamNumber(i + 1)
             if defVal:
                 self.visit(defVal)
                 defVal.link.addDependency(arg.link)
@@ -88,32 +89,46 @@ class TIVisitor(ast.NodeVisitor):
     def visit_FunctionDef(self, node):
         funcDefNode = FuncDefTypeGraphNode(node.body, __main__.current_scope)
         node.link   = __main__.current_scope.findOrAdd(node.name)
-        funcDefNode.addDependency(node.link)
+        funcDefNode.addDependency(DependencyType.Assign, node.link)
         node.link.addValue(funcDefNode)
         __main__.current_scope = funcDefNode.getParams()
         self.visit(node.args) 
         __main__.current_scope = __main__.current_scope.getParent()
 
     def visit_Call(self, node):
+        from funccall import process_function_call
+        for arg in node.args:
+            self.visit(arg)
         node.link = CallTypeGraphNode()
         funcName  = node.func.id
         varNode   = __main__.current_scope.find(funcName)
         if not varNode:
             __main__.error_printer.printError(CallNotResolvedError(node, funcName))
             return
-        funcsList = list(varNode.nodeValue)
+        funcsList = \
+            [elem for elem in varNode.nodeValue if isinstance(elem, FuncDefTypeGraphNode)]
         if len(funcsList) == 0:
             __main__.error_printer.printError(CallNotResolvedError(node, funcName))
             return
+        process_function_call(funcsList, node.args)
 
     def visit_For(self, node):
         self.visit(node.iter)
         self.visit(node.target)
         node.iter.link.addDependency(DependencyType.AssignElem, node.target.link)
-        for nn in node.body: self.visit(nn)
+        for nn in node.body:
+            self.visit(nn)
+
+    def visit_BinOp(self, node):
+        node.link = ConstTypeGraphNode(0)
         
     def visit_BoolOp(self, node):
         node.link = ConstTypeGraphNode(False)
 
     def visit_Compare(self, node):
         node.link = ConstTypeGraphNode(False)
+
+    def visit_Return(self, node):
+        self.generic_visit(node)
+        __main__.current_res = \
+            __main__.current_res.union(node.value.link.nodeType)

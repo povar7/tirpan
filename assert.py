@@ -1,3 +1,9 @@
+'''
+Created on 03.03.2012
+
+@author: bronikkk
+'''
+
 from typenodes import *
 
 class AssertGenerator():
@@ -44,9 +50,8 @@ class AssertGenerator():
         self.generate_if(cond, 'return False')
 
     def generate_conds_list(self, types_set):
-        types_list = list(types_set)
         res = ''
-        for item in types_list:
+        for item in types_set:
             res += 'not ' + self.generate(item) + '(item) and '
         res += 'True'
         return res

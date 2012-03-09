@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 '''
 Created on 29.01.2012
 
@@ -32,6 +33,7 @@ if __name__ == '__main__':
     args = parser.parse_args();
 
     current_scope = None
+    current_res   = None
     importer      = Importer()
     error_printer = ErrorPrinter()
     verbose       = args.verbose

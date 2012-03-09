@@ -39,7 +39,7 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
-        nodeType = list(node.link.nodeType)
+        nodeType = node.link.nodeType
         self.assertTrue(len(nodeType) == 3 and                                       \
                         any([self.type_int   == elem for elem in nodeType]) and      \
                         any([self.type_float == elem for elem in nodeType]) and      \

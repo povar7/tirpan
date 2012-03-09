@@ -113,12 +113,16 @@ class ConstTypeGraphNode(TypeGraphNode):
 class VarTypeGraphNode(TypeGraphNode):
     def __init__(self, name):
         super(VarTypeGraphNode, self).__init__()
-        self.nodeValue = set()
-        self.name      = name
-        self.parent    = None
+        self.nodeValue    = set()
+        self.name         = name
+        self.parent       = None
+        self.paramNumber  = None
     
     def addValue(self, value):
         self.nodeValue = self.nodeValue.union(set([value]))
+ 
+    def setParamNumber(self, paramNumber):
+        self.paramNumber = paramNumber
                         
 class ListTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
@@ -166,11 +170,10 @@ class ModuleTypeGraphNode(TypeGraphNode):
 class FuncDefTypeGraphNode(TypeGraphNode):
     def __init__(self, ast, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()
-        self.nodeType  = None
+        self.nodeType  = set()
         self.ast       = ast
-        self.scope     = None
         self.params    = Scope(parent_scope)
-        self.templates = []
+        self.templates = {}
     def getParams(self):
         return self.params 
     def getScope(self):

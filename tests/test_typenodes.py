@@ -1,3 +1,9 @@
+'''
+Created on 03.03.2012
+
+@author: ramil
+'''
+
 import unittest
 from tests_common import *
 

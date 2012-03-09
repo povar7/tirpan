@@ -40,7 +40,7 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
-        nodeType = list(node.link.nodeType)
+        nodeType = node.link.nodeType
         type1 = TypeList()
         type1.add_elem(self.type_int)
         type2 = TypeUnicode()
@@ -55,7 +55,7 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
-        nodeType = list(node.link.nodeType)
+        nodeType = node.link.nodeType
         tmp_type1 = TypeList()
         tmp_type1.add_elem(self.type_int)
         tmp_type2 = TypeUnicode()
