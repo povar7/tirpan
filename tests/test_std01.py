@@ -5,7 +5,7 @@ Created on 07.01.2012
 '''
 
 import unittest
-from test_utils import *
+from tests_common import *
 test_file_name = get_test_file_name('std01.py')
 
 import ast
@@ -126,6 +126,16 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
+        nodeType = list(node.link.nodeType)
+        self.assertTrue(len(nodeType) == 1 and isinstance(nodeType[0], TypeList),    \
+                        'type is not a list')
+        elemsType = list(nodeType[0].elems)
+        self.assertTrue(len(elemsType) == 4 and \
+                        any([isinstance(elem, TypeInt) for elem in elemsType]) and   \
+                        any([isinstance(elem, TypeFloat) for elem in elemsType]) and \
+                        any([isinstance(elem, TypeStr) for elem in elemsType]) and   \
+                        any([isinstance(elem, TypeUnicode) for elem in elemsType]),  \
+                        'elems are int, float, str and unicode')
         self.assertEqual(node.link.name, 'a', 'name is not "a"')
 
     def test_walk_var_b(self):
@@ -133,6 +143,16 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
+        nodeType = list(node.link.nodeType)
+        self.assertTrue(len(nodeType) == 1 and isinstance(nodeType[0], TypeTuple),   \
+                        'type is not a tuple')
+        elemsType = list(nodeType[0].elems)
+        self.assertTrue(len(elemsType) == 4 and \
+                        any([isinstance(elem, TypeInt) for elem in elemsType]) and   \
+                        any([isinstance(elem, TypeFloat) for elem in elemsType]) and \
+                        any([isinstance(elem, TypeStr) for elem in elemsType]) and   \
+                        any([isinstance(elem, TypeUnicode) for elem in elemsType]),  \
+                        'elems are int, float, str and unicode')
         self.assertEqual(node.link.name, 'b', 'name is not "b"')
 
     def test_walk_var_c(self):
@@ -140,6 +160,19 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
+        nodeType = list(node.link.nodeType)
+        self.assertTrue(len(nodeType) == 1 and isinstance(nodeType[0], TypeDict),    \
+                        'type is not a dict')
+        valsType = list(nodeType[0].vals)
+        keysType = list(nodeType[0].keys)
+        self.assertTrue(len(keysType) == 2 and \
+                        any([isinstance(elem, TypeInt) for elem in keysType]) and    \
+                        any([isinstance(elem, TypeStr) for elem in keysType]),       \
+                        'keys are int, str')
+        self.assertTrue(len(valsType) == 2 and \
+                        any([isinstance(elem, TypeFloat) for elem in valsType]) and  \
+                        any([isinstance(elem, TypeUnicode) for elem in valsType]),   \
+                        'values are float, unicode')
         self.assertEqual(node.link.name, 'c', 'name is not "c"')
 
 if __name__ == '__main__':

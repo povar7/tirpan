@@ -5,7 +5,7 @@ Created on 07.01.2012
 '''
 
 import unittest
-from test_utils import *
+from tests_common import *
 
 test_file_name_1 = get_test_file_name('import01_1.py')
 test_file_name_2 = get_test_file_name('import01_2.py')

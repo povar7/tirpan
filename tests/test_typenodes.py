@@ -1,5 +1,5 @@
 import unittest
-from test_utils import *
+from tests_common import *
 
 from typenodes import *
 
