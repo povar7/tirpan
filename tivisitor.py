@@ -124,4 +124,3 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_Compare(self, node):
         node.link = ConstTypeGraphNode(False)
-
