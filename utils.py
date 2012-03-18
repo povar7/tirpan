@@ -23,7 +23,10 @@ def getLine(node):
 
 def getCol (node):
     offset = getattr(node, 'col_offset', None)
-    return offset + 1 if offset else None
+    if offset is None:
+        return None
+    else:
+        return offset + 1
 
 def getFile(node):
     module = getattr(node, 'filelink', None)
