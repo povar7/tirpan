@@ -84,7 +84,7 @@ class TIVisitor(ast.NodeVisitor):
             arg.link.setParamNumber(i + 1)
             if defVal:
                 self.visit(defVal)
-                defVal.link.addDependency(arg.link)
+                defVal.link.addDependency(DependencyType.Assign, arg.link)
             
     def visit_FunctionDef(self, node):
         funcDefNode = FuncDefTypeGraphNode(node.body, __main__.current_scope)
