@@ -54,7 +54,7 @@ class TIVisitor(ast.NodeVisitor):
             node.value.link.addDependency(DependencyType.Assign, target.link)
         node.link = node.value.link
 
-    def visit_List(self,node):
+    def visit_List(self, node):
         self.generic_visit(node)
         node.link = ListTypeGraphNode(node)
         
@@ -96,21 +96,16 @@ class TIVisitor(ast.NodeVisitor):
         __main__.current_scope = __main__.current_scope.getParent()
 
     def visit_Call(self, node):
-        from funccall import process_function_call
         for arg in node.args:
             self.visit(arg)
-        node.link = CallTypeGraphNode()
-        funcName  = node.func.id
-        varNode   = __main__.current_scope.find(funcName)
-        if not varNode:
-            __main__.error_printer.printError(CallNotResolvedError(node, funcName))
-            return
-        funcsList = \
-            [elem for elem in varNode.nodeValue if isinstance(elem, FuncDefTypeGraphNode)]
-        if len(funcsList) == 0:
-            __main__.error_printer.printError(CallNotResolvedError(node, funcName))
-            return
-        process_function_call(funcsList, node.args)
+        name  = node.func.id
+        var   = __main__.current_scope.find(name)
+        value = var.nodeValue if var else set()
+        funcs = [elem for elem in value if isinstance(elem, FuncDefTypeGraphNode)]
+        if len(funcs) == 0:
+            __main__.error_printer.printError(CallNotResolvedError(node, name))
+        node.link = FuncCallTypeGraphNode(node, funcs)
+        node.link.processCall()
 
     def visit_For(self, node):
         self.visit(node.iter)
@@ -131,4 +126,4 @@ class TIVisitor(ast.NodeVisitor):
     def visit_Return(self, node):
         self.generic_visit(node)
         __main__.current_res = \
-            __main__.current_res.union(node.value.link.nodeType)
+            __main__.current_res.union(set([node.value.link]))
