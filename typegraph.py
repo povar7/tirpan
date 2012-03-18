@@ -4,7 +4,7 @@ Created on 11.12.2011
 @author: ramil
 '''
 
-from copy import deepcopy
+from safecopy import deepcopy
 from itertools import product
 
 from funccall import *
@@ -18,6 +18,7 @@ class DependencyType(object):
     Key        = "key"
     Val        = "val"
     Arg        = "arg"
+    Func       = "func"
     Module     = "module"
 
 class TypeGraphNode(object):
@@ -29,6 +30,10 @@ class TypeGraphNode(object):
     def get_atom_type_node(self, atom_type):
         if atom_type == int:
             return TypeInt()
+        elif atom_type == long:
+            return TypeLong()
+        elif atom_type == complex:
+            return TypeComplex()
         elif atom_type == float:
             return TypeFloat()
         elif atom_type == str:
@@ -37,6 +42,8 @@ class TypeGraphNode(object):
             return TypeUnicode()
         elif atom_type == bool:
             return TypeBool()
+        elif atom_type == NoneType:
+            return TypeNone()
         return None
 
     def addDependency(self, dep_type, dep):
@@ -99,6 +106,15 @@ class TypeGraphNode(object):
         if dep.argsTypes[index] != self.nodeType:
             dep.argsTypes[index] = deepcopy(self.nodeType)
             dep.processCall()
+            dep.generic_dependency()
+
+    def func_dep(self, dep):
+        funcs = set([elem for elem in self.nodeType if isinstance(elem, FuncDefTypeGraphNode)])
+        if len(funcs) > len(dep.funcs):
+            dep.funcs = funcs
+            if dep.args is not None:
+                dep.processCall()
+                dep.generic_dependency()
 
     def elem_types(self):
         el_types = set()
@@ -174,9 +190,9 @@ class ModuleTypeGraphNode(TypeGraphNode):
 class FuncDefTypeGraphNode(TypeGraphNode):
     def __init__(self, ast, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()
-        self.nodeType  = set()
+        self.nodeType  = set([self])
         self.ast       = ast
-        self.params    = Scope(parent_scope)
+        self.params    = Scope(parent_scope, True)
         self.templates = {}
 
     def getParams(self):
@@ -186,12 +202,18 @@ class FuncDefTypeGraphNode(TypeGraphNode):
         return self.scope 
 
 class FuncCallTypeGraphNode(TypeGraphNode):
-    def __init__(self, node, funcs):
+    def __init__(self, node, var):
         super(FuncCallTypeGraphNode, self).__init__()
         self.nodeType  = set()
+        self.funcs     = set()
+        try:
+            self.args  = None
+            var.addDependency(DependencyType.Func, self)
+        except AttributeError:
+            import __main__
+            __main__.error_printer.printError(CallNotResolvedError(node, node.func.id))
         self.args      = []
         self.argsTypes = []
-        self.funcs     = funcs
         for arg in node.args:
             link = arg.link
             type_copy = deepcopy(link.nodeType)
@@ -203,3 +225,4 @@ class FuncCallTypeGraphNode(TypeGraphNode):
         for elem in product(*self.argsTypes):
             for func in self.funcs:
                self.nodeType = self.nodeType.union(process_product_elem(func, elem))
+        pass

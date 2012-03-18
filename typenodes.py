@@ -52,6 +52,10 @@ class TypeBool(TypeNode):
     def __str__(self):
         return 'bool'
 
+class TypeNone(TypeNode):
+    def __str__(self):
+        return 'NoneType'
+
 class TypeListOrTuple(TypeNode):
     def __init__(self):
         self.elems = set([])

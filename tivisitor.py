@@ -89,22 +89,16 @@ class TIVisitor(ast.NodeVisitor):
     def visit_FunctionDef(self, node):
         funcDefNode = FuncDefTypeGraphNode(node.body, __main__.current_scope)
         node.link   = __main__.current_scope.findOrAdd(node.name)
-        funcDefNode.addDependency(DependencyType.Assign, node.link)
-        node.link.addValue(funcDefNode)
         __main__.current_scope = funcDefNode.getParams()
         self.visit(node.args) 
         __main__.current_scope = __main__.current_scope.getParent()
+        funcDefNode.addDependency(DependencyType.Assign, node.link)
 
     def visit_Call(self, node):
         for arg in node.args:
             self.visit(arg)
-        name  = node.func.id
-        var   = __main__.current_scope.find(name)
-        value = var.nodeValue if var else set()
-        funcs = [elem for elem in value if isinstance(elem, FuncDefTypeGraphNode)]
-        if len(funcs) == 0:
-            __main__.error_printer.printError(CallNotResolvedError(node, name))
-        node.link = FuncCallTypeGraphNode(node, funcs)
+        var = __main__.current_scope.find(node.func.id)
+        node.link = FuncCallTypeGraphNode(node, var)
         node.link.processCall()
 
     def visit_For(self, node):

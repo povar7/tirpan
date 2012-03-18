@@ -5,9 +5,10 @@ Created on 03.01.2012
 '''
 
 class Scope(object):
-    def __init__(self, parent = None):
+    def __init__(self, parent = None, params_scope = False):
         self.parent = parent
         self.variables = {}
+        self.params_scope = params_scope
 
     def add(self, name, varNode):
         varNode.parent       = self

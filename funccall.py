@@ -4,16 +4,8 @@ Created on 09.03.2012
 @author: bronikkk
 '''
 
-from copy  import deepcopy
-from scope import Scope
-
-def copy_params(params):
-    save   = params.parent
-    params.parent = None
-    result = deepcopy(params)
-    params.parent = save
-    result.parent = save
-    return result
+from safecopy import deepcopy
+from scope    import Scope
 
 def process_results(results):
     types = set()
@@ -27,7 +19,7 @@ def process_product_elem(func, elem):
     if elem not in func.templates:
         func.templates[elem] = set()
         ast_copy    = deepcopy(func.ast)
-        params_copy = copy_params(func.params)
+        params_copy = deepcopy(func.params)
         params_copy.linkParamsAndArgs(elem)
         saved_scope = __main__.current_scope
         saved_res   = __main__.current_res
