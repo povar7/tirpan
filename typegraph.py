@@ -6,6 +6,7 @@ Created on 11.12.2011
 
 from itertools    import product
 from ast          import BinOp, Call
+from types        import NoneType
 
 from funccall     import *
 from safecopy     import deepcopy

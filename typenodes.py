@@ -24,35 +24,41 @@ class TypeNode:
     def __hash__(self):
         return hash((self.__class__, self.instance_hash()))
 
-class TypeInt(TypeNode):
+class TypeAtom(TypeNode):
+    pass
+
+class TypeInt(TypeAtom):
     def __str__(self):
         return 'int'
 
-class TypeLong(TypeNode):
+class TypeLong(TypeAtom):
     def __str__(self):
         return 'long'
 
-class TypeFloat(TypeNode):
+class TypeFloat(TypeAtom):
     def __str__(self):
         return 'float'
 
-class TypeComplex(TypeNode):
+class TypeComplex(TypeAtom):
     def __str__(self):
         return 'complex'
 
-class TypeStr(TypeNode):
+class TypeCommonString(TypeAtom):
+    pass
+
+class TypeStr(TypeCommonString):
     def __str__(self):
         return 'str'
 
-class TypeUnicode(TypeNode):
+class TypeUnicode(TypeCommonString):
     def __str__(self):
         return 'unicode'
 
-class TypeBool(TypeNode):
+class TypeBool(TypeAtom):
     def __str__(self):
         return 'bool'
 
-class TypeNone(TypeNode):
+class TypeNone(TypeAtom):
     def __str__(self):
         return 'NoneType'
 
