@@ -11,6 +11,7 @@ test_file_name = get_test_file_name('func04.py')
 import ast
 
 from importer  import Importer
+from init      import init_builtins
 from scope     import Scope
 from tiparser  import TIParser
 from typegraph import *
@@ -22,11 +23,13 @@ import tirpan
 
 class TestTirpan(unittest.TestCase):
     def setUp(self):
-        global current_scope, current_res, importer, verbose
-        current_scope = None
+        global global_scope, current_scope, current_res, importer, verbose
+        global_scope  = Scope(None)
+        current_scope = global_scope
         current_res   = None
         importer      = Importer()
         verbose       = False
+        init_builtins(global_scope)
         tirpan.run(test_file_name)
         import __main__
         self.ast = __main__.importer.imported_files['__main__'].ast

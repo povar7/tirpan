@@ -4,12 +4,13 @@ Created on 11.12.2011
 @author: ramil
 '''
 
-from safecopy import deepcopy
-from itertools import product
+from itertools    import product
+from ast          import BinOp, Call
 
-from funccall import *
-from scope import Scope
-from typenodes import *
+from funccall     import *
+from safecopy     import deepcopy
+from scope        import Scope
+from typenodes    import *
 
 class DependencyType(object):
     Assign     = "assign"
@@ -188,10 +189,9 @@ class ModuleTypeGraphNode(TypeGraphNode):
         pass
 
 class FuncDefTypeGraphNode(TypeGraphNode):
-    def __init__(self, ast, parent_scope):
+    def __init__(self, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()
         self.nodeType  = set([self])
-        self.ast       = ast
         self.params    = Scope(parent_scope, True)
         self.templates = {}
 
@@ -199,7 +199,19 @@ class FuncDefTypeGraphNode(TypeGraphNode):
         return self.params 
 
     def getScope(self):
-        return self.scope 
+        return self.scope
+
+class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
+    def __init__(self, ast, parent_scope):
+        super(UsualFuncDefTypeGraphNode, self).__init__(parent_scope)
+        self.ast       = ast
+
+class ExternFuncDefTypeGraphNode(FuncDefTypeGraphNode):
+    def __init__(self, params_num, quasi, parent_scope):
+        super(ExternFuncDefTypeGraphNode, self).__init__(parent_scope)
+        for i in range(params_num):
+            self.params.addParam(i + 1)
+        self.quasi = quasi
 
 class FuncCallTypeGraphNode(TypeGraphNode):
     def __init__(self, node, var):
@@ -211,10 +223,15 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             var.addDependency(DependencyType.Func, self)
         except AttributeError:
             import __main__
-            __main__.error_printer.printError(CallNotResolvedError(node, node.func.id))
+            from errorprinter import CallNotResolvedError
+            __main__.error_printer.printError(CallNotResolvedError(node))
         self.args      = []
         self.argsTypes = []
-        for arg in node.args:
+        if isinstance(node, BinOp):
+            nodeArgs = (node.left, node.right)
+        elif isinstance(node, Call):
+            nodeArgs = node.args
+        for arg in nodeArgs:
             link = arg.link
             type_copy = deepcopy(link.nodeType)
             self.args.append(link)
@@ -224,5 +241,4 @@ class FuncCallTypeGraphNode(TypeGraphNode):
     def processCall(self):
         for elem in product(*self.argsTypes):
             for func in self.funcs:
-               self.nodeType = self.nodeType.union(process_product_elem(func, elem))
-        pass
+                self.nodeType = self.nodeType.union(process_product_elem(func, elem))

@@ -10,6 +10,7 @@ import argparse
 
 from errorprinter import ErrorPrinter
 from importer     import Importer
+from init         import init_builtins
 from scope        import Scope
 from tiparser     import TIParser
 
@@ -32,10 +33,13 @@ if __name__ == '__main__':
     parser.add_argument('-V', '--verbose', action='store_true', help='verbose output');
     args = parser.parse_args();
 
-    current_scope = None
+    global_scope  = Scope(None)
+    current_scope = global_scope
     current_res   = None
     importer      = Importer()
     error_printer = ErrorPrinter()
     verbose       = args.verbose
+
+    init_builtins(global_scope)
 
     run(args.filename);

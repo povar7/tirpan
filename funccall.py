@@ -4,8 +4,8 @@ Created on 09.03.2012
 @author: bronikkk
 '''
 
-from safecopy import deepcopy
-from scope    import Scope
+from safecopy  import deepcopy
+from scope     import Scope
 
 def process_results(results):
     types = set()
@@ -16,20 +16,24 @@ def process_results(results):
 def process_product_elem(func, elem):
     import __main__
     from tivisitor import TIVisitor
+    from typegraph import ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
     if elem not in func.templates:
         func.templates[elem] = set()
-        ast_copy    = deepcopy(func.ast)
-        params_copy = deepcopy(func.params)
+        params_copy   = deepcopy(func.params)
         params_copy.linkParamsAndArgs(elem)
-        saved_scope = __main__.current_scope
-        saved_res   = __main__.current_res
-        func_scope = Scope(params_copy)
+        saved_scope   = __main__.current_scope
+        func_scope    = Scope(params_copy)
         __main__.current_scope = func_scope
-        __main__.current_res   = set()
-        visitor = TIVisitor(ast_copy[0].filelink.name)
-        for stmt in ast_copy:
-            visitor.visit(stmt)
-        func.templates[elem]   = process_results(__main__.current_res)
+        if isinstance(func, UsualFuncDefTypeGraphNode):
+            ast_copy  = deepcopy(func.ast)
+            saved_res = __main__.current_res
+            __main__.current_res = set()
+            visitor   = TIVisitor(ast_copy[0].filelink.name)
+            for stmt in ast_copy:
+                visitor.visit(stmt)
+            func.templates[elem] = process_results(__main__.current_res)
+            __main__.current_res = saved_res
+        elif isinstance(func, ExternFuncDefTypeGraphNode):
+            func.templates[elem] = func.quasi(__main__.current_scope)
         __main__.current_scope = saved_scope
-        __main__.current_res   = saved_res
     return func.templates[elem] 

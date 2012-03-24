@@ -6,6 +6,8 @@ Created on 05.02.2012
 
 import __main__
 
+from ast   import BinOp, Call
+from binop import get_operator_name
 from utils import getLine, getCol, getFile
 
 class ErrorPrinter(object):
@@ -18,11 +20,15 @@ class TirpanError(object):
         self.prefix = 'Tirpan error: '
 
 class CallNotResolvedError(TirpanError):
-    def __init__(self, node, func):
+    def __init__(self, node):
         super(CallNotResolvedError, self).__init__()
-        self.func = func
+        if isinstance(node, Call):
+            self.func = node.func.id
+        elif isinstance(node, BinOp):
+            self.func = get_operator_name(node.op.__class__)
         self._str = self.prefix + \
                     ('call to "%s" in "%s" at (%d, %d) was not resolved' % \
-                    (self.func, getFile(node), getLine(node), getCol(node)))
+                    (str(self.func), getFile(node), getLine(node), getCol(node)))
+
     def __str__(self):
         return self._str 

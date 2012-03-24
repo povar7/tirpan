@@ -8,8 +8,8 @@ import ast
 
 import __main__
 
-from typegraph    import *
-from errorprinter import *
+from binop     import get_operator_name    
+from typegraph import *
 
 class TIVisitor(ast.NodeVisitor):
     filename = None 
@@ -87,7 +87,7 @@ class TIVisitor(ast.NodeVisitor):
                 defVal.link.addDependency(DependencyType.Assign, arg.link)
             
     def visit_FunctionDef(self, node):
-        funcDefNode = FuncDefTypeGraphNode(node.body, __main__.current_scope)
+        funcDefNode = UsualFuncDefTypeGraphNode(node.body, __main__.current_scope)
         node.link   = __main__.current_scope.findOrAdd(node.name)
         __main__.current_scope = funcDefNode.getParams()
         self.visit(node.args) 
@@ -97,7 +97,8 @@ class TIVisitor(ast.NodeVisitor):
     def visit_Call(self, node):
         for arg in node.args:
             self.visit(arg)
-        var = __main__.current_scope.find(node.func.id)
+        name = node.func.id
+        var = __main__.current_scope.find(name)
         node.link = FuncCallTypeGraphNode(node, var)
         node.link.processCall()
 
@@ -109,7 +110,12 @@ class TIVisitor(ast.NodeVisitor):
             self.visit(nn)
 
     def visit_BinOp(self, node):
-        node.link = ConstTypeGraphNode(0)
+        self.visit(node.left)
+        self.visit(node.right)
+        name = get_operator_name(node.op.__class__)
+        var = __main__.current_scope.find(name)
+        node.link = FuncCallTypeGraphNode(node, var)
+        node.link.processCall()
         
     def visit_BoolOp(self, node):
         node.link = ConstTypeGraphNode(False)

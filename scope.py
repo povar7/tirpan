@@ -10,9 +10,9 @@ class Scope(object):
         self.variables = {}
         self.params_scope = params_scope
 
-    def add(self, name, varNode):
-        varNode.parent       = self
-        self.variables[name] = varNode
+    def add(self, var):
+        var.parent = self
+        self.variables[var.name] = var
 
     def find(self, name):
         if name in self.variables:
@@ -21,12 +21,24 @@ class Scope(object):
             return self.parent.find(name)
         return None
 
+    def _getParamName(self, num):
+        return 'param' + str(num)
+
+    def addParam(self, num):
+        from typegraph import VarTypeGraphNode
+        var = VarTypeGraphNode(self._getParamName(num))
+        var.setParamNumber(num)
+        self.add(var)
+
+    def findParam(self, num):
+        return self.find(self._getParamName(num))
+
     def findOrAdd(self, name):
         res = self.find(name)
         if not res:
             from typegraph import VarTypeGraphNode
             res = VarTypeGraphNode(name)
-            self.add(name, res)
+            self.add(res)
         return res
  
     def getParent(self):
