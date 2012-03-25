@@ -33,41 +33,71 @@ def quasi_plus(scope):
         for elem in type2.elems:
             res.add_elem(elem)
         return set([res])
-    if not isinstance(type1, TypeAtom) or not isinstance(type2, TypeAtom):
-        return set()
-    if isinstance(type1, TypeNone) or isinstance (type2, TypeNone):
-        return set()
+
+    if isinstance(type1, TypeTuple) and isinstance(type2, TypeTuple):
+        res = deepcopy(type1)
+        for elem in type2.elems:
+            res.add_elem(elem)
+        return set([res])
+
     if isinstance(type1, TypeBaseString) and isinstance(type2, TypeBaseString):
         if type1 == type_unicode or type2 == type_unicode:
             return set([type_unicode])
         else:
             return set([type_str])
-    if isinstance(type1, TypeComplex) or isinstance(type2, TypeComplex):
+
+    if type1 == type_bool:
+        type1 = type_int
+    if type2 == type_bool:
+        type2 = type_int
+
+    if type1 == type_int and type2 == type_int:
+        return set([type_int])
+    if (type1 == type_complex and isinstance(type2, TypeNum)) or (type2 == type_complex and isinstance(type1, TypeNum)):
         return set([type_complex])
-    if isinstance(type1, TypeFloat) or isinstance(type2, TypeFloat):
+    if (type1 == type_float and isinstance(type2, TypeNum)) or (type2 == type_float and isinstance(type1, TypeNum)):
         return set([type_float])
-    return set([type_int])
+
+
+    return set()
 
 def quasi_div(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     type2 = list(scope.findParam(2).nodeType)[0]
-    if (type1 == type_int and type2 == type_int):
+
+    if type1 == type_int and type2 == type_int:
         return set([type_int])
+    if (type1 == type_complex and isinstance(type2, TypeNum)) or (type2 == type_complex and isinstance(type1, TypeNum)):
+        return set([type_complex])
+    if (type1 == type_float and isinstance(type2, TypeNum)) or (type2 == type_float and isinstance(type1, TypeNum)):
+        return set([type_float])
+
     return set()
 
 def quasi_mult(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     type2 = list(scope.findParam(2).nodeType)[0]
-    if (type1 == type_int and type2 == type_int):
+
+    if type1 == type_int and type2 == type_int:
         return set([type_int])
+    if (type1 == type_complex and isinstance(type2, TypeNum)) or (type2 == type_complex and isinstance(type1, TypeNum)):
+        return set([type_complex])
+    if (type1 == type_float and isinstance(type2, TypeNum)) or (type2 == type_float and isinstance(type1, TypeNum)):
+        return set([type_float])
+
+    if (isinstance(type1,TypeBaseString) or isinstance(type1,TypeListOrTuple)) and type2 == type_int:
+        return set([type1])
+    if (isinstance(type2,TypeBaseString) or isinstance(type2,TypeListOrTuple)) and type1 == type_int:
+        return set([type2])
+
     return set()
 
 def quasi_sub(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     type2 = list(scope.findParam(2).nodeType)[0]
-    if (type1 == type_int and type2 == type_int):
-        return set([type_int])
-    return set()
+    if (isinstance(type1,TypeBaseString) or isinstance(type1,TypeListOrTuple)):
+        return set()
+    return quasi_plus(scope)
 
 def init_binop(op, quasi, scope):
     name = get_operator_name(op)

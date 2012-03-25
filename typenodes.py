@@ -27,19 +27,22 @@ class TypeNode:
 class TypeAtom(TypeNode):
     pass
 
-class TypeInt(TypeAtom):
+class TypeNum(TypeNode):
+    pass
+    
+class TypeInt(TypeNum):
     def __str__(self):
         return 'int'
 
-class TypeLong(TypeAtom):
+class TypeLong(TypeNum):
     def __str__(self):
         return 'long'
 
-class TypeFloat(TypeAtom):
+class TypeFloat(TypeNum):
     def __str__(self):
         return 'float'
 
-class TypeComplex(TypeAtom):
+class TypeComplex(TypeNum):
     def __str__(self):
         return 'complex'
 
