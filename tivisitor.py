@@ -41,6 +41,7 @@ class TIVisitor(ast.NodeVisitor):
             self.visit_None(node)
         else:
             node.link = __main__.current_scope.findOrAdd(node.id)
+            node.link.setPos(node)
         
     def visit_Assign(self, node):
         target = node.targets[0]
@@ -85,10 +86,12 @@ class TIVisitor(ast.NodeVisitor):
             if defVal:
                 self.visit(defVal)
                 defVal.link.addDependency(DependencyType.Assign, arg.link)
+                arg.link.setDefaultParam()
             
     def visit_FunctionDef(self, node):
         funcDefNode = UsualFuncDefTypeGraphNode(node.body, __main__.current_scope)
         node.link   = __main__.current_scope.findOrAdd(node.name)
+        node.link.setPos(node)
         __main__.current_scope = funcDefNode.getParams()
         self.visit(node.args) 
         __main__.current_scope = __main__.current_scope.getParent()

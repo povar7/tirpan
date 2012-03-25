@@ -18,9 +18,11 @@ def process_product_elem(func, elem):
     from tivisitor import TIVisitor
     from typegraph import ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
     if elem not in func.templates:
-        func.templates[elem] = set()
         params_copy   = deepcopy(func.params)
-        params_copy.linkParamsAndArgs(elem)
+        success       = params_copy.linkParamsAndArgs(elem)
+        if not success:
+            return set()
+        func.templates[elem] = set()
         saved_scope   = __main__.current_scope
         func_scope    = Scope(params_copy)
         __main__.current_scope = func_scope

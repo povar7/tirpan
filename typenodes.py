@@ -43,14 +43,14 @@ class TypeComplex(TypeAtom):
     def __str__(self):
         return 'complex'
 
-class TypeCommonString(TypeAtom):
+class TypeBaseString(TypeAtom):
     pass
 
-class TypeStr(TypeCommonString):
+class TypeStr(TypeBaseString):
     def __str__(self):
         return 'str'
 
-class TypeUnicode(TypeCommonString):
+class TypeUnicode(TypeBaseString):
     def __str__(self):
         return 'unicode'
 

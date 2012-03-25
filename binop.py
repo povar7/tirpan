@@ -1,3 +1,9 @@
+'''
+Created on 24.03.2012
+
+@author: bronikkk
+'''
+
 from ast       import Add, Div, Mult, Sub
 from typegraph import *
 from typenodes import *
@@ -31,7 +37,7 @@ def quasi_plus(scope):
         return set()
     if isinstance(type1, TypeNone) or isinstance (type2, TypeNone):
         return set()
-    if isinstance(type1, TypeCommonString) and isinstance(type2, TypeCommonString):
+    if isinstance(type1, TypeBaseString) and isinstance(type2, TypeBaseString):
         if type1 == type_unicode or type2 == type_unicode:
             return set([type_unicode])
         else:

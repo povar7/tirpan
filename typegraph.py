@@ -12,6 +12,7 @@ from funccall     import *
 from safecopy     import deepcopy
 from scope        import Scope
 from typenodes    import *
+from utils        import *
 
 class DependencyType(object):
     Assign     = "assign"
@@ -138,12 +139,23 @@ class VarTypeGraphNode(TypeGraphNode):
         self.name         = name
         self.parent       = None
         self.paramNumber  = None
+        self.line         = None
+        self.col          = None
+        self.defaultParam = False
     
     def addValue(self, value):
-        self.nodeValue = self.nodeValue.union(set([value]))
+        self.nodeValue    = self.nodeValue.union(set([value]))
  
     def setParamNumber(self, paramNumber):
-        self.paramNumber = paramNumber
+        self.paramNumber  = paramNumber
+ 
+    def setDefaultParam(self):
+        self.defaultParam = True
+ 
+    def setPos(self, node):
+        if not self.line:
+            self.line = getLine(node)
+            self.col  = getCol (node)
                         
 class ListTypeGraphNode(TypeGraphNode):
     def __init__(self, node):

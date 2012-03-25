@@ -45,11 +45,24 @@ class Scope(object):
         return self.parent
 
     def printVariables(self):
-        for var in self.variables.values():
+        variables = sorted(self.variables.values(), \
+                           lambda x, y: cmp((x.line, x.col), (y.line, y.col)))
+        for var in variables:
             print var.name, ':', var.nodeType
 
     def linkParamsAndArgs(self, args):
-        for var in self.variables.values():
-            index = var.paramNumber - 1
-            if index < len(args):
-                var.nodeType = set([args[index]])
+        variables = sorted(self.variables.values(), \
+                           lambda x, y: cmp(x.paramNumber, y.paramNumber))
+        args_num  = len(args)
+        for index in range(args_num):
+            try:
+                var = variables[index]
+            except IndexError:
+                return False
+            var.nodeType = set([args[index]])
+        vars_num  = len(variables)
+        for index in range(args_num, vars_num):
+            var = variables[index]
+            if not var.defaultParam:
+                return False
+        return True 
