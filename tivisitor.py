@@ -100,6 +100,8 @@ class TIVisitor(ast.NodeVisitor):
     def visit_Call(self, node):
         for arg in node.args:
             self.visit(arg)
+        for kwarg in node.keywords:
+            self.visit(kwarg.value)
         name = node.func.id
         var = __main__.current_scope.find(name)
         node.link = FuncCallTypeGraphNode(node, var)

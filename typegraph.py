@@ -14,6 +14,8 @@ from scope        import Scope
 from typenodes    import *
 from utils        import *
 
+type_str = TypeStr()
+
 class DependencyType(object):
     Assign     = "assign"
     AssignElem = "assign_elem"
@@ -21,6 +23,7 @@ class DependencyType(object):
     Key        = "key"
     Val        = "val"
     Arg        = "arg"
+    KWArg      = "kwarg"
     Func       = "func"
     Module     = "module"
 
@@ -111,6 +114,13 @@ class TypeGraphNode(object):
             dep.processCall()
             dep.generic_dependency()
 
+    def kwarg_dep(self, dep):
+        index = dep.kwargs.index(self)
+        if dep.kwargsTypes[index] != self.nodeType:
+            dep.kwargsTypes[index] = deepcopy(self.nodeType)
+            dep.processCall()
+            dep.generic_dependency()
+
     def func_dep(self, dep):
         funcs = set([elem for elem in self.nodeType if isinstance(elem, FuncDefTypeGraphNode)])
         if len(funcs) > len(dep.funcs):
@@ -143,6 +153,7 @@ class VarTypeGraphNode(TypeGraphNode):
         self.col          = None
         self.defaultParam = False
         self.varParam     = False
+        self.kwParam      = False
     
     def addValue(self, value):
         self.nodeValue    = self.nodeValue.union(set([value]))
@@ -155,6 +166,9 @@ class VarTypeGraphNode(TypeGraphNode):
 
     def setVarParam(self):
         self.varParam = True
+
+    def setKWParam(self):
+        self.kwParam = True
  
     def setPos(self, node):
         if not self.line:
@@ -218,6 +232,9 @@ class FuncDefTypeGraphNode(TypeGraphNode):
     def getScope(self):
         return self.scope
 
+    def getKWArgs(self, kwargsTypes):
+        return [None]
+
 class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
     def __init__(self, node, parent_scope):
         super(UsualFuncDefTypeGraphNode, self).__init__(parent_scope)
@@ -227,6 +244,24 @@ class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
             var = VarTypeGraphNode(self.vararg)
             var.setVarParam()
             self.params.add(var)
+        self.kwarg     = node.args.kwarg
+        if self.kwarg:
+            var = VarTypeGraphNode(self.kwarg)
+            var.setKWParam()
+            self.params.add(var)
+
+    def getKWArgs(self, kwargsTypes):
+        if self.kwarg is None:
+            return [None] 
+        else:
+            res = []
+            for item in product(*kwargsTypes):
+                type_dict = TypeDict()
+                type_dict.add_key(type_str)
+                for elem in item:
+                    type_dict.add_val(elem) 
+                res.append(type_dict)
+            return res
 
 class ExternFuncDefTypeGraphNode(FuncDefTypeGraphNode):
     def __init__(self, params_num, quasi, parent_scope, def_vals = {}):
@@ -263,8 +298,19 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             self.args.append(link)
             self.argsTypes.append(type_copy)
             link.addDependency(DependencyType.Arg, self)
+        self.kwargs      = []
+        self.kwargsTypes = []
+        if not isinstance(node, Call):
+            return
+        for kwarg in node.keywords:
+            link = kwarg.value.link
+            type_copy = deepcopy(link.nodeType)
+            self.kwargs.append(link)
+            self.kwargsTypes.append(type_copy)
+            link.addDependency(DependencyType.KWArg, self)
 
     def processCall(self):
-        for elem in product(*self.argsTypes):
+        for arg in product(*self.argsTypes):
             for func in self.funcs:
-                self.nodeType = self.nodeType.union(process_product_elem(func, elem))
+                for kwarg in func.getKWArgs(self.kwargsTypes): 
+                    self.nodeType = self.nodeType.union(process_product_elem(func, arg, kwarg))

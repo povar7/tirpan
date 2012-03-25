@@ -13,11 +13,11 @@ def process_results(results):
         types = types.union(res.nodeType)
     return types
 
-def process_product_elem(func, arg_elem):
+def process_product_elem(func, arg_elem, kwarg_elem):
     import __main__
     from tivisitor import TIVisitor
     from typegraph import ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
-    elem = func.params.getArgs(arg_elem)
+    elem = func.params.getArgs(arg_elem, kwarg_elem)
     if elem is None:
         return set()
     if elem not in func.templates:

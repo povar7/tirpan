@@ -7,6 +7,10 @@ Created on 03.01.2012
 from typenodes import *
 
 def sort_params(x, y):
+    if x.kwParam:
+        return 1
+    if y.kwParam:
+        return -1
     if x.varParam:
         return 1
     if y.varParam:
@@ -60,7 +64,7 @@ class Scope(object):
         for var in variables:
             print var.name, ':', var.nodeType
 
-    def getArgs(self, args):
+    def getArgs(self, args, kwargs):
         variables = sorted(self.variables.values(), sort_params)
         args_num  = len(args)
         vars_num  = len(variables)
@@ -87,6 +91,9 @@ class Scope(object):
                     args_tuple.add_elem(args[arg_index])
                     arg_index += 1
                 res.append(args_tuple)
+                var_index += 1
+            elif var.kwParam:
+                res.append(kwargs)
                 var_index += 1
             else:
                 if arg_index >= args_num:

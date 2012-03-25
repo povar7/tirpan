@@ -15,10 +15,10 @@ class TIParser(object):
         try:
             with open(filename) as f:
                 try:
-                    self.ast = ast.parse(f.read());
+                    self.ast = ast.parse(f.read())
                 except SyntaxError as ex:
                     print ex.offset
-                    raise ex;
+                    raise ex
         except IOError:
             print 'Cannot open "' + filename + '" file'
             exit(1)

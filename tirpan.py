@@ -28,10 +28,10 @@ def run(filename):
     __main__.importer.import_files(filename, [alias])
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Python Type Inference Project.');
-    parser.add_argument('filename', help='filename of python source');
-    parser.add_argument('-V', '--verbose', action='store_true', help='verbose output');
-    args = parser.parse_args();
+    parser = argparse.ArgumentParser(description='Python Type Inference Project.')
+    parser.add_argument('filename', help='filename of python source')
+    parser.add_argument('-V', '--verbose', action='store_true', help='verbose output')
+    args = parser.parse_args()
 
     global_scope  = Scope(None)
     current_scope = global_scope
@@ -42,4 +42,4 @@ if __name__ == '__main__':
 
     common_init(global_scope)
 
-    run(args.filename);
+    run(args.filename)
