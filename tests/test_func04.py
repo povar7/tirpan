@@ -11,7 +11,7 @@ test_file_name = get_test_file_name('func04.py')
 import ast
 
 from importer  import Importer
-from init      import init_builtins
+from init      import common_init
 from scope     import Scope
 from tiparser  import TIParser
 from typegraph import *
@@ -29,7 +29,7 @@ class TestTirpan(unittest.TestCase):
         current_res   = None
         importer      = Importer()
         verbose       = False
-        init_builtins(global_scope)
+        common_init(global_scope)
         tirpan.run(test_file_name)
         import __main__
         self.ast = __main__.importer.imported_files['__main__'].ast

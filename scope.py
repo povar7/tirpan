@@ -29,6 +29,7 @@ class Scope(object):
         var = VarTypeGraphNode(self._getParamName(num))
         var.setParamNumber(num)
         self.add(var)
+        return var
 
     def findParam(self, num):
         return self.find(self._getParamName(num))

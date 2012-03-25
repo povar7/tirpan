@@ -72,7 +72,7 @@ def quasi_sub(scope):
 def init_binop(op, quasi, scope):
     name = get_operator_name(op)
     func = ExternFuncDefTypeGraphNode(2, quasi, scope)
-    var  = VarTypeGraphNode(name)
+    var  = scope.findOrAdd(name)
     func.addDependency(DependencyType.Assign, var)
     scope.add(var)
 

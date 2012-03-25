@@ -220,10 +220,14 @@ class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
         self.ast       = ast
 
 class ExternFuncDefTypeGraphNode(FuncDefTypeGraphNode):
-    def __init__(self, params_num, quasi, parent_scope):
+    def __init__(self, params_num, quasi, parent_scope, def_vals = {}):
         super(ExternFuncDefTypeGraphNode, self).__init__(parent_scope)
-        for i in range(params_num):
-            self.params.addParam(i + 1)
+        for i in range(1, params_num + 1):
+            param = self.params.addParam(i)
+            if i in def_vals:
+                def_type = def_vals[i]
+                param.setDefaultParam()
+                param.nodeType = set([def_type])
         self.quasi = quasi
 
 class FuncCallTypeGraphNode(TypeGraphNode):
