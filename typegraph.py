@@ -142,6 +142,7 @@ class VarTypeGraphNode(TypeGraphNode):
         self.line         = None
         self.col          = None
         self.defaultParam = False
+        self.varParam     = False
     
     def addValue(self, value):
         self.nodeValue    = self.nodeValue.union(set([value]))
@@ -151,6 +152,9 @@ class VarTypeGraphNode(TypeGraphNode):
  
     def setDefaultParam(self):
         self.defaultParam = True
+
+    def setVarParam(self):
+        self.varParam = True
  
     def setPos(self, node):
         if not self.line:
@@ -215,9 +219,14 @@ class FuncDefTypeGraphNode(TypeGraphNode):
         return self.scope
 
 class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
-    def __init__(self, ast, parent_scope):
+    def __init__(self, node, parent_scope):
         super(UsualFuncDefTypeGraphNode, self).__init__(parent_scope)
-        self.ast       = ast
+        self.ast       = node.body
+        self.vararg    = node.args.vararg
+        if self.vararg:
+            var = VarTypeGraphNode(self.vararg)
+            var.setVarParam()
+            self.params.add(var)
 
 class ExternFuncDefTypeGraphNode(FuncDefTypeGraphNode):
     def __init__(self, params_num, quasi, parent_scope, def_vals = {}):

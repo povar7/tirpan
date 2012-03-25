@@ -13,15 +13,16 @@ def process_results(results):
         types = types.union(res.nodeType)
     return types
 
-def process_product_elem(func, elem):
+def process_product_elem(func, arg_elem):
     import __main__
     from tivisitor import TIVisitor
     from typegraph import ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
+    elem = func.params.getArgs(arg_elem)
+    if elem is None:
+        return set()
     if elem not in func.templates:
         params_copy   = deepcopy(func.params)
-        success       = params_copy.linkParamsAndArgs(elem)
-        if not success:
-            return set()
+        params_copy.linkParamsAndArgs(elem)
         func.templates[elem] = set()
         saved_scope   = __main__.current_scope
         func_scope    = Scope(params_copy)

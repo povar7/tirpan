@@ -89,7 +89,7 @@ class TIVisitor(ast.NodeVisitor):
                 arg.link.setDefaultParam()
             
     def visit_FunctionDef(self, node):
-        funcDefNode = UsualFuncDefTypeGraphNode(node.body, __main__.current_scope)
+        funcDefNode = UsualFuncDefTypeGraphNode(node, __main__.current_scope)
         node.link   = __main__.current_scope.findOrAdd(node.name)
         node.link.setPos(node)
         __main__.current_scope = funcDefNode.getParams()

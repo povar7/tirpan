@@ -4,6 +4,15 @@ Created on 03.01.2012
 @author: ramil
 '''
 
+from typenodes import *
+
+def sort_params(x, y):
+    if x.varParam:
+        return 1
+    if y.varParam:
+        return -1
+    return cmp(x.paramNumber, y.paramNumber)
+
 class Scope(object):
     def __init__(self, parent = None, params_scope = False):
         self.parent = parent
@@ -51,19 +60,48 @@ class Scope(object):
         for var in variables:
             print var.name, ':', var.nodeType
 
-    def linkParamsAndArgs(self, args):
-        variables = sorted(self.variables.values(), \
-                           lambda x, y: cmp(x.paramNumber, y.paramNumber))
+    def getArgs(self, args):
+        variables = sorted(self.variables.values(), sort_params)
         args_num  = len(args)
-        for index in range(args_num):
-            try:
-                var = variables[index]
-            except IndexError:
-                return False
-            var.nodeType = set([args[index]])
         vars_num  = len(variables)
-        for index in range(args_num, vars_num):
+        var_index = 0
+        arg_index = 0
+        res       = []
+        while True:
+            if var_index >= vars_num:
+                break
+            var = variables[var_index]
+            if var.defaultParam:
+                if arg_index < args_num:
+                    res.append(args[arg_index])
+                    arg_index += 1
+                else:
+                    res.append(list(var.nodeType)[0])
+                var_index += 1
+                continue
+            elif var.varParam:
+                args_tuple = TypeTuple()
+                while True:
+                    if arg_index >= args_num:
+                        break
+                    args_tuple.add_elem(args[arg_index])
+                    arg_index += 1
+                res.append(args_tuple)
+                var_index += 1
+            else:
+                if arg_index >= args_num:
+                    return None
+                res.append(args[arg_index])
+                var_index += 1
+                arg_index += 1
+        if arg_index < args_num:
+            return None
+        return tuple(res)
+
+    def linkParamsAndArgs(self, args):
+        variables = sorted(self.variables.values(), sort_params)
+        vars_num  = len(variables)
+        for index in range(vars_num):
             var = variables[index]
-            if not var.defaultParam:
-                return False
-        return True 
+            arg = args[index]
+            var.nodeType = set([arg])
