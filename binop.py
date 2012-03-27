@@ -75,9 +75,9 @@ def quasi_mult(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     type2 = list(scope.findParam(2).nodeType)[0]
 
-    if isinstance(type1, (TypeBaseString, TypeListOrTuple)) and type2 == type_int:
+    if isinstance(type1, (TypeBaseString, TypeListOrTuple)) and (type2 == type_bool or type2 == type_int or type2 == type_long):
         return set([type1])
-    if isinstance(type2, (TypeBaseString, TypeListOrTuple)) and type1 == type_int:
+    if isinstance(type2, (TypeBaseString, TypeListOrTuple)) and (type1 == type_bool or type1 == type_int or type1 == type_long):
         return set([type2])
 
     return quasi_div(scope)
