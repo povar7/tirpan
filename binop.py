@@ -55,7 +55,9 @@ def quasi_plus(scope):
         return set([type_float])
     if type1 == type_long or type2 == type_long:
         return set([type_long])
-    return set([type_int])
+    if type1 == type_bool and type2 == type_bool:
+        return set([type_int])
+    return set([type_int, type_long])
 
 def quasi_div(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
@@ -79,6 +81,8 @@ def quasi_mult(scope):
         return set([type1])
     if isinstance(type2, (TypeBaseString, TypeListOrTuple)) and (type1 == type_bool or type1 == type_int or type1 == type_long):
         return set([type2])
+    if type1 == type_int and type2 == type_int:
+        return set([type_int, type_long])
 
     return quasi_div(scope)
 
