@@ -3,7 +3,7 @@ from itertools import product
 import os
 from os import sys
 
-op = ['+', '-', '*', '/']
+op = ['+', '-', '*', '/', '//']
 operands = ['True', '1', '1l', '1.0', '1j', 'None', '\'1\'', 'u\'1\'', '[1, 1]', '(1, 1)']
 
 tests_dir = os.path.dirname(sys.argv[0])
@@ -12,6 +12,8 @@ with open(filename, 'w') as f:
     i = 0
     for elem in product(op, operands, operands):
 	code = '%s %s %s' % (elem[1], elem[0], elem[2])
+	if elem[0] == '//' and (elem[1] == '1j' or elem[2] == '1j'):
+            continue
 	try:
             exec code
 	    i += 1

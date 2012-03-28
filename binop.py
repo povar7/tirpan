@@ -4,11 +4,11 @@ Created on 24.03.2012
 @author: bronikkk
 '''
 
-from ast       import Add, Div, Mult, Sub
+from ast       import Add, Div, FloorDiv, Mult, Sub
 from typegraph import *
 from typenodes import *
 
-operator_names_table = {Add : '+', Div : '/', Mult : '*', Sub : '-'}
+operator_names_table = {Add : '+', Div : '/', FloorDiv : '//', Mult : '*', Sub : '-'}
 
 def get_operator_name(op):
     try:
@@ -73,6 +73,9 @@ def quasi_div(scope):
         return set([type_long])
     return set([type_int])
 
+def quasi_floordiv(scope):
+    return quasi_div(scope)
+
 def quasi_mult(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     type2 = list(scope.findParam(2).nodeType)[0]
@@ -104,7 +107,8 @@ def init_binop(op, quasi, scope):
     scope.add(var)
 
 def init_binops(scope):
-    init_binop(Add , quasi_plus, scope) 
-    init_binop(Div , quasi_div , scope)
-    init_binop(Mult, quasi_mult, scope) 
-    init_binop(Sub , quasi_sub , scope) 
+    init_binop(Add     , quasi_plus    , scope) 
+    init_binop(Div     , quasi_div     , scope)
+    init_binop(FloorDiv, quasi_floordiv, scope)
+    init_binop(Mult    , quasi_mult    , scope) 
+    init_binop(Sub     , quasi_sub     , scope)
