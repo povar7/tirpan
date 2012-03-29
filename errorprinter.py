@@ -6,8 +6,8 @@ Created on 05.02.2012
 
 import __main__
 
-from ast   import BinOp, Call
-from binop import get_operator_name
+from ast   import BinOp, UnaryOp, Call
+from init  import get_operator_name
 from utils import getLine, getCol, getFile
 
 class ErrorPrinter(object):
@@ -24,7 +24,7 @@ class CallNotResolvedError(TirpanError):
         super(CallNotResolvedError, self).__init__()
         if isinstance(node, Call):
             self.func = node.func.id
-        elif isinstance(node, BinOp):
+        elif isinstance(node, (BinOp, UnaryOp)):
             self.func = get_operator_name(node.op.__class__)
         self._str = self.prefix + \
                     ('call to "%s" in "%s" at (%d, %d) was not resolved' % \

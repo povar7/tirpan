@@ -8,7 +8,7 @@ import ast
 
 import __main__
 
-from binop     import get_operator_name    
+from init      import get_operator_name    
 from typegraph import *
 
 class TIVisitor(ast.NodeVisitor):
@@ -117,6 +117,13 @@ class TIVisitor(ast.NodeVisitor):
     def visit_BinOp(self, node):
         self.visit(node.left)
         self.visit(node.right)
+        name = get_operator_name(node.op.__class__)
+        var = __main__.current_scope.find(name)
+        node.link = FuncCallTypeGraphNode(node, var)
+        node.link.processCall()
+
+    def visit_UnaryOp(self, node):
+        self.visit(node.operand)
         name = get_operator_name(node.op.__class__)
         var = __main__.current_scope.find(name)
         node.link = FuncCallTypeGraphNode(node, var)

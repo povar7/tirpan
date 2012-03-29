@@ -5,7 +5,7 @@ Created on 11.12.2011
 '''
 
 from itertools    import product
-from ast          import BinOp, Call
+from ast          import BinOp, UnaryOp, Call
 from types        import NoneType
 
 from funccall     import *
@@ -289,7 +289,9 @@ class FuncCallTypeGraphNode(TypeGraphNode):
         self.args      = []
         self.argsTypes = []
         if isinstance(node, BinOp):
-            nodeArgs = (node.left, node.right)
+            nodeArgs = [node.left, node.right]
+	elif isinstance(node, UnaryOp):
+            nodeArgs = [node.operand]
         elif isinstance(node, Call):
             nodeArgs = node.args
         for arg in nodeArgs:

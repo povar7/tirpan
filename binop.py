@@ -10,11 +10,8 @@ from typenodes import *
 
 operator_names_table = {Add : '+', Div : '/', FloorDiv : '//', Mult : '*', Mod : '%', Sub : '-'}
 
-def get_operator_name(op):
-    try:
-        return operator_names_table[op]
-    except KeyError:
-        return op
+def get_binary_operator_name(op):
+    return operator_names_table[op]
 
 type_int     = TypeInt()
 type_long    = TypeLong()
@@ -108,7 +105,7 @@ def quasi_sub(scope):
     return quasi_plus(scope)
 
 def init_binop(op, quasi, scope):
-    name = get_operator_name(op)
+    name = get_binary_operator_name(op)
     func = ExternFuncDefTypeGraphNode(2, quasi, scope)
     var  = scope.findOrAdd(name)
     func.addDependency(DependencyType.Assign, var)
