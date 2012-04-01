@@ -19,7 +19,7 @@ def get_operator_name(op):
         pass
     return op
 
-def common_init(global_scope):
+def common_init(global_scope, importer):
     init_binops(global_scope)
     init_unops(global_scope)
-    init_builtins(global_scope)
+    init_builtins(global_scope, importer)

@@ -29,7 +29,7 @@ class TestTirpan(unittest.TestCase):
         importer      = Importer()
         verbose       = False
 
-        common_init(global_scope)
+        common_init(global_scope, importer)
         tirpan.run(test_file_name)
         self.ast = importer.imported_files['__main__'].ast
 

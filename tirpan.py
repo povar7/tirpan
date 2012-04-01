@@ -39,6 +39,6 @@ if __name__ == '__main__':
     error_printer = ErrorPrinter()
     verbose       = args.verbose
 
-    common_init(global_scope)
+    common_init(global_scope, importer)
 
     run(args.filename)

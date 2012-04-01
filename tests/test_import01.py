@@ -31,7 +31,6 @@ def import_from_file(mainfile, module, aliases):
     importer.import_files(mainfile, [alias], aliases)
 
 class TestTirpan(unittest.TestCase):
-
     def setUp(self):
         global global_scope, current_scope, current_res, importer, verbose
         global_scope  = Scope(None)
@@ -40,15 +39,14 @@ class TestTirpan(unittest.TestCase):
         importer      = Importer()
         verbose       = False
 
-        common_init(global_scope)
+        common_init(global_scope, importer)
         tirpan.run(test_file_name_1)
-
+        self.nodes      = (importer.imported_files['__main__'].ast,                         \
+                           importer.imported_files[test_file_name_2].ast)
+        
         self.type_int   = TypeInt()
         self.type_float = TypeFloat()
         self.type_str   = TypeStr()
-
-        self.nodes      = (importer.imported_files['__main__'].ast,                         \
-                           importer.imported_files[test_file_name_2].ast)
 
     def test_different_modules(self):
         self.assertTrue(isinstance(self.nodes[0], ast.Module), 'module 1 is not a module')

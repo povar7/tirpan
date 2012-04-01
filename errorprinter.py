@@ -29,9 +29,16 @@ class CallNotResolvedError(TirpanError):
                     ('call to "%s" in "%s" at (%d, %d) was not resolved' % \
                     (str(self.func), getFile(node), getLine(node), getCol(node)))
 
+class ImportStmtError(TirpanError):
+    def __init__(self, name):
+        super(ImportStmtError, self).__init__()
+        self._str = self.prefix + \
+                    ('cannot import name "%s"' % \
+                    (name))
+
 class ImportFromStmtError(TirpanError):
     def __init__(self, name, module_name):
         super(ImportFromStmtError, self).__init__()
         self._str = self.prefix + \
-                    ('cannot import "%s" from "%s" module' % \
+                    ('cannot import name "%s" from "%s"' % \
                     (name, module_name))
