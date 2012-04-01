@@ -12,12 +12,13 @@ test_file_name_2 = get_test_file_name('import01_2.py')
 
 import ast
 
-from importer  import Importer
-from scope     import Scope
-from tiparser  import TIParser
-from typegraph import *
+from errorprinter import ErrorPrinter
+from importer     import Importer
+from scope        import Scope
+from tiparser     import TIParser
+from typegraph    import *
 
-from utils     import findNode
+from utils        import findNode
 
 import tirpan
 
@@ -28,8 +29,10 @@ def import_files(mainfile, aliases):
 class TestTirpan(unittest.TestCase):
 
     def setUp(self):
-        global current_scope, importer, verbose
-        current_scope = None
+        global global_scope, current_scope, error_printer, importer, verbose
+        global_scope  = Scope(None)
+        current_scope = global_scope
+        error_printer = ErrorPrinter()
         importer      = Importer()
         verbose       = False
         tirpan.run(test_file_name_1)
@@ -57,36 +60,33 @@ class TestTirpan(unittest.TestCase):
     def test_complex_module_1(self):
         scope = self.nodes[0].link.scope
         self.assertTrue(isinstance(scope, Scope), 'module 1 has no link to scope')
-        var1 = scope.find('a')
-        self.assertTrue(isinstance(var1, VarTypeGraphNode), 'there is no "a" variable in scope')
-        var2 = scope.find('b')
-        self.assertTrue(isinstance(var2, VarTypeGraphNode), 'there is no "b" variable in scope')
-        var3 = scope.find('import01_2')
-        self.assertTrue(isinstance(var3, VarTypeGraphNode), 'there is no "import01_2" variable in scope')
-        value3 = var3.nodeValue
-        self.assertTrue(isinstance(value3, set), '"import01_2" variable has a wrong value')
-        list3 = list(value3)
-        self.assertTrue(len(list3) == 1, '"import01_2" variable has a wrong value')
-        self.assertEquals(list3[0], self.nodes[1].link, '"import01_2" variable has a wrong value')
-        var4 = scope.find('mama')
-        self.assertTrue(isinstance(var4, VarTypeGraphNode), 'there is no "mama" variable in scope')
-        value4 = var4.nodeValue
-        self.assertEquals(value3, value4, '"mama" variable has a wrong value')
+        var = scope.find('a')
+        self.assertTrue(isinstance(var, VarTypeGraphNode), 'there is no "a" variable in scope')
+        var = scope.find('b')
+        self.assertTrue(isinstance(var, VarTypeGraphNode), 'there is no "b" variable in scope')
+        var = scope.find('import01_2')
+        self.assertTrue(isinstance(var, VarTypeGraphNode), 'there is no "import01_2" variable in scope')
+        nodeType = var.nodeType
+        self.assertTrue(len(nodeType) == 1 and                                  \
+                        any([elem == self.nodes[1].link for elem in nodeType]), \
+                        '"import01_2" variable has a wrong value')
+        var = scope.find('mama')
+        self.assertTrue(isinstance(var, VarTypeGraphNode), 'there is no "mama" variable in scope')
+        self.assertEquals(var.nodeType, nodeType, '"mama" variable has a wrong type')
 
     def test_complex_module_2(self):
         scope = self.nodes[1].link.scope
         self.assertTrue(isinstance(scope, Scope), 'module 1 has no link to scope')
-        var1 = scope.find('c')
-        self.assertTrue(isinstance(var1, VarTypeGraphNode), 'there is no "c" variable in scope')
-        var2 = scope.find('d')
-        self.assertTrue(isinstance(var2, VarTypeGraphNode), 'there is no "d" variable in scope')
-        var3 = scope.find('__main__')
-        self.assertTrue(isinstance(var3, VarTypeGraphNode), 'there is no "__main__" variable in scope')
-        value3 = var3.nodeValue
-        self.assertTrue(isinstance(value3, set), '"__main__" variable has a wrong value')
-        list3 = list(value3)
-        self.assertTrue(len(list3) == 1, '"__main__" variable has a wrong value')
-        self.assertEquals(list3[0], self.nodes[0].link, '"__main__" variable has a wrong value')
+        var = scope.find('c')
+        self.assertTrue(isinstance(var, VarTypeGraphNode), 'there is no "c" variable in scope')
+        var = scope.find('d')
+        self.assertTrue(isinstance(var, VarTypeGraphNode), 'there is no "d" variable in scope')
+        var = scope.find('__main__')
+        self.assertTrue(isinstance(var, VarTypeGraphNode), 'there is no "__main__" variable in scope')
+        nodeType = var.nodeType
+        self.assertTrue(len(nodeType) == 1 and                                  \
+                        any([elem == self.nodes[0].link for elem in nodeType]), \
+                        '"import01_1" variable has a wrong value')
 
 if __name__ == '__main__':
     unittest.main()

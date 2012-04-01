@@ -25,7 +25,6 @@ class DependencyType(object):
     Arg        = "arg"
     KWArg      = "kwarg"
     Func       = "func"
-    Module     = "module"
 
 class TypeGraphNode(object):
     def __init__(self):
@@ -155,9 +154,6 @@ class VarTypeGraphNode(TypeGraphNode):
         self.varParam     = False
         self.kwParam      = False
     
-    def addValue(self, value):
-        self.nodeValue    = self.nodeValue.union(set([value]))
- 
     def setParamNumber(self, paramNumber):
         self.paramNumber  = paramNumber
  
@@ -208,16 +204,13 @@ class DictTypeGraphNode(TypeGraphNode):
 class ModuleTypeGraphNode(TypeGraphNode):
     def __init__(self, ast, name, parent_scope):
         super(ModuleTypeGraphNode, self).__init__()
-        self.nodeType = None
+        self.nodeType = set([self])
         self.ast      = ast
         self.name     = name
         self.scope    = Scope(parent_scope)
 
     def getScope(self):
         return self.scope 
-    
-    def module_dep(self, dep):
-        pass
 
 class FuncDefTypeGraphNode(TypeGraphNode):
     def __init__(self, parent_scope):

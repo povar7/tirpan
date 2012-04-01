@@ -55,5 +55,4 @@ class Importer(object):
             if __main__.current_scope:
                 var_name = alias.asname if alias.asname else alias.name
                 alias.link = __main__.current_scope.findOrAdd(var_name)
-                alias.link.addValue(imported_tree.link)
-                imported_tree.link.addDependency(DependencyType.Module, alias.link)
+                imported_tree.link.addDependency(DependencyType.Assign, alias.link)
