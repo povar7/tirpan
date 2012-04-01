@@ -195,5 +195,5 @@ class TestTypeNodes(unittest.TestCase):
         testset = set([d1, d2])
         self.assertEqual(len(testset), 2)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

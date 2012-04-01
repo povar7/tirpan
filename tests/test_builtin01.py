@@ -10,14 +10,13 @@ test_file_name = get_test_file_name('builtin01.py')
 
 import ast
 
-from importer  import Importer
-from init      import common_init
-from scope     import Scope
-from tiparser  import TIParser
-from typegraph import *
-from typenodes import *
-
-from utils     import findNode
+from init       import common_init
+from scope      import Scope
+from tiimporter import Importer, QuasiAlias
+from tiparser   import TIParser
+from typegraph  import *
+from typenodes  import *
+from utils      import findNode
 
 import tirpan
 
@@ -29,10 +28,10 @@ class TestTirpan(unittest.TestCase):
         current_res   = None
         importer      = Importer()
         verbose       = False
+
         common_init(global_scope)
         tirpan.run(test_file_name)
-        import __main__
-        self.ast = __main__.importer.imported_files['__main__'].ast
+        self.ast = importer.imported_files['__main__'].ast
 
         self.type_int     = TypeInt()
         self.type_float   = TypeFloat()

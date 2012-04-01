@@ -14,6 +14,11 @@ import __main__
 from tiparser  import TIParser
 from typegraph import VarTypeGraphNode, ModuleTypeGraphNode, DependencyType
 
+class QuasiAlias(object):
+    def __init__(self, name):
+        self.name   = name
+        self.asname = None
+
 class Importer(object):
     def __init__(self):
         self.imported_files = {}
@@ -30,7 +35,7 @@ class Importer(object):
         paths.extend(sys.path)
         return self.find_module(name, paths)
 
-    def import_files(self, mainfile, aliases):
+    def import_files(self, mainfile, aliases, from_aliases = None):
         for alias in aliases:
             name = alias.name
             if name == '__main__':
@@ -43,6 +48,7 @@ class Importer(object):
                 return
             if searchname in self.imported_files:
                 imported_tree = self.imported_files[searchname].ast
+                module = imported_tree.link 
             else:
                 parser = TIParser(filename)
                 imported_tree = parser.ast
@@ -52,7 +58,19 @@ class Importer(object):
                     node.filelink = module 
                 self.imported_files[searchname] = imported_tree.link 
                 parser.walk()
-            if __main__.current_scope:
+            if from_aliases is None:
                 var_name = alias.asname if alias.asname else alias.name
                 alias.link = __main__.current_scope.findOrAdd(var_name)
-                imported_tree.link.addDependency(DependencyType.Assign, alias.link)
+                module.addDependency(DependencyType.Assign, alias.link)
+            else:
+                for from_alias in from_aliases:
+                    var_name  = from_alias.name  
+                    var_alias = from_alias.asname if from_alias.asname else var_name
+                    var = module.scope.find(var_name)
+                    try:
+                        alias = VarTypeGraphNode(var_alias)
+                        __main__.current_scope.add(alias)
+                        var.addDependency(DependencyType.Assign, alias)
+                    except AttributeError:
+                        from errorprinter import ImportFromStmtError
+                        __main__.error_printer.printError(ImportFromStmtError(var_name, module.name))

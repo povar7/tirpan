@@ -70,6 +70,9 @@ class TIVisitor(ast.NodeVisitor):
     def visit_Import(self, node):
         __main__.import_files(self.filename, node.names)
 
+    def visit_ImportFrom(self, node):
+        __main__.import_from_file(self.filename, node.module, node.names)
+
     def visit_Module(self, node):
         __main__.current_scope = node.link.getScope()
         self.generic_visit(node)

@@ -17,14 +17,14 @@ from utils        import *
 type_str = TypeStr()
 
 class DependencyType(object):
-    Assign     = "assign"
-    AssignElem = "assign_elem"
-    Elem       = "elem"
-    Key        = "key"
-    Val        = "val"
-    Arg        = "arg"
-    KWArg      = "kwarg"
-    Func       = "func"
+    Assign     = 'assign'
+    AssignElem = 'assign_elem'
+    Elem       = 'elem'
+    Key        = 'key'
+    Val        = 'val'
+    Arg        = 'arg'
+    KWArg      = 'kwarg'
+    Func       = 'func'
 
 class TypeGraphNode(object):
     def __init__(self):
