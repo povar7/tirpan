@@ -231,6 +231,7 @@ class UsualModuleTypeGraphNode(ModuleTypeGraphNode):
 class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
     def __init__(self, name, parent_scope):
         super(ExternModuleTypeGraphNode, self).__init__(name, parent_scope)
+        self.isLoaded = False
 
 class FuncDefTypeGraphNode(TypeGraphNode):
     def __init__(self, parent_scope):

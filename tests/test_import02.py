@@ -42,6 +42,7 @@ class TestTirpan(unittest.TestCase):
         tirpan.run(test_file_name)
         self.ast = importer.imported_files['__main__'].ast
 
+        self.type_int   = TypeInt()
         self.type_str   = TypeStr()
 
     def test_basic_module(self):
@@ -51,7 +52,7 @@ class TestTirpan(unittest.TestCase):
         self.assertEquals(module.ast, self.ast, 'module has a wrong link to ast')
 
     def test_walk_var_x(self):
-        node = findNode(self.ast, line=10, col=1, kind=ast.Name)
+        node = findNode(self.ast, line=11, col=1, kind=ast.Name)
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
@@ -64,7 +65,7 @@ class TestTirpan(unittest.TestCase):
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
     def test_walk_var_y(self):
-        node = findNode(self.ast, line=11, col=1, kind=ast.Name)
+        node = findNode(self.ast, line=12, col=1, kind=ast.Name)
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
@@ -75,6 +76,18 @@ class TestTirpan(unittest.TestCase):
                         any([type1 == elem for elem in nodeType]),                          \
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
+
+    def test_walk_var_z(self):
+        node = findNode(self.ast, line=13, col=1, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
+        nodeType = node.link.nodeType
+        type1 = self.type_int
+        self.assertTrue(len(nodeType) == 1 and                                              \
+                        any([type1 == elem for elem in nodeType]),                          \
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'z', 'name is not "z"')
 
 if __name__ == '__main__':
     unittest.main()

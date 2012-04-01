@@ -104,7 +104,7 @@ def quasi_sub(scope):
 
     return quasi_plus(scope)
 
-def init_binop(op, quasi, scope):
+def init_binop(scope, op, quasi):
     name = get_binary_operator_name(op)
     func = ExternFuncDefTypeGraphNode(2, quasi, scope)
     var  = scope.findOrAdd(name)
@@ -112,9 +112,9 @@ def init_binop(op, quasi, scope):
     scope.add(var)
 
 def init_binops(scope):
-    init_binop(Add     , quasi_plus    , scope) 
-    init_binop(Div     , quasi_div     , scope)
-    init_binop(FloorDiv, quasi_floordiv, scope)
-    init_binop(Mult    , quasi_mult    , scope) 
-    init_binop(Mod     , quasi_mod     , scope) 
-    init_binop(Sub     , quasi_sub     , scope)
+    init_binop(scope, Add     , quasi_plus    )
+    init_binop(scope, Div     , quasi_div     )
+    init_binop(scope, FloorDiv, quasi_floordiv)
+    init_binop(scope, Mult    , quasi_mult    )
+    init_binop(scope, Mod     , quasi_mod     )
+    init_binop(scope, Sub     , quasi_sub     )

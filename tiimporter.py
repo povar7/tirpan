@@ -11,6 +11,7 @@ from os import sys
 
 import __main__
 
+from builtin   import import_standard_module
 from tiparser  import TIParser
 from typegraph import UsualVarTypeGraphNode, UsualModuleTypeGraphNode, ExternModuleTypeGraphNode, DependencyType
 
@@ -26,9 +27,7 @@ class Importer(object):
 
     def add_module(self, scope, name):
         if not name in self.standard_modules:
-            module = ExternModuleTypeGraphNode(name, scope)
-            self.standard_modules[name] = module
-        return self.standard_modules[name]
+            self.standard_modules[name] = ExternModuleTypeGraphNode(name, scope)
 
     def find_module(self, name, paths):
         for path in paths:
@@ -47,6 +46,7 @@ class Importer(object):
             name = alias.name
             if name in self.standard_modules:
                 module = self.standard_modules[name]
+                import_standard_module(module, self)
             else:
                 if name == '__main__':
                     filename   = os.path.abspath(mainfile)

@@ -15,12 +15,6 @@ def get_unary_operator_name(op):
 
 type_int     = TypeInt()
 type_long    = TypeLong()
-type_float   = TypeFloat()
-type_complex = TypeComplex()
-type_str     = TypeStr()
-type_unicode = TypeUnicode()
-type_bool    = TypeBool()
-type_none    = TypeNone()
 
 def quasi_uplus(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
@@ -34,7 +28,7 @@ def quasi_uminus(scope):
         return set([type_int, type_long])
     return quasi_uplus(scope)
 
-def init_unop(op, quasi, scope):
+def init_unop(scope, op, quasi):
     name = get_unary_operator_name(op)
     func = ExternFuncDefTypeGraphNode(1, quasi, scope)
     var  = scope.findOrAdd(name)
@@ -42,5 +36,5 @@ def init_unop(op, quasi, scope):
     scope.add(var)
 
 def init_unops(scope):
-    init_unop(UAdd     , quasi_uplus    , scope) 
-    init_unop(USub     , quasi_uminus   , scope) 
+    init_unop(scope, UAdd, quasi_uplus )
+    init_unop(scope, USub, quasi_uminus)
