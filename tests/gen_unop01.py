@@ -1,3 +1,9 @@
+'''
+Created on 29.03.2012
+
+@author: bronikkk
+'''
+
 from itertools import product
 
 import os
