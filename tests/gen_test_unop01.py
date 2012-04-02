@@ -1,5 +1,5 @@
 '''
-Created on 27.03.2012
+Created on 29.03.2012
 
 @author: bronikkk
 '''
@@ -11,13 +11,13 @@ from os import sys
 
 import re
 
-op = ['+', '-', '*', '/', '//', '%']
+op = ['+', '-']
 operands = ['True', '1', '1l', '1.0', '1j', 'None', '\'1\'', 'u\'1\'', '[1, 1]', '(1, 1)']
 
 tests_dir = os.path.dirname(sys.argv[0])
-initname  = 'binop01.py'
+initname  = 'unop01.py'
 filename  = os.path.join(tests_dir, initname)
-testname  = os.path.join(tests_dir, 'test_binop01.py')
+testname  = os.path.join(tests_dir, 'test_unop01.py')
 headname  = os.path.join(tests_dir, 'gen_test_head.txt')
 corename  = os.path.join(tests_dir, 'gen_test_core.txt')
 footname  = os.path.join(tests_dir, 'gen_test_foot.txt')
@@ -59,23 +59,17 @@ with open(testname, 'w') as t:
             t.write(process_head_line(line))
     with open(filename, 'w') as f:
         i = 0
-        for elem in product(op, operands, operands):
-            code = '%s %s %s' % (elem[1], elem[0], elem[2])
-            if (elem[0] == '//' or elem[0] == '%') and (elem[1] == '1j' or elem[2] == '1j'):
-                continue
+        for elem in product(op, operands):
+            code = '%s(%s)' % (elem[0], elem[1])
             try:
                 exec code
                 i    += 1
-                name  = 'x%0*d' % (3, i)
+                name  = 'x%0*d' % (2, i)
                 full  = '%s = %s\n' % (name, code)
                 exec full
                 f.write(full)
                 var_type = get_type_name(locals()[name])
-                if (elem[0] == '+' or elem[0] == '-' or elem[0] == '*') and \
-                   (elem[1] == '1' and elem[2] == '1'):
-                    num = 2
-                elif (elem[0] == '+' or elem[0] == '-') and \
-                     (elem[1] == '1' and elem[2] == 'True' or elem[1] == 'True' and elem[2] == '1'):
+                if (elem[0] == '-') and (elem[1] == '1'):
                     num = 2
                 else:
                     num = 1
