@@ -304,7 +304,7 @@ class FuncCallTypeGraphNode(TypeGraphNode):
         self.argsTypes = []
         if isinstance(node, BinOp):
             nodeArgs = [node.left, node.right]
-	elif isinstance(node, UnaryOp):
+        elif isinstance(node, UnaryOp):
             nodeArgs = [node.operand]
         elif isinstance(node, Call):
             nodeArgs = node.args

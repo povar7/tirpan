@@ -56,13 +56,13 @@ class TestTirpan(unittest.TestCase):
     def test_basic_module_1(self):
         module = self.nodes[0].link
         self.assertTrue(isinstance(module, ModuleTypeGraphNode), 'module 1 has no link to type info')
-	self.assertEquals(module.name, test_file_name_1, 'module 1 has a wrong name')
+        self.assertEquals(module.name, test_file_name_1, 'module 1 has a wrong name')
         self.assertEquals(module.ast, self.nodes[0], 'module 1 has a wrong link to ast')
 
     def test_basic_module_2(self):
         module = self.nodes[1].link
         self.assertTrue(isinstance(module, ModuleTypeGraphNode), 'module 2 has no link to type info')
-	self.assertEquals(module.name, test_file_name_2, 'module 2 has a wrong name')
+        self.assertEquals(module.name, test_file_name_2, 'module 2 has a wrong name')
         self.assertEquals(module.ast, self.nodes[1], 'module 2 has a wrong link to ast')
 
     def test_complex_module_1(self):
