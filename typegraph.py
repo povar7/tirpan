@@ -312,5 +312,11 @@ class FuncCallTypeGraphNode(TypeGraphNode):
     def processCall(self):
         for arg in product(*self.argsTypes):
             for func in self.funcs:
-                for kwarg in func.getKWArgs(self.kwargsTypes): 
-                    self.nodeType = self.nodeType.union(process_product_elem(func, arg, kwarg))
+                if hasattr(self, "kwargsTypes"):
+                    for kwarg in func.getKWArgs(self.kwargsTypes): 
+                        self.nodeType = self.nodeType.union(process_product_elem(func, arg, kwarg))
+
+class UnknownTypeGraphNode(TypeGraphNode):
+    def __init__(self, node):
+        super(UnknownTypeGraphNode, self).__init__()
+        self.nodeType  = set([TypeUnknown()]) 

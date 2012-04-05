@@ -111,3 +111,26 @@ class TypeDict(TypeNode):
 
     def __str__(self):
         return 'dict'
+
+class TypeUnknown(TypeNode):
+    def __init__(self):
+        self.keys = set([])
+        self.vals = set([])
+
+    def add_val(self, val):
+        self.vals.add(val)
+
+    def add_key(self, key):
+        self.keys.add(key)
+
+    def instance_eq_to(self, other):
+        return (self.keys == other.keys) and (self.vals == other.vals) 
+
+    def instance_hash(self):
+        return hash((tuple(self.keys), tuple(self.vals)))
+
+    def elem_types(self):
+        return self.vals
+
+    def __str__(self):
+        return 'unknown'

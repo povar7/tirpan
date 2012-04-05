@@ -37,6 +37,9 @@ class Importer(object):
                 filename   = os.path.abspath(mainfile)
                 searchname = name
             else:
+                pr = self.process_name(name, mainfile)
+                if not pr:
+                    return
                 filename   = os.path.abspath(self.process_name(name, mainfile))
                 searchname = filename
             if not searchname:
