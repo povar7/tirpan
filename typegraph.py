@@ -6,10 +6,10 @@ Created on 11.12.2011
 
 from itertools    import product
 from ast          import BinOp, UnaryOp, Call
+from copy         import deepcopy
 from types        import NoneType
 
 from funccall     import *
-from safecopy     import deepcopy
 from scope        import Scope
 from typenodes    import *
 from utils        import *
@@ -220,6 +220,9 @@ class ModuleTypeGraphNode(TypeGraphNode):
         self.name     = name
         self.scope    = Scope(parent_scope)
 
+    def __deepcopy__(self, memo):
+        return self
+
     def getScope(self):
         return self.scope 
 
@@ -239,6 +242,9 @@ class FuncDefTypeGraphNode(TypeGraphNode):
         self.nodeType  = set([self])
         self.params    = Scope(parent_scope, True)
         self.templates = {}
+
+    def __deepcopy__(self, memo):
+        return self
 
     def getParams(self):
         return self.params 

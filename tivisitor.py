@@ -144,7 +144,8 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_Return(self, node):
         self.generic_visit(node)
-        __main__.current_res = \
+        if node.value is not None:
+            __main__.current_res = \
             __main__.current_res.union(set([node.value.link]))
 
     def visit_Lambda(self, node):
@@ -157,3 +158,12 @@ class TIVisitor(ast.NodeVisitor):
         self.generic_visit(node)
         node.link = TypeGraphNode()
         node.value.link.addDependency(DependencyType.AssignElem, node.link)
+
+    def visit_ListComp(self, node):
+        node.link = UnknownTypeGraphNode(node)
+
+    def visit_IfExp(self, node):
+        node.link = UnknownTypeGraphNode(node)
+
+    def visit_GeneratorExp(self, node):
+        node.link = UnknownTypeGraphNode(node)

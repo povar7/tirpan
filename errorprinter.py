@@ -4,13 +4,16 @@ Created on 05.02.2012
 @author: bronikkk
 '''
 
+import __main__
+
 from ast   import BinOp, UnaryOp, Call
 from init  import get_operator_name
 from utils import getLine, getCol, getFile
 
 class ErrorPrinter(object):
     def printError(self, error):
-        print error
+        if __main__.verbose:
+            print error
 
 class TirpanError(object):
     def __init__(self):

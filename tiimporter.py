@@ -24,6 +24,17 @@ class Importer(object):
     def __init__(self):
         self.imported_files   = {}
         self.standard_modules = {}
+        self.ident_table      = {}
+        self.total_idents     = 0
+
+    def put_ident(self, name):
+        self.ident_table[self.total_idents] = name
+        res = self.total_idents
+        self.total_idents += 1
+        return res          
+
+    def get_ident(self, num):
+        return self.ident_table[num]
 
     def add_module(self, scope, name):
         if not name in self.standard_modules:
@@ -65,12 +76,13 @@ class Importer(object):
                     imported_tree = self.imported_files[searchname].ast
                     module = imported_tree.link 
                 else:
+                    fileno = self.put_ident(filename)
                     parser = TIParser(filename)
                     imported_tree = parser.ast
                     module = UsualModuleTypeGraphNode(imported_tree, filename, __main__.current_scope)
                     imported_tree.link = module
                     for node in ast.walk(imported_tree):
-                        node.filelink = module 
+                        node.fileno = fileno
                     self.imported_files[searchname] = imported_tree.link 
                     parser.walk()
             if from_aliases is None:

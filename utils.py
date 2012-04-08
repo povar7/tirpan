@@ -29,10 +29,11 @@ def getCol (node):
         return offset + 1
 
 def getFile(node):
-    module = getattr(node, 'filelink', None)
+    import __main__
+    fileno = getattr(node, 'fileno', None)
     try:
-        name = module.name
-    except AttributeError:
+        name = __main__.importer.get_ident(fileno) 
+    except KeyError:
         name = None
     return name
 

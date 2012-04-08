@@ -4,8 +4,9 @@ Created on 09.03.2012
 @author: bronikkk
 '''
 
-from safecopy  import deepcopy
-from scope     import Scope
+from copy  import deepcopy
+
+from scope import Scope
 
 def process_results(results):
     types = set()
@@ -19,6 +20,14 @@ def find_previous_key(elem, keys):
             return key
     return None
 
+def copy_params(params):
+    save   = params.parent
+    params.parent = None
+    result = deepcopy(params)
+    params.parent = save
+    result.parent = save
+    return result
+
 def process_product_elem(func, arg_elem, kwarg_elem):
     import __main__
     from tivisitor import TIVisitor
@@ -28,7 +37,7 @@ def process_product_elem(func, arg_elem, kwarg_elem):
         return set()
     key = find_previous_key(elem, func.templates.keys())
     if key is None:
-        params_copy   = deepcopy(func.params)
+        params_copy = copy_params(func.params)
         params_copy.linkParamsAndArgs(elem)
         func.templates[elem] = set()
         saved_scope   = __main__.current_scope
@@ -38,7 +47,7 @@ def process_product_elem(func, arg_elem, kwarg_elem):
             ast_copy  = deepcopy(func.ast)
             saved_res = __main__.current_res
             __main__.current_res = set()
-            visitor   = TIVisitor(ast_copy[0].filelink.name)
+            visitor   = TIVisitor(__main__.importer.get_ident(ast_copy[0].fileno))
             for stmt in ast_copy:
                 visitor.visit(stmt)
             func.templates[elem] = process_results(__main__.current_res)
