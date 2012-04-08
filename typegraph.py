@@ -5,7 +5,7 @@ Created on 11.12.2011
 '''
 
 from itertools    import product
-from ast          import BinOp, Call
+from ast          import BinOp, UnaryOp, Call
 from types        import NoneType
 
 from funccall     import *
@@ -17,15 +17,14 @@ from utils        import *
 type_str = TypeStr()
 
 class DependencyType(object):
-    Assign     = "assign"
-    AssignElem = "assign_elem"
-    Elem       = "elem"
-    Key        = "key"
-    Val        = "val"
-    Arg        = "arg"
-    KWArg      = "kwarg"
-    Func       = "func"
-    Module     = "module"
+    Assign     = 'assign'
+    AssignElem = 'assign_elem'
+    Elem       = 'elem'
+    Key        = 'key'
+    Val        = 'val'
+    Arg        = 'arg'
+    KWArg      = 'kwarg'
+    Func       = 'func'
 
 class TypeGraphNode(object):
     def __init__(self):
@@ -140,14 +139,21 @@ class ConstTypeGraphNode(TypeGraphNode):
         super(ConstTypeGraphNode, self).__init__()
         tp = self.get_atom_type_node(value.__class__)
         self.nodeType  = set([tp])
-        self.nodeValue = value    
-            
+        self.nodeValue = value
+
 class VarTypeGraphNode(TypeGraphNode):
     def __init__(self, name):
         super(VarTypeGraphNode, self).__init__()
         self.nodeValue    = set()
         self.name         = name
         self.parent       = None
+
+    def setParent(self, parent):
+        self.parent       = parent
+
+class UsualVarTypeGraphNode(VarTypeGraphNode):
+    def __init__(self, name):
+        super(UsualVarTypeGraphNode, self).__init__(name)
         self.paramNumber  = None
         self.line         = None
         self.col          = None
@@ -155,9 +161,6 @@ class VarTypeGraphNode(TypeGraphNode):
         self.varParam     = False
         self.kwParam      = False
     
-    def addValue(self, value):
-        self.nodeValue    = self.nodeValue.union(set([value]))
- 
     def setParamNumber(self, paramNumber):
         self.paramNumber  = paramNumber
  
@@ -174,6 +177,11 @@ class VarTypeGraphNode(TypeGraphNode):
         if not self.line:
             self.line = getLine(node)
             self.col  = getCol (node)
+
+class ExternVarTypeGraphNode(VarTypeGraphNode):
+    def __init__(self, name, var_type):
+        super(ExternVarTypeGraphNode, self).__init__(name)
+        self.nodeType = set([var_type])
                         
 class ListTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
@@ -206,18 +214,24 @@ class DictTypeGraphNode(TypeGraphNode):
             self.nodeValue[keyLink] = valueLink
 
 class ModuleTypeGraphNode(TypeGraphNode):
-    def __init__(self, ast, name, parent_scope):
+    def __init__(self, name, parent_scope):
         super(ModuleTypeGraphNode, self).__init__()
-        self.nodeType = None
-        self.ast      = ast
+        self.nodeType = set([self])
         self.name     = name
         self.scope    = Scope(parent_scope)
 
     def getScope(self):
         return self.scope 
-    
-    def module_dep(self, dep):
-        pass
+
+class UsualModuleTypeGraphNode(ModuleTypeGraphNode):
+    def __init__(self, ast, name, parent_scope):
+        super(UsualModuleTypeGraphNode, self).__init__(name, parent_scope)
+        self.ast      = ast
+
+class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
+    def __init__(self, name, parent_scope):
+        super(ExternModuleTypeGraphNode, self).__init__(name, parent_scope)
+        self.isLoaded = False
 
 class FuncDefTypeGraphNode(TypeGraphNode):
     def __init__(self, parent_scope):
@@ -241,12 +255,12 @@ class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
         self.ast       = node.body
         self.vararg    = node.args.vararg
         if self.vararg:
-            var = VarTypeGraphNode(self.vararg)
+            var = UsualVarTypeGraphNode(self.vararg)
             var.setVarParam()
             self.params.add(var)
         self.kwarg     = node.args.kwarg
         if self.kwarg:
-            var = VarTypeGraphNode(self.kwarg)
+            var = UsualVarTypeGraphNode(self.kwarg)
             var.setKWParam()
             self.params.add(var)
 
@@ -289,7 +303,9 @@ class FuncCallTypeGraphNode(TypeGraphNode):
         self.args      = []
         self.argsTypes = []
         if isinstance(node, BinOp):
-            nodeArgs = (node.left, node.right)
+            nodeArgs = [node.left, node.right]
+        elif isinstance(node, UnaryOp):
+            nodeArgs = [node.operand]
         elif isinstance(node, Call):
             nodeArgs = node.args
         for arg in nodeArgs:

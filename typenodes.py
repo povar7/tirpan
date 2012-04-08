@@ -27,7 +27,10 @@ class TypeNode:
 class TypeAtom(TypeNode):
     pass
 
-class TypeNum(TypeNode):
+class TypeNumOrBool(TypeAtom):
+    pass
+
+class TypeNum(TypeNumOrBool):
     pass
     
 class TypeInt(TypeNum):
@@ -57,7 +60,7 @@ class TypeUnicode(TypeBaseString):
     def __str__(self):
         return 'unicode'
 
-class TypeBool(TypeAtom):
+class TypeBool(TypeNumOrBool):
     def __str__(self):
         return 'bool'
 

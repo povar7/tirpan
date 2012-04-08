@@ -13,6 +13,12 @@ def process_results(results):
         types = types.union(res.nodeType)
     return types
 
+def find_previous_key(elem, keys):
+    for key in keys:
+        if key == elem:
+            return key
+    return None
+
 def process_product_elem(func, arg_elem, kwarg_elem):
     import __main__
     from tivisitor import TIVisitor
@@ -20,7 +26,8 @@ def process_product_elem(func, arg_elem, kwarg_elem):
     elem = func.params.getArgs(arg_elem, kwarg_elem)
     if elem is None:
         return set()
-    if elem not in func.templates:
+    key = find_previous_key(elem, func.templates.keys())
+    if key is None:
         params_copy   = deepcopy(func.params)
         params_copy.linkParamsAndArgs(elem)
         func.templates[elem] = set()
@@ -39,4 +46,6 @@ def process_product_elem(func, arg_elem, kwarg_elem):
         elif isinstance(func, ExternFuncDefTypeGraphNode):
             func.templates[elem] = func.quasi(__main__.current_scope)
         __main__.current_scope = saved_scope
+    else:
+        elem = key
     return func.templates[elem] 

@@ -4,17 +4,14 @@ Created on 24.03.2012
 @author: bronikkk
 '''
 
-from ast       import Add, Div, Mult, Sub
+from ast       import Add, Div, FloorDiv, Mod, Mult, Sub
 from typegraph import *
 from typenodes import *
 
-operator_names_table = {Add : '+', Div : '/', Mult : '*', Sub : '-'}
+operator_names_table = {Add : '+', Div : '/', FloorDiv : '//', Mult : '*', Mod : '%', Sub : '-'}
 
-def get_operator_name(op):
-    try:
-        return operator_names_table[op]
-    except KeyError:
-        return op
+def get_binary_operator_name(op):
+    return operator_names_table[op]
 
 type_int     = TypeInt()
 type_long    = TypeLong()
@@ -28,6 +25,7 @@ type_none    = TypeNone()
 def quasi_plus(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     type2 = list(scope.findParam(2).nodeType)[0]
+
     if isinstance(type1, TypeList) and isinstance(type2, TypeList):
         res = deepcopy(type1)
         for elem in type2.elems:
@@ -46,68 +44,77 @@ def quasi_plus(scope):
         else:
             return set([type_str])
 
-    if type1 == type_bool:
-        type1 = type_int
-    if type2 == type_bool:
-        type2 = type_int
-
-    if type1 == type_int and type2 == type_int:
-        return set([type_int])
-    if (type1 == type_complex and isinstance(type2, TypeNum)) or (type2 == type_complex and isinstance(type1, TypeNum)):
+    if not isinstance(type1, TypeNumOrBool) or not isinstance(type2, TypeNumOrBool):
+        return set()
+    if type1 == type_complex or type2 == type_complex:
         return set([type_complex])
-    if (type1 == type_float and isinstance(type2, TypeNum)) or (type2 == type_float and isinstance(type1, TypeNum)):
+    if type1 == type_float or type2 == type_float:
         return set([type_float])
-
-
-    return set()
+    if type1 == type_long or type2 == type_long:
+        return set([type_long])
+    if type1 == type_bool and type2 == type_bool:
+        return set([type_int])
+    return set([type_int, type_long])
 
 def quasi_div(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     type2 = list(scope.findParam(2).nodeType)[0]
 
-    if type1 == type_int and type2 == type_int:
-        return set([type_int])
-    if (type1 == type_complex and isinstance(type2, TypeNum)) or (type2 == type_complex and isinstance(type1, TypeNum)):
+    if not isinstance(type1, TypeNumOrBool) or not isinstance(type2, TypeNumOrBool):
+        return set()
+    if type1 == type_complex or type2 == type_complex:
         return set([type_complex])
-    if (type1 == type_float and isinstance(type2, TypeNum)) or (type2 == type_float and isinstance(type1, TypeNum)):
+    if type1 == type_float or type2 == type_float:
         return set([type_float])
+    if type1 == type_long or type2 == type_long:
+        return set([type_long])
+    return set([type_int])
 
-    return set()
+def quasi_floordiv(scope):
+    return quasi_div(scope)
+
+def quasi_mod(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    if type1 == type_str:
+        return set([type_str])
+    if type1 == type_unicode:
+        return set([type_unicode])
+    return quasi_div(scope)
 
 def quasi_mult(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     type2 = list(scope.findParam(2).nodeType)[0]
 
-    if type1 == type_int and type2 == type_int:
-        return set([type_int])
-    if (type1 == type_complex and isinstance(type2, TypeNum)) or (type2 == type_complex and isinstance(type1, TypeNum)):
-        return set([type_complex])
-    if (type1 == type_float and isinstance(type2, TypeNum)) or (type2 == type_float and isinstance(type1, TypeNum)):
-        return set([type_float])
-
-    if (isinstance(type1,TypeBaseString) or isinstance(type1,TypeListOrTuple)) and type2 == type_int:
+    if isinstance(type1, (TypeBaseString, TypeListOrTuple)) and (type2 == type_bool or type2 == type_int or type2 == type_long):
         return set([type1])
-    if (isinstance(type2,TypeBaseString) or isinstance(type2,TypeListOrTuple)) and type1 == type_int:
+    if isinstance(type2, (TypeBaseString, TypeListOrTuple)) and (type1 == type_bool or type1 == type_int or type1 == type_long):
         return set([type2])
+    if type1 == type_int and type2 == type_int:
+        return set([type_int, type_long])
 
-    return set()
+    return quasi_div(scope)
 
 def quasi_sub(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     type2 = list(scope.findParam(2).nodeType)[0]
-    if (isinstance(type1,TypeBaseString) or isinstance(type1,TypeListOrTuple)):
+    if isinstance(type1, (TypeBaseString, TypeListOrTuple)):
         return set()
+    if isinstance(type2, (TypeBaseString, TypeListOrTuple)):
+        return set()
+
     return quasi_plus(scope)
 
-def init_binop(op, quasi, scope):
-    name = get_operator_name(op)
+def init_binop(scope, op, quasi):
+    name = get_binary_operator_name(op)
     func = ExternFuncDefTypeGraphNode(2, quasi, scope)
     var  = scope.findOrAdd(name)
     func.addDependency(DependencyType.Assign, var)
     scope.add(var)
 
 def init_binops(scope):
-    init_binop(Add , quasi_plus, scope) 
-    init_binop(Div , quasi_div , scope)
-    init_binop(Mult, quasi_mult, scope) 
-    init_binop(Sub , quasi_sub , scope) 
+    init_binop(scope, Add     , quasi_plus    )
+    init_binop(scope, Div     , quasi_div     )
+    init_binop(scope, FloorDiv, quasi_floordiv)
+    init_binop(scope, Mult    , quasi_mult    )
+    init_binop(scope, Mod     , quasi_mod     )
+    init_binop(scope, Sub     , quasi_sub     )

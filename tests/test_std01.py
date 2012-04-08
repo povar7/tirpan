@@ -10,25 +10,27 @@ test_file_name = get_test_file_name('std01.py')
 
 import ast
 
-from importer  import Importer
-from scope     import Scope
-from tiparser  import TIParser
-from typegraph import *
-from typenodes import *
-
-from utils     import findNode
+from init       import common_init
+from scope      import Scope
+from tiimporter import Importer, QuasiAlias
+from tiparser   import TIParser
+from typegraph  import *
+from typenodes  import *
+from utils      import findNode
 
 import tirpan
 
 class TestTirpan(unittest.TestCase):
     def setUp(self):
-        global current_scope, importer, verbose
-        current_scope = None
+        global global_scope, current_scope, importer, verbose
+        global_scope  = Scope(None)
+        current_scope = global_scope
         importer      = Importer()
         verbose       = False
+
+        common_init(global_scope, importer)
         tirpan.run(test_file_name)
-        import __main__
-        self.ast = __main__.importer.imported_files['__main__'].ast
+        self.ast = importer.imported_files['__main__'].ast
 
         self.type_int     = TypeInt()
         self.type_float   = TypeFloat()

@@ -9,18 +9,17 @@ Created on 29.01.2012
 import argparse
 
 from errorprinter import ErrorPrinter
-from importer     import Importer
 from init         import common_init
 from scope        import Scope
+from tiimporter   import Importer, QuasiAlias
 from tiparser     import TIParser
 
 def import_files(mainfile, aliases):
     importer.import_files(mainfile, aliases)
 
-class QuasiAlias(object):
-    def __init__(self, name):
-        self.name   = name
-        self.asname = None
+def import_from_file(mainfile, module, aliases):
+    alias = QuasiAlias(module)
+    importer.import_files(mainfile, [alias], aliases)
 
 def run(filename):
     import __main__
@@ -40,6 +39,6 @@ if __name__ == '__main__':
     error_printer = ErrorPrinter()
     verbose       = args.verbose
 
-    common_init(global_scope)
+    common_init(global_scope, importer)
 
     run(args.filename)
