@@ -24,6 +24,10 @@ class TypeNode:
     def __hash__(self):
         return hash((self.__class__, self.instance_hash()))
 
+class TypeType(TypeNode):
+    def __str__(self):
+        return 'type'
+
 class TypeAtom(TypeNode):
     pass
 

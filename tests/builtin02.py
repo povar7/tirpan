@@ -1,2 +1,2 @@
-a = type
-b = type(int)
+x = type
+y = type(int)

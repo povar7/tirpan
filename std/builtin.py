@@ -6,7 +6,8 @@ Created on 01.04.2012
 
 from typenodes import *
 
-type_int = TypeInt()
+type_int  = TypeInt()
+type_type = TypeType()
 
 def quasi_range1(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
@@ -24,12 +25,21 @@ def quasi_range3(scope):
     else:
         return set()
 
+def quasi_type1(scope):
+    return set([type_type])
+
+def quasi_type_var():
+    return type_type
+
 functions = [
                 ['range', quasi_range1, 1],                 \
-                ['range', quasi_range3, 3, {3 : type_int}]  \
+                ['range', quasi_range3, 3, {3 : type_int}], \
+		['type' , quasi_type1 , 1]                  \
             ]
 
 variables = [                                               \
+		['type',  quasi_type_var],                  \
+                ['int' ,  quasi_type_var]                   \
             ]
 
 modules   = [                                               \

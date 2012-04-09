@@ -13,7 +13,9 @@ def init_builtin_function(scope, name, quasi, num, def_vals = {}):
     scope.add(var)
 
 def init_builtin_variable(scope, name, type_func):
-    var = ExternVarTypeGraphNode(name, type_func())
+    ext  = ExternVarTypeGraphNode(name, type_func())
+    var  = scope.findOrAdd(name)
+    ext.addDependency(DependencyType.Assign, var)
     scope.add(var)
 
 def import_standard_module(module, importer):
