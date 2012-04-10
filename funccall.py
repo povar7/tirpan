@@ -6,12 +6,18 @@ Created on 09.03.2012
 
 from copy  import deepcopy
 
-from scope import Scope
+from scope     import Scope
+from typenodes import *
+
+type_none = TypeNone()
 
 def process_results(results):
     types = set()
     for res in results:
-        types = types.union(res.nodeType)
+        try:
+            types = types.union(res.value.link.nodeType)
+        except AttributeError:
+            types = types.union(set([type_none]))
     return types
 
 def find_previous_key(elem, keys):

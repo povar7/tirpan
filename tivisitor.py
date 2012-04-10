@@ -147,9 +147,7 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_Return(self, node):
         self.generic_visit(node)
-        if node.value is not None:
-            __main__.current_res = \
-            __main__.current_res.union(set([node.value.link]))
+        __main__.current_res = __main__.current_res.union(set([node]))
 
     def visit_Lambda(self, node):
         node.link = UnknownTypeGraphNode(node)
