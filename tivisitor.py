@@ -41,7 +41,7 @@ class TIVisitor(ast.NodeVisitor):
             self.visit_None(node)
         else:
             node.link = __main__.current_scope.findOrAdd(node.id)
-	    try:
+            try:
                 node.link.setPos(node)
             except AttributeError:
                 pass

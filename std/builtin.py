@@ -34,11 +34,11 @@ def quasi_type_var():
 functions = [
                 ['range', quasi_range1, 1],                 \
                 ['range', quasi_range3, 3, {3 : type_int}], \
-		['type' , quasi_type1 , 1]                  \
+                ['type' , quasi_type1 , 1]                  \
             ]
 
 variables = [                                               \
-		['type',  quasi_type_var],                  \
+                ['type',  quasi_type_var],                  \
                 ['int' ,  quasi_type_var]                   \
             ]
 

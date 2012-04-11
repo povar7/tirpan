@@ -10,6 +10,7 @@ from copy         import deepcopy
 from types        import NoneType
 
 from funccall     import *
+from returns      import check_returns
 from scope        import Scope
 from typenodes    import *
 from utils        import *
@@ -269,6 +270,7 @@ class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
             var = UsualVarTypeGraphNode(self.kwarg)
             var.setKWParam()
             self.params.add(var)
+        self.defReturn = not check_returns(self.ast)
 
     def getKWArgs(self, kwargsTypes):
         if self.kwarg is None:

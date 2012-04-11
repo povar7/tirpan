@@ -11,8 +11,11 @@ from typenodes import *
 
 type_none = TypeNone()
 
-def process_results(results):
-    types = set()
+def process_results(results, def_return):
+    if def_return:
+        types = set([type_none])
+    else:
+        types = set()
     for res in results:
         try:
             types = types.union(res.value.link.nodeType)
@@ -56,7 +59,7 @@ def process_product_elem(func, arg_elem, kwarg_elem):
             visitor   = TIVisitor(__main__.importer.get_ident(ast_copy[0].fileno))
             for stmt in ast_copy:
                 visitor.visit(stmt)
-            func.templates[elem] = process_results(__main__.current_res)
+            func.templates[elem] = process_results(__main__.current_res, func.defReturn)
             __main__.current_res = saved_res
         elif isinstance(func, ExternFuncDefTypeGraphNode):
             func.templates[elem] = func.quasi(__main__.current_scope)
