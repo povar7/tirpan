@@ -32,7 +32,7 @@ def getFile(node):
     import __main__
     fileno = getattr(node, 'fileno', None)
     try:
-        name = __main__.importer.get_ident(fileno) 
+        name = __main__.importer.get_ident(fileno).name 
     except KeyError:
         name = None
     return name

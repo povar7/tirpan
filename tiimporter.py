@@ -76,11 +76,11 @@ class Importer(object):
                     imported_tree = self.imported_files[searchname].ast
                     module = imported_tree.link 
                 else:
-                    fileno = self.put_ident(filename)
                     parser = TIParser(filename)
                     imported_tree = parser.ast
                     module = UsualModuleTypeGraphNode(imported_tree, filename, __main__.current_scope)
                     imported_tree.link = module
+                    fileno = self.put_ident(module)
                     for node in ast.walk(imported_tree):
                         node.fileno = fileno
                     self.imported_files[searchname] = imported_tree.link 

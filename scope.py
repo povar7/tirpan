@@ -22,16 +22,20 @@ class Scope(object):
         self.parent = parent
         self.variables = {}
         self.params_scope = params_scope
+        if self.params_scope:
+            self.global_names = set() 
 
     def add(self, var):
         var.setParent(self)
         self.variables[var.name] = var
 
-    def find(self, name):
+    def find(self, name, consider_globals = False):
         if name in self.variables:
             return self.variables[name]
+        if consider_globals and self.params_scope and name not in self.global_names:
+            return None
         if self.parent:
-            return self.parent.find(name)
+            return self.parent.find(name, consider_globals)
         return None
 
     def _getParamName(self, num):
@@ -47,12 +51,15 @@ class Scope(object):
     def findParam(self, num):
         return self.find(self._getParamName(num))
 
-    def findOrAdd(self, name):
-        res = self.find(name)
+    def findOrAdd(self, name, consider_globals = False, file_scope = None):
+        res = self.find(name, consider_globals)
         if not res:
             from typegraph import UsualVarTypeGraphNode
             res = UsualVarTypeGraphNode(name)
-            self.add(res)
+            if consider_globals and file_scope:
+                file_scope.add(res)
+            else:
+                self.add(res)
         return res
  
     def getParent(self):
@@ -112,3 +119,9 @@ class Scope(object):
             var = variables[index]
             arg = args[index]
             var.nodeType = set([arg])
+
+    def addGlobalNames(self, names):
+        if not self.params_scope:
+            self.parent.addGlobalNames(names)
+        else:
+            self.global_names = self.global_names.union(set(names))

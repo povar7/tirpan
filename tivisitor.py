@@ -15,7 +15,8 @@ class TIVisitor(ast.NodeVisitor):
     filename = None 
 
     def __init__(self, filename):
-        self.filename = filename
+        self.filename  = filename
+        self.left_part = False
 
     def visit_Num(self, node):
         node.link = ConstTypeGraphNode(node.n)
@@ -40,22 +41,30 @@ class TIVisitor(ast.NodeVisitor):
         elif node.id == 'None':
             self.visit_None(node)
         else:
-            node.link = __main__.current_scope.findOrAdd(node.id)
+            if self.left_part:
+                file_scope = __main__.importer.get_ident(node.fileno).scope 
+                link       = __main__.current_scope.findOrAdd(node.id, True, file_scope)
+            else:
+                link       = __main__.current_scope.findOrAdd(node.id)
+            node.link = link
             try:
                 node.link.setPos(node)
             except AttributeError:
                 pass
         
     def visit_Assign(self, node):
+        self.visit(node.value)
         target = node.targets[0]
-        if target.__class__.__name__ == 'Tuple':
-            self.visit(node.value)
+        save   = self.left_part
+        self.left_part = True
+        if isinstance(target, ast.Tuple):
             for ast_el in target.elts:
                 self.visit(ast_el)
-                node.value.link.addDependency(DependencyType.AssignElem, ast_el.link)                    
+                node.value.link.addDependency(DependencyType.AssignElem, ast_el.link)
         else:
-            self.generic_visit(node)
+            self.visit(target)
             node.value.link.addDependency(DependencyType.Assign, target.link)
+        self.left_part = save
         node.link = node.value.link
 
     def visit_List(self, node):
@@ -168,3 +177,6 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_GeneratorExp(self, node):
         node.link = UnknownTypeGraphNode(node)
+
+    def visit_Global(self, node):
+        __main__.current_scope.addGlobalNames(node.names)
