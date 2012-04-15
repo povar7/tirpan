@@ -4,7 +4,7 @@ Created on 24.03.2012
 @author: bronikkk
 '''
 
-from ast       import Add, Div, FloorDiv, LShift, Mod, Mult, Sub
+from ast       import Add, Div, FloorDiv, LShift, Mod, Mult, RShift, Sub
 from typegraph import *
 from typenodes import *
 
@@ -15,6 +15,7 @@ operator_names_table = {                    \
                            LShift   : '<<', \
                            Mult     : '*' , \
                            Mod      : '%' , \
+                           RShift   : '>>', \
                            Sub      : '-'   \
                        }
 
@@ -119,6 +120,23 @@ def quasi_mult(scope):
 
     return quasi_div(scope)
 
+def quasi_rshift(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    type2 = list(scope.findParam(2).nodeType)[0]
+
+    if not isinstance(type1, (TypeBool, TypeLong, TypeInt)):
+        return set()
+    if not isinstance(type2, (TypeBool, TypeLong, TypeInt)):
+        return set()
+
+    if isinstance(type1, TypeBool):
+        type1 = type_int
+    if isinstance(type2, TypeBool):
+        return set([type1])
+    if isinstance(type1, TypeLong) or isinstance(type2, TypeLong):
+        return set([type_long])
+    return set([type_int])
+
 def quasi_sub(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     type2 = list(scope.findParam(2).nodeType)[0]
@@ -143,4 +161,5 @@ def init_binops(scope):
     init_binop(scope, LShift  , quasi_lshift  )
     init_binop(scope, Mult    , quasi_mult    )
     init_binop(scope, Mod     , quasi_mod     )
+    init_binop(scope, RShift  , quasi_rshift  )
     init_binop(scope, Sub     , quasi_sub     )
