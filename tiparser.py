@@ -8,6 +8,7 @@ import ast
 
 import __main__
 
+from tiassert  import generate_asserts
 from tivisitor import TIVisitor
 
 class TIParser(object):
@@ -27,9 +28,9 @@ class TIParser(object):
     
     def walk(self):
         self.visitor.visit(self.ast)
-        if __main__.verbose:
-            if isinstance(self.ast, ast.Module):
+        if isinstance(self.ast, ast.Module):
+            if __main__.verbose:
                 print 'File "' + self.visitor.filename + '":'
                 self.ast.link.getScope().printVariables()
-        if __main__.test_results:
-            pass
+            if __main__.test_results:
+                generate_asserts(self.ast.link)

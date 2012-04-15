@@ -341,7 +341,7 @@ class FuncCallTypeGraphNode(TypeGraphNode):
     def processCall(self):
         for arg in product(*self.argsTypes):
             for func in self.funcs:
-                if hasattr(self, "kwargsTypes"):
+                if hasattr(self, 'kwargsTypes'):
                     for kwarg in func.getKWArgs(self.kwargsTypes): 
                         self.nodeType = self.nodeType.union(process_product_elem(func, arg, kwarg))
 
