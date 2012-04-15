@@ -37,6 +37,11 @@ def copy_params(params):
     result.parent = save
     return result
 
+class TemplateValue:
+    def __init__(self):
+        self.ast    = None
+        self.result = set()
+
 def process_product_elem(func, arg_elem, kwarg_elem):
     import __main__
     from tivisitor import TIVisitor
@@ -48,7 +53,7 @@ def process_product_elem(func, arg_elem, kwarg_elem):
     if key is None:
         params_copy = copy_params(func.params)
         params_copy.linkParamsAndArgs(elem)
-        func.templates[elem] = set()
+        func.templates[elem] = TemplateValue()
         saved_scope   = __main__.current_scope
         func_scope    = Scope(params_copy)
         __main__.current_scope = func_scope
@@ -59,11 +64,13 @@ def process_product_elem(func, arg_elem, kwarg_elem):
             visitor   = TIVisitor(__main__.importer.get_ident(ast_copy[0].fileno).name)
             for stmt in ast_copy:
                 visitor.visit(stmt)
-            func.templates[elem] = process_results(__main__.current_res, func.defReturn)
+            func.templates[elem].ast    = ast_copy
+            func.templates[elem].result = process_results(__main__.current_res, \
+                                                          func.defReturn)
             __main__.current_res = saved_res
         elif isinstance(func, ExternFuncDefTypeGraphNode):
-            func.templates[elem] = func.quasi(__main__.current_scope)
+            func.templates[elem].result = func.quasi(__main__.current_scope)
         __main__.current_scope = saved_scope
     else:
         elem = key
-    return func.templates[elem] 
+    return func.templates[elem].result 
