@@ -60,12 +60,27 @@ class TIVisitor(ast.NodeVisitor):
         if isinstance(target, ast.Tuple):
             for ast_el in target.elts:
                 self.visit(ast_el)
+            self.left_part = save
+            for ast_el in target.elts:
                 node.value.link.addDependency(DependencyType.AssignElem, ast_el.link)
         else:
             self.visit(target)
+            self.left_part = save
             node.value.link.addDependency(DependencyType.Assign, target.link)
-        self.left_part = save
         node.link = node.value.link
+
+    def visit_AugAssign(self, node):
+        self.visit(node.value)
+        target = node.target
+        save   = self.left_part
+        self.left_part = True
+        self.visit(target)
+        self.left_part = save
+        name = get_operator_name(node.op.__class__)
+        var = __main__.current_scope.find(name)
+        node.link = FuncCallTypeGraphNode(node, var)
+        node.link.processCall()
+        node.link.addDependency(DependencyType.Assign, target.link)
 
     def visit_List(self, node):
         self.generic_visit(node)

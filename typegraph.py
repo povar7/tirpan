@@ -5,7 +5,7 @@ Created on 11.12.2011
 '''
 
 from itertools    import product
-from ast          import BinOp, UnaryOp, Call
+from ast          import AugAssign, BinOp, UnaryOp, Call
 from copy         import deepcopy
 from types        import NoneType
 
@@ -86,6 +86,7 @@ class TypeGraphNode(object):
                 tmp.add_elem(tt2)
                 res.add(tmp)
         dep.nodeType = res
+        dep.generic_dependency()
 
     def key_dep(self, dep): 
         res = set()
@@ -96,6 +97,7 @@ class TypeGraphNode(object):
                 tmp.add_key(tt2)
                 res.add(tmp)
         dep.nodeType = res
+        dep.generic_dependency()
 
     def val_dep(self, dep):
         res = set()
@@ -106,6 +108,7 @@ class TypeGraphNode(object):
                 tmp.add_val(tt2)
                 res.add(tmp)
         dep.nodeType = res
+        dep.generic_dependency()
 
     def arg_dep(self, dep):
         index = dep.args.index(self)
@@ -310,7 +313,9 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             __main__.error_printer.printError(CallNotResolvedError(node))
         self.args      = []
         self.argsTypes = []
-        if isinstance(node, BinOp):
+        if isinstance(node, AugAssign):
+            nodeArgs = [node.target, node.value]
+        elif isinstance(node, BinOp):
             nodeArgs = [node.left, node.right]
         elif isinstance(node, UnaryOp):
             nodeArgs = [node.operand]
