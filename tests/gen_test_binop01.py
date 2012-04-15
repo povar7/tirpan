@@ -11,7 +11,7 @@ from os import sys
 
 import re
 
-op = ['+', '-', '*', '/', '//', '%', '<<', '>>']
+op = ['+', '-', '*', '/', '//', '%', '<<', '>>', '&', '|']
 operands = ['True', '1', '1l', '1.0', '1j', 'None', '\'1\'', 'u\'1\'', '[1, 1]', '(1, 1)']
 
 tests_dir = os.path.dirname(sys.argv[0])

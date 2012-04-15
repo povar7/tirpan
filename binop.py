@@ -4,12 +4,14 @@ Created on 24.03.2012
 @author: bronikkk
 '''
 
-from ast       import Add, Div, FloorDiv, LShift, Mod, Mult, RShift, Sub
+from ast       import Add, BitAnd, BitOr, Div, FloorDiv, LShift, Mod, Mult, RShift, Sub
 from typegraph import *
 from typenodes import *
 
 operator_names_table = {                    \
                            Add      : '+' , \
+                           BitAnd   : '&' , \
+                           BitOr    : '|' , \
                            Div      : '/' , \
                            FloorDiv : '//', \
                            LShift   : '<<', \
@@ -64,6 +66,24 @@ def quasi_plus(scope):
     if type1 == type_bool and type2 == type_bool:
         return set([type_int])
     return set([type_int, type_long])
+
+def quasi_bitand(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    type2 = list(scope.findParam(2).nodeType)[0]
+
+    if not isinstance(type1, (TypeBool, TypeInt, TypeLong)):
+        return set()
+    if not isinstance(type2, (TypeBool, TypeInt, TypeLong)):
+        return set()
+
+    if isinstance(type1, TypeLong) or isinstance(type2, TypeLong):
+        return set([type_long])
+    if isinstance(type1, TypeInt) or isinstance(type2, TypeInt):
+        return set([type_int])
+    return set([type_bool])
+
+def quasi_bitor(scope):
+    return quasi_bitand(scope)
 
 def quasi_div(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
@@ -156,6 +176,8 @@ def init_binop(scope, op, quasi):
 
 def init_binops(scope):
     init_binop(scope, Add     , quasi_plus    )
+    init_binop(scope, BitAnd  , quasi_bitand  )
+    init_binop(scope, BitOr   , quasi_bitor   )
     init_binop(scope, Div     , quasi_div     )
     init_binop(scope, FloorDiv, quasi_floordiv)
     init_binop(scope, LShift  , quasi_lshift  )
