@@ -11,7 +11,7 @@ from os import sys
 
 import re
 
-op = ['+', '-']
+op = ['+', '-', 'not']
 operands = ['True', '1', '1l', '1.0', '1j', 'None', '\'1\'', 'u\'1\'', '[1, 1]', '(1, 1)']
 
 tests_dir = os.path.dirname(sys.argv[0])
@@ -24,6 +24,8 @@ footname  = os.path.join(tests_dir, 'gen_test_foot.txt')
 
 def get_type_name(var):
     var_type = var.__class__
+    if var_type == bool:
+        return 'self.type_bool'
     if var_type == int:
         return 'self.type_int'
     if var_type == long:

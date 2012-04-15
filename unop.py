@@ -4,11 +4,16 @@ Created on 24.03.2012
 @author: bronikkk
 '''
 
-from ast       import UAdd, USub, Invert
+from ast       import UAdd, USub, Invert, Not
 from typegraph import *
 from typenodes import *
 
-operator_names_table = {UAdd : '+', USub : '-', Invert : '~'}
+operator_names_table = {                  \
+                           UAdd   : '+',  \
+                           USub   : '-',  \
+                           Invert : '~',  \
+                           Not    : 'not' \
+                       }
 
 def get_unary_operator_name(op):
     return operator_names_table[op]
@@ -31,6 +36,9 @@ def quasi_uminus(scope):
         return set([type_int, type_long])
     return quasi_uplus(scope)
 
+def quasi_not(scope):
+    return set([type_bool])
+
 def init_unop(scope, op, quasi):
     name = get_unary_operator_name(op)
     func = ExternFuncDefTypeGraphNode(1, quasi, scope)
@@ -41,3 +49,4 @@ def init_unop(scope, op, quasi):
 def init_unops(scope):
     init_unop(scope, UAdd, quasi_uplus )
     init_unop(scope, USub, quasi_uminus)
+    init_unop(scope, Not , quasi_not)
