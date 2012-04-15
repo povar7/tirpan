@@ -36,6 +36,14 @@ def quasi_uminus(scope):
         return set([type_int, type_long])
     return quasi_uplus(scope)
 
+def quasi_invert(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    if not isinstance(type1, (TypeBool, TypeInt, TypeLong)):
+        return set()
+    if isinstance(type1, TypeLong):
+        return set([type_long])
+    return set([type_int])
+
 def quasi_not(scope):
     return set([type_bool])
 
@@ -47,6 +55,7 @@ def init_unop(scope, op, quasi):
     scope.add(var)
 
 def init_unops(scope):
-    init_unop(scope, UAdd, quasi_uplus )
-    init_unop(scope, USub, quasi_uminus)
-    init_unop(scope, Not , quasi_not)
+    init_unop(scope, UAdd  , quasi_uplus )
+    init_unop(scope, USub  , quasi_uminus)
+    init_unop(scope, Invert, quasi_invert)
+    init_unop(scope, Not   , quasi_not)
