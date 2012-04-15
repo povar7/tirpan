@@ -4,11 +4,19 @@ Created on 24.03.2012
 @author: bronikkk
 '''
 
-from ast       import Add, Div, FloorDiv, Mod, Mult, Sub
+from ast       import Add, Div, FloorDiv, LShift, Mod, Mult, Sub
 from typegraph import *
 from typenodes import *
 
-operator_names_table = {Add : '+', Div : '/', FloorDiv : '//', Mult : '*', Mod : '%', Sub : '-'}
+operator_names_table = {                    \
+                           Add      : '+' , \
+                           Div      : '/' , \
+                           FloorDiv : '//', \
+                           LShift   : '<<', \
+                           Mult     : '*' , \
+                           Mod      : '%' , \
+                           Sub      : '-'   \
+                       }
 
 def get_binary_operator_name(op):
     return operator_names_table[op]
@@ -73,6 +81,23 @@ def quasi_div(scope):
 def quasi_floordiv(scope):
     return quasi_div(scope)
 
+def quasi_lshift(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    type2 = list(scope.findParam(2).nodeType)[0]
+
+    if not isinstance(type1, (TypeBool, TypeLong, TypeInt)):
+        return set()
+    if not isinstance(type2, (TypeBool, TypeLong, TypeInt)):
+        return set()
+
+    if isinstance(type1, TypeBool):
+        type1 = type_int
+    if isinstance(type2, TypeBool):
+        return set([type1])
+    if isinstance(type1, TypeLong) or isinstance(type2, TypeLong):
+        return set([type_long])
+    return set([type_int, type_long])
+
 def quasi_mod(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     if type1 == type_str:
@@ -115,6 +140,7 @@ def init_binops(scope):
     init_binop(scope, Add     , quasi_plus    )
     init_binop(scope, Div     , quasi_div     )
     init_binop(scope, FloorDiv, quasi_floordiv)
+    init_binop(scope, LShift  , quasi_lshift  )
     init_binop(scope, Mult    , quasi_mult    )
     init_binop(scope, Mod     , quasi_mod     )
     init_binop(scope, Sub     , quasi_sub     )
