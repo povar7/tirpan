@@ -56,7 +56,7 @@ def process_product_elem(func, arg_elem, kwarg_elem):
             ast_copy  = deepcopy(func.ast)
             saved_res = __main__.current_res
             __main__.current_res = set()
-            visitor   = TIVisitor(__main__.importer.get_ident(ast_copy[0].fileno))
+            visitor   = TIVisitor(__main__.importer.get_ident(ast_copy[0].fileno).name)
             for stmt in ast_copy:
                 visitor.visit(stmt)
             func.templates[elem] = process_results(__main__.current_res, func.defReturn)
