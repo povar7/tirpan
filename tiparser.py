@@ -31,3 +31,5 @@ class TIParser(object):
             if isinstance(self.ast, ast.Module):
                 print 'File "' + self.visitor.filename + '":'
                 self.ast.link.getScope().printVariables()
+        if __main__.test_results:
+            pass

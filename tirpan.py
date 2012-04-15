@@ -30,6 +30,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python Type Inference Project.')
     parser.add_argument('filename', help='filename of python source')
     parser.add_argument('-V', '--verbose', action='store_true', help='verbose output')
+    parser.add_argument('-t', '--test'   , action='store_true', help='test results')
     args = parser.parse_args()
 
     global_scope  = Scope(None)
@@ -38,6 +39,7 @@ if __name__ == '__main__':
     importer      = Importer()
     error_printer = ErrorPrinter()
     verbose       = args.verbose
+    test_results  = args.test
 
     common_init(global_scope, importer)
 
