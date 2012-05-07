@@ -37,7 +37,6 @@ class TestTirpan(unittest.TestCase):
         self.ast = importer.imported_files['__main__'].ast
 
         self.type_int     = TypeInt()
-        self.type_float   = TypeFloat()
 
     def test_walk_var_x(self):
         node = findNode(self.ast, line=4, col=1, kind=ast.Name)
@@ -45,7 +44,8 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
         nodeType = node.link.nodeType
-        type1 = self.type_int
+        type1 = TypeList()
+        type1.add_elem(self.type_int)
         self.assertTrue(len(nodeType) == 1 and                                             \
                         any([type1 == elem for elem in nodeType]),                         \
                         'wrong types calculated')
@@ -57,7 +57,8 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
         nodeType = node.link.nodeType
-        type1 = self.type_int
+        type1 = TypeList()
+        type1.add_elem(self.type_int)
         self.assertTrue(len(nodeType) == 1 and                                             \
                         any([type1 == elem for elem in nodeType]),                         \
                         'wrong types calculated')
@@ -69,7 +70,8 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
         nodeType = node.link.nodeType
-        type1 = self.type_int
+        type1 = TypeList()
+        type1.add_elem(self.type_int)
         self.assertTrue(len(nodeType) == 1 and                                             \
                         any([type1 == elem for elem in nodeType]),                         \
                         'wrong types calculated')

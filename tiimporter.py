@@ -53,6 +53,7 @@ class Importer(object):
         return self.find_module(name, paths)
 
     def import_files(self, mainfile, aliases, from_aliases = None):
+        main_module = False
         for alias in aliases:
             name = alias.name
             if name in self.standard_modules:
@@ -60,8 +61,9 @@ class Importer(object):
                 import_standard_module(module, self)
             else:
                 if name == '__main__':
-                    filename   = os.path.abspath(mainfile)
-                    searchname = name
+                    filename     = os.path.abspath(mainfile)
+                    searchname   = name
+                    main_module  = True
                 else:
                     try: 
                         filename = os.path.abspath(self.process_name(name, mainfile))
@@ -84,7 +86,7 @@ class Importer(object):
                     for node in ast.walk(imported_tree):
                         node.fileno = fileno
                     self.imported_files[searchname] = imported_tree.link 
-                    parser.walk()
+                    parser.walk(main_module)
             if from_aliases is None:
                 var_name = alias.asname if alias.asname else alias.name
                 alias.link = __main__.current_scope.findOrAdd(var_name)

@@ -17,6 +17,10 @@ def sort_params(x, y):
         return -1
     return cmp(x.paramNumber, y.paramNumber)
 
+class DummyWrap(object):
+    def __init__(self, scope):
+        self.scope = scope
+
 class Scope(object):
     def __init__(self, parent = None, params_scope = False):
         self.parent = parent
@@ -29,13 +33,15 @@ class Scope(object):
         var.setParent(self)
         self.variables[var.name] = var
 
-    def find(self, name, consider_globals = False):
+    def find(self, name, consider_globals = False, wrap_file_scope = None):
         if name in self.variables:
             return self.variables[name]
         if consider_globals and self.params_scope and name not in self.global_names:
+            if wrap_file_scope:
+                wrap_file_scope.scope = None
             return None
         if self.parent:
-            return self.parent.find(name, consider_globals)
+            return self.parent.find(name, consider_globals, wrap_file_scope)
         return None
 
     def _getParamName(self, num):
@@ -52,7 +58,9 @@ class Scope(object):
         return self.find(self._getParamName(num))
 
     def findOrAdd(self, name, consider_globals = False, file_scope = None):
-        res = self.find(name, consider_globals)
+        wrap_file_scope = DummyWrap(file_scope)
+        res = self.find(name, consider_globals, wrap_file_scope)
+        file_scope = wrap_file_scope.scope
         if not res:
             from typegraph import UsualVarTypeGraphNode
             res = UsualVarTypeGraphNode(name)
