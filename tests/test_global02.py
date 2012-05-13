@@ -43,7 +43,6 @@ class TestTirpan(unittest.TestCase):
         node = findNode(self.ast, line=3, kind=ast.FunctionDef)
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
-        self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
         nodeType = node.link.nodeType
         self.assertTrue(len(nodeType) == 1 and                                              \
                         any([isinstance(elem, FuncDefTypeGraphNode) for elem in nodeType]), \

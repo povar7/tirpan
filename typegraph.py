@@ -241,9 +241,10 @@ class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
         self.isLoaded = False
 
 class FuncDefTypeGraphNode(TypeGraphNode):
-    def __init__(self, parent_scope):
+    def __init__(self, name, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()
         self.nodeType  = set([self])
+        self.name      = name
         self.params    = Scope(parent_scope, True)
         self.templates = {}
 
@@ -260,8 +261,8 @@ class FuncDefTypeGraphNode(TypeGraphNode):
         return [None]
 
 class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
-    def __init__(self, node, parent_scope):
-        super(UsualFuncDefTypeGraphNode, self).__init__(parent_scope)
+    def __init__(self, node, name, parent_scope):
+        super(UsualFuncDefTypeGraphNode, self).__init__(name, parent_scope)
         self.ast       = node.body
         self.vararg    = node.args.vararg
         if self.vararg:
@@ -289,8 +290,8 @@ class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
             return res
 
 class ExternFuncDefTypeGraphNode(FuncDefTypeGraphNode):
-    def __init__(self, params_num, quasi, parent_scope, def_vals = {}):
-        super(ExternFuncDefTypeGraphNode, self).__init__(parent_scope)
+    def __init__(self, params_num, quasi, name, parent_scope, def_vals = {}):
+        super(ExternFuncDefTypeGraphNode, self).__init__(name, parent_scope)
         for i in range(1, params_num + 1):
             param = self.params.addParam(i)
             if i in def_vals:

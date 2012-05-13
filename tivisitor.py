@@ -117,13 +117,15 @@ class TIVisitor(ast.NodeVisitor):
                 arg.link.setDefaultParam()
             
     def visit_FunctionDef(self, node):
-        funcDefNode = UsualFuncDefTypeGraphNode(node, __main__.current_scope)
-        node.link   = __main__.current_scope.findOrAdd(node.name)
-        node.link.setPos(node)
+        name = node.name
+        funcDefNode = UsualFuncDefTypeGraphNode(node, name, __main__.current_scope)
+        var  = __main__.current_scope.findOrAdd(name)
+        var.setPos(node)
+        node.link = funcDefNode
         __main__.current_scope = funcDefNode.getParams()
         self.visit(node.args) 
         __main__.current_scope = __main__.current_scope.getParent()
-        funcDefNode.addDependency(DependencyType.Assign, node.link)
+        funcDefNode.addDependency(DependencyType.Assign, var)
 
     def visit_Call(self, node):
         for arg in node.args:
@@ -134,6 +136,7 @@ class TIVisitor(ast.NodeVisitor):
         if isinstance(node.func, ast.Name):
             name = node.func.id
             var = __main__.current_scope.find(name)
+            node.func.link = var
             node.link = FuncCallTypeGraphNode(node, var)
             node.link.processCall()
         else:

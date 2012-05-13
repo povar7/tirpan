@@ -36,5 +36,7 @@ class TIParser(object):
                 generate_asserts(self.ast)
             if __main__.test_precision:
                 from tiprecision import TIPrecision
+                print 'File "' + self.visitor.filename + '":'
                 precision = TIPrecision(self.ast)
                 precision.visit(self.ast)
+                print precision.getCounter()

@@ -7,7 +7,7 @@ Created on 25.03.2012
 from typegraph import *
 
 def init_builtin_function(scope, name, quasi, num, def_vals = {}):
-    func = ExternFuncDefTypeGraphNode(num, quasi, scope, def_vals)
+    func = ExternFuncDefTypeGraphNode(num, quasi, name, scope, def_vals)
     var  = scope.findOrAdd(name)
     func.addDependency(DependencyType.Assign, var)
     scope.add(var)

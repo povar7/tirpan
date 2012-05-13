@@ -7,27 +7,11 @@ Created on 03.03.2012
 import ast
 from types import FunctionType
 
+from tistat    import HitsCounter
 from typegraph import FuncDefTypeGraphNode
 from typenodes import TypeNode, TypeAtom, TypeList, TypeTuple, TypeDict
 
-class HitsCounter(object):
-    def __init__(self):
-        self.total  = 0
-        self.hits   = 0
-        self.misses = 0
-
-    def assert_variable(self, name, cond):
-        self.total += 1
-        if cond:
-            self.hits   += 1
-        else:
-            print "Miss: %s" % name
-            self.misses += 1
-
-    def __str__(self):
-        return 'Total: %d, hits: %d, misses: %d' % (self.total, self.hits, self.misses)
-
-counter = HitsCounter()
+counter = HitsCounter(True)
 sandbox = {}
 
 def insert_asserts(body, asserts):
@@ -69,7 +53,7 @@ def check_types(var_types, var):
 def check_variable(var, name, scope):
     real_var = scope.variables[name]
     cond = check_types(real_var.nodeType, var)
-    counter.assert_variable(name, cond)
+    counter.check_condition(cond, name)
 
 sandbox['check_variable'] = check_variable
 

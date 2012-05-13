@@ -49,7 +49,7 @@ def quasi_not(scope):
 
 def init_unop(scope, op, quasi):
     name = get_unary_operator_name(op)
-    func = ExternFuncDefTypeGraphNode(1, quasi, scope)
+    func = ExternFuncDefTypeGraphNode(1, quasi, name, scope)
     var  = scope.findOrAdd(name)
     func.addDependency(DependencyType.Assign, var)
     scope.add(var)
