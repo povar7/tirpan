@@ -33,14 +33,15 @@ def import_from_file(mainfile, module, aliases):
 
 class TestTirpan(unittest.TestCase):
     def setUp(self):
-        global global_scope, current_scope, current_res, error_printer, importer, verbose, test_results
-        global_scope  = Scope(None)
-        current_scope = global_scope
-        current_res   = None
-        error_printer = ErrorPrinter()
-        importer      = Importer()
-        verbose       = False
-        test_results  = False
+        global global_scope, current_scope, current_res, error_printer, importer, verbose, test_results, test_precision
+        global_scope   = Scope(None)
+        current_scope  = global_scope
+        current_res    = None
+        error_printer  = ErrorPrinter()
+        importer       = Importer()
+        verbose        = False
+        test_results   = False
+        test_precision = False
 
         common_init(global_scope, importer)
         tirpan.run(test_file_name_1)

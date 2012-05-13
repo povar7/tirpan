@@ -8,12 +8,10 @@ import ast
 
 import __main__
 
-from init      import get_operator_name    
+from init      import get_operator_name 
 from typegraph import *
 
 class TIVisitor(ast.NodeVisitor):
-    filename = None 
-
     def __init__(self, filename):
         self.filename  = filename
         self.left_part = False

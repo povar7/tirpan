@@ -29,17 +29,19 @@ def run(filename):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python Type Inference Project.')
     parser.add_argument('filename', help='filename of python source')
-    parser.add_argument('-V', '--verbose', action='store_true', help='verbose output')
-    parser.add_argument('-t', '--test'   , action='store_true', help='test results')
+    parser.add_argument('-V', '--verbose'  , action='store_true', help='verbose output')
+    parser.add_argument('-t', '--test'     , action='store_true', help='test results'  )
+    parser.add_argument('-p', '--precision', action='store_true', help='test precision')
     args = parser.parse_args()
 
-    global_scope  = Scope(None)
-    current_scope = global_scope
-    current_res   = None
-    importer      = Importer()
-    error_printer = ErrorPrinter()
-    verbose       = args.verbose
-    test_results  = args.test
+    global_scope   = Scope(None)
+    current_scope  = global_scope
+    current_res    = None
+    importer       = Importer()
+    error_printer  = ErrorPrinter()
+    verbose        = args.verbose
+    test_results   = args.test
+    test_precision = args.precision
 
     common_init(global_scope, importer)
 

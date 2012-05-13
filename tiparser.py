@@ -34,3 +34,7 @@ class TIParser(object):
                 self.ast.link.getScope().printVariables()
             if __main__.test_results and main_module:
                 generate_asserts(self.ast)
+            if __main__.test_precision:
+                from tiprecision import TIPrecision
+                precision = TIPrecision(self.ast)
+                precision.visit(self.ast)
