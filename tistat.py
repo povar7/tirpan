@@ -11,7 +11,7 @@ class HitsCounter(object):
             self.hits   += 1
         else:
             if self.verbose:
-                print "Miss: %s" % msg
+                print 'Miss: %s' % msg
             self.misses += 1
 
     def __str__(self):
