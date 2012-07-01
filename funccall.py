@@ -6,6 +6,7 @@ Created on 09.03.2012
 
 from copy  import deepcopy
 
+from classes   import make_new_instance
 from scope     import Scope
 from typenodes import *
 
@@ -42,10 +43,16 @@ class TemplateValue:
         self.ast    = None
         self.result = set()
 
-def process_product_elem(func, arg_elem, kwarg_elem):
+def process_product_elem(pair, arg_elem, kwarg_elem):
     import __main__
     from tivisitor import TIVisitor
     from typegraph import ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
+    cls, func = pair
+    cls_instance = make_new_instance(cls)
+    if cls_instance:
+        arg_list  = [cls_instance]
+        arg_list += list(arg_elem)
+        arg_elem  = tuple(arg_list)
     elem = func.params.getArgs(arg_elem, kwarg_elem)
     if elem is None:
         return set()
@@ -65,8 +72,12 @@ def process_product_elem(func, arg_elem, kwarg_elem):
             for stmt in ast_copy:
                 visitor.visit(stmt)
             func.templates[elem].ast    = ast_copy
-            func.templates[elem].result = process_results(__main__.current_res, \
-                                                          func.defReturn)
+            if cls_instance:
+                func.templates[elem].result = set([cls_instance])
+            else:
+                func.templates[elem].result =             \
+                    process_results(__main__.current_res, \
+                                    func.defReturn)
             __main__.current_res = saved_res
         elif isinstance(func, ExternFuncDefTypeGraphNode):
             func.templates[elem].result = func.quasi(__main__.current_scope)

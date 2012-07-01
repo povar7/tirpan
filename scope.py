@@ -44,6 +44,11 @@ class Scope(object):
             return self.parent.find(name, consider_globals, wrap_file_scope)
         return None
 
+    def findInScope(self, name):
+        if name in self.variables:
+            return self.variables[name]
+        return None 
+
     def _getParamName(self, num):
         return 'param' + str(num)
 

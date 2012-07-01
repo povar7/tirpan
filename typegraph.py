@@ -9,6 +9,7 @@ from ast          import AugAssign, BinOp, UnaryOp, Call
 from copy         import deepcopy
 from types        import NoneType
 
+from classes      import find_inits_in_classes
 from funccall     import *
 from returns      import check_returns
 from scope        import Scope
@@ -130,6 +131,12 @@ class TypeGraphNode(object):
         funcs = set([elem for elem in self.nodeType if isinstance(elem, FuncDefTypeGraphNode)])
         if len(funcs) > len(dep.funcs):
             dep.funcs = funcs
+            if dep.args is not None:
+                dep.processCall()
+                dep.generic_dependency()
+        classes = set([elem for elem in self.nodeType if isinstance(elem, ClassDefTypeGraphNode)])
+        if len(classes) > len(dep.classes):
+            dep.classes = classes
             if dep.args is not None:
                 dep.processCall()
                 dep.generic_dependency()
@@ -310,6 +317,7 @@ class FuncCallTypeGraphNode(TypeGraphNode):
         super(FuncCallTypeGraphNode, self).__init__()
         self.nodeType  = set()
         self.funcs     = set()
+        self.classes   = set()
         try:
             self.args  = None
             var.addDependency(DependencyType.Func, self)
@@ -346,10 +354,16 @@ class FuncCallTypeGraphNode(TypeGraphNode):
 
     def processCall(self):
         for arg in product(*self.argsTypes):
-            for func in self.funcs:
+            funcs = [(None, func) for func in self.funcs]
+            inits = find_inits_in_classes(self.classes)
+            callables  = []
+            callables += funcs
+            callables += inits
+            for elem in callables:
                 if hasattr(self, 'kwargsTypes'):
+                    _, func = elem
                     for kwarg in func.getKWArgs(self.kwargsTypes): 
-                        self.nodeType = self.nodeType.union(process_product_elem(func, arg, kwarg))
+                        self.nodeType = self.nodeType.union(process_product_elem(elem, arg, kwarg))
 
 class ClassDefTypeGraphNode(TypeGraphNode):
     def __init__(self, node, parent_scope):
@@ -365,6 +379,18 @@ class ClassDefTypeGraphNode(TypeGraphNode):
             self.bases.append(link)
             self.basesTypes.append(type_copy)
             link.addDependency(DependencyType.Base, self)
+
+    def __deepcopy__(self, memo):
+        return self
+
+    def getScope(self):
+        return self.scope
+
+class ClassInstanceTypeGraphNode(TypeGraphNode):
+    def __init__(self, cls):
+        super(ClassInstanceTypeGraphNode, self).__init__()
+        self.cls   = cls
+        self.scope = Scope(None)
 
     def __deepcopy__(self, memo):
         return self

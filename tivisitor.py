@@ -123,7 +123,10 @@ class TIVisitor(ast.NodeVisitor):
         var.setPos(node)
         node.link = funcDefNode
         __main__.current_scope = funcDefNode.getParams()
-        self.visit(node.args) 
+        save = __main__.current_scope.parent
+        __main__.current_scope.parent = None
+        self.visit(node.args)
+        __main__.current_scope.parent = save
         __main__.current_scope = __main__.current_scope.getParent()
         funcDefNode.addDependency(DependencyType.Assign, var)
 
