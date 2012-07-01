@@ -196,3 +196,16 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_Global(self, node):
         __main__.current_scope.addGlobalNames(node.names)
+
+    def visit_ClassDef(self, node):
+        for base in node.bases:
+            self.visit(base)
+        classDefNode = ClassDefTypeGraphNode(node, __main__.current_scope)
+        var  = __main__.current_scope.findOrAdd(node.name)
+        var.setPos(node)
+        node.link = classDefNode
+        __main__.current_scope = classDefNode.getScope()
+        for stmt in node.body:
+            self.visit(stmt)
+        __main__.current_scope = __main__.current_scope.getParent()
+        classDefNode.addDependency(DependencyType.Assign, var)

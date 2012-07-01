@@ -22,11 +22,11 @@ class DummyWrap(object):
         self.scope = scope
 
 class Scope(object):
-    def __init__(self, parent = None, params_scope = False):
+    def __init__(self, parent = None, has_globals = False):
         self.parent = parent
         self.variables = {}
-        self.params_scope = params_scope
-        if self.params_scope:
+        self.has_globals = has_globals
+        if self.has_globals:
             self.global_names = set() 
 
     def add(self, var):
@@ -36,7 +36,7 @@ class Scope(object):
     def find(self, name, consider_globals = False, wrap_file_scope = None):
         if name in self.variables:
             return self.variables[name]
-        if consider_globals and self.params_scope and name not in self.global_names:
+        if consider_globals and self.has_globals and name not in self.global_names:
             if wrap_file_scope:
                 wrap_file_scope.scope = None
             return None
@@ -129,7 +129,7 @@ class Scope(object):
             var.nodeType = set([arg])
 
     def addGlobalNames(self, names):
-        if not self.params_scope:
+        if not self.has_globals:
             self.parent.addGlobalNames(names)
         else:
             self.global_names = self.global_names.union(set(names))

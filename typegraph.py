@@ -15,7 +15,8 @@ from scope        import Scope
 from typenodes    import *
 from utils        import *
 
-type_str = TypeStr()
+type_str     = TypeStr()
+type_unknown = TypeUnknown()
 
 class DependencyType(object):
     Assign     = 'assign'
@@ -26,6 +27,7 @@ class DependencyType(object):
     Arg        = 'arg'
     KWArg      = 'kwarg'
     Func       = 'func'
+    Base       = 'base'
 
 class TypeGraphNode(object):
     def __init__(self):
@@ -131,6 +133,9 @@ class TypeGraphNode(object):
             if dep.args is not None:
                 dep.processCall()
                 dep.generic_dependency()
+
+    def base_dep(self, dep):
+        pass
 
     def elem_types(self):
         el_types = set()
@@ -346,7 +351,28 @@ class FuncCallTypeGraphNode(TypeGraphNode):
                     for kwarg in func.getKWArgs(self.kwargsTypes): 
                         self.nodeType = self.nodeType.union(process_product_elem(func, arg, kwarg))
 
+class ClassDefTypeGraphNode(TypeGraphNode):
+    def __init__(self, node, parent_scope):
+        super(ClassDefTypeGraphNode, self).__init__()
+        self.nodeType   = set([self])
+        self.name       = node.name
+        self.scope      = Scope(parent_scope, True)
+        self.bases      = []
+        self.basesTypes = []
+        for base in node.bases:
+            link = base.link
+            type_copy = deepcopy(link.nodeType)
+            self.bases.append(link)
+            self.basesTypes.append(type_copy)
+            link.addDependency(DependencyType.Base, self)
+
+    def __deepcopy__(self, memo):
+        return self
+
+    def getScope(self):
+        return self.scope
+
 class UnknownTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
         super(UnknownTypeGraphNode, self).__init__()
-        self.nodeType  = set([TypeUnknown()]) 
+        self.nodeType  = set([type_unknown]) 
