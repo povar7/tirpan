@@ -22,9 +22,13 @@ class DummyWrap(object):
         self.scope = scope
 
 class Scope(object):
-    def __init__(self, parent = None, has_globals = False):
-        self.parent = parent
-        self.variables = {}
+    class_scope = 'class_scope'
+    func_scope  = 'func_scope'
+    init_scope  = 'init_scope'
+
+    def __init__(self, parent = None, has_globals = None):
+        self.parent      = parent
+        self.variables   = {}
         self.has_globals = has_globals
         if self.has_globals:
             self.global_names = set() 
@@ -47,7 +51,16 @@ class Scope(object):
     def findInScope(self, name):
         if name in self.variables:
             return self.variables[name]
-        return None 
+        return None
+
+    def addToScope(self, name):
+        from typegraph import UsualVarTypeGraphNode
+        if name in self.variables:
+            return self.variables[name]
+        else:
+            res = UsualVarTypeGraphNode(name)
+            self.add(res)
+            return res
 
     def _getParamName(self, num):
         return 'param' + str(num)
@@ -138,3 +151,9 @@ class Scope(object):
             self.parent.addGlobalNames(names)
         else:
             self.global_names = self.global_names.union(set(names))
+
+    def isClassScope(self):
+        return self.has_globals == Scope.class_scope
+
+    def isInitScope(self):
+        return self.has_globals == Scope.init_scope

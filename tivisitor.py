@@ -181,7 +181,12 @@ class TIVisitor(ast.NodeVisitor):
         node.link = UnknownTypeGraphNode(node)
 
     def visit_Attribute(self, node):
-        node.link = UnknownTypeGraphNode(node)
+        self.visit(node.value)
+        if isinstance(node.ctx, ast.Load):
+            node.link = GetAttributeTypeGraphNode(node)
+        else:
+            node.link = SetAttributeTypeGraphNode(node)
+        node.value.link.addDependency(DependencyType.AttrObject, node.link)
 
     def visit_Subscript(self, node): 
         self.generic_visit(node)
@@ -212,3 +217,8 @@ class TIVisitor(ast.NodeVisitor):
             self.visit(stmt)
         __main__.current_scope = __main__.current_scope.getParent()
         classDefNode.addDependency(DependencyType.Assign, var)
+
+    def visit_Print(self, node):
+        for value in node.values:
+             self.visit(value)
+        node.link = PrintTypeGraphNode()

@@ -9,7 +9,7 @@ from ast          import AugAssign, BinOp, UnaryOp, Call
 from copy         import deepcopy
 from types        import NoneType
 
-from classes      import find_inits_in_classes
+from classes      import find_inits_in_classes, get_attributes, set_attributes
 from funccall     import *
 from returns      import check_returns
 from scope        import Scope
@@ -29,6 +29,8 @@ class DependencyType(object):
     KWArg      = 'kwarg'
     Func       = 'func'
     Base       = 'base'
+    AttrObject = 'attrobject'
+    Object     = 'object'
 
 class TypeGraphNode(object):
     def __init__(self):
@@ -59,7 +61,8 @@ class TypeGraphNode(object):
         if not dep_type in self.deps:
             self.deps[dep_type] = set()     
         self.deps[dep_type].add(dep)
-        self.walk_dependency(dep_type, dep)            
+        if dep_type != DependencyType.Object:
+            self.walk_dependency(dep_type, dep)
     
     def walk_dependency(self, dep_type, dep):
         getattr(self, dep_type + '_dep')(dep)
@@ -70,9 +73,15 @@ class TypeGraphNode(object):
                 self.walk_dependency(dep_type, dep)
 
     def assign_dep(self, dep):
-        if len(self.nodeType - dep.nodeType) != 0:
-            dep.nodeType = dep.nodeType.union(self.nodeType)
-            dep.generic_dependency()
+        if isinstance(dep, VarTypeGraphNode):
+            if len(self.nodeType - dep.nodeType) != 0:
+                dep.nodeType = dep.nodeType.union(self.nodeType)
+                dep.generic_dependency()
+        elif isinstance(dep, SetAttributeTypeGraphNode):
+            if len(self.nodeType - dep.values) != 0:
+                dep.values = dep.values.union(self.nodeType)
+                dep.processAttribute()
+                dep.generic_dependency()
     
     def assign_elem_dep(self, dep):
         new_types = self.elem_types()
@@ -143,6 +152,18 @@ class TypeGraphNode(object):
 
     def base_dep(self, dep):
         pass
+
+    def attrobject_dep(self, dep):
+        if len(self.nodeType) > len(dep.objects):
+            dep.objects = self.nodeType
+            dep.processAttribute()
+            dep.generic_dependency()
+
+    def object_dep(self, dep):
+        if isinstance(dep, FuncCallTypeGraphNode):
+            if len(self.nodeType - dep.nodeType) != 0:
+                dep.nodeType = dep.nodeType.union(self.nodeType)
+                dep.generic_dependency()
 
     def elem_types(self):
         el_types = set()
@@ -255,9 +276,18 @@ class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
 class FuncDefTypeGraphNode(TypeGraphNode):
     def __init__(self, name, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()
+        try:
+            init_flag  = parent_scope.isClassScope() and \
+                         name == '__init__'
+        except AttributeError:
+            init_flag  = False
+        if init_flag:
+            scope_flag = Scope.init_scope
+        else:
+            scope_flag = Scope.func_scope
         self.nodeType  = set([self])
         self.name      = name
-        self.params    = Scope(parent_scope, True)
+        self.params    = Scope(parent_scope, scope_flag)
         self.templates = {}
 
     def __deepcopy__(self, memo):
@@ -362,15 +392,19 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             for elem in callables:
                 if hasattr(self, 'kwargsTypes'):
                     _, func = elem
-                    for kwarg in func.getKWArgs(self.kwargsTypes): 
-                        self.nodeType = self.nodeType.union(process_product_elem(elem, arg, kwarg))
+                    try:
+                        kwargs = func.getKWArgs(self.kwargsTypes)
+                    except AttributeError:
+                        kwargs = [None]
+                    for kwarg in kwargs: 
+                        self.nodeType = self.nodeType.union(process_product_elem(elem, arg, kwarg, self))
 
 class ClassDefTypeGraphNode(TypeGraphNode):
     def __init__(self, node, parent_scope):
         super(ClassDefTypeGraphNode, self).__init__()
         self.nodeType   = set([self])
         self.name       = node.name
-        self.scope      = Scope(parent_scope, True)
+        self.scope      = Scope(parent_scope, Scope.class_scope)
         self.bases      = []
         self.basesTypes = []
         for base in node.bases:
@@ -379,24 +413,56 @@ class ClassDefTypeGraphNode(TypeGraphNode):
             self.bases.append(link)
             self.basesTypes.append(type_copy)
             link.addDependency(DependencyType.Base, self)
+        self.instances  = []
 
     def __deepcopy__(self, memo):
         return self
 
     def getScope(self):
         return self.scope
+
+    def addInstance(self, inst):
+        self.instances.append(inst)
 
 class ClassInstanceTypeGraphNode(TypeGraphNode):
     def __init__(self, cls):
         super(ClassInstanceTypeGraphNode, self).__init__()
-        self.cls   = cls
-        self.scope = Scope(None)
+        self.nodeType = set([self])
+        self.cls      = cls
+        self.scope    = Scope(None)
+        cls.addInstance(self)
 
     def __deepcopy__(self, memo):
         return self
 
     def getScope(self):
         return self.scope
+
+class GetAttributeTypeGraphNode(TypeGraphNode):
+    def __init__(self, node):
+        super(GetAttributeTypeGraphNode, self).__init__()
+        self.attr     = node.attr
+        self.objects  = set()
+        self.nodeType = set()
+
+    def processAttribute(self):
+        self.nodeType = get_attributes(self.objects, self.attr)
+
+class SetAttributeTypeGraphNode(TypeGraphNode):
+    def __init__(self, node):
+        super(SetAttributeTypeGraphNode, self).__init__()
+        self.attr     = node.attr
+        self.objects  = set()
+        self.values   = set()
+        self.nodeType = set()
+
+    def processAttribute(self):
+        set_attributes(self.objects, self.attr, self.values)
+
+class PrintTypeGraphNode(TypeGraphNode):
+    def __init__(self):
+        super(PrintTypeGraphNode, self).__init__()
+        self.nodeType = set()
 
 class UnknownTypeGraphNode(TypeGraphNode):
     def __init__(self, node):

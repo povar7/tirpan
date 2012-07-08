@@ -43,13 +43,15 @@ class TemplateValue:
         self.ast    = None
         self.result = set()
 
-def process_product_elem(pair, arg_elem, kwarg_elem):
+def process_product_elem(pair, arg_elem, kwarg_elem, func_call):
     import __main__
     from tivisitor import TIVisitor
     from typegraph import ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
     cls, func = pair
     cls_instance = make_new_instance(cls)
     if cls_instance:
+        if not func:
+            return set([cls_instance])
         arg_list  = [cls_instance]
         arg_list += list(arg_elem)
         arg_elem  = tuple(arg_list)
@@ -71,10 +73,14 @@ def process_product_elem(pair, arg_elem, kwarg_elem):
             visitor   = TIVisitor(__main__.importer.get_ident(ast_copy[0].fileno).name)
             for stmt in ast_copy:
                 visitor.visit(stmt)
-            func.templates[elem].ast    = ast_copy
             if cls_instance:
-                func.templates[elem].result = set([cls_instance])
+                from typegraph import DependencyType
+                __main__.current_scope = saved_scope
+                cls_instance.addDependency(DependencyType.Object, func_call)
+                del func.templates[elem]
+                return set([cls_instance])
             else:
+                func.templates[elem].ast    = ast_copy
                 func.templates[elem].result =             \
                     process_results(__main__.current_res, \
                                     func.defReturn)

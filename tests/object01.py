@@ -3,12 +3,19 @@ class A:
 
 class B(A):
     x = 1
-    y = 2
-    def __init__(self, y):
+    y = 2.0
+    def __init__(self, y, t):
         self.y = y
+        self.t = t
 
-b = B(3)
+a   = 3l
+a   = 'str'
+b   = B(a, a)
 print B.x
 print b.x
 print B.y
 print b.y
+print b.t
+b.z = 4j
+c   = b.z
+print c
