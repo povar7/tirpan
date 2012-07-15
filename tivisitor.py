@@ -135,15 +135,10 @@ class TIVisitor(ast.NodeVisitor):
             self.visit(arg)
         for kwarg in node.keywords:
             self.visit(kwarg.value)
-
-        if isinstance(node.func, ast.Name):
-            name = node.func.id
-            var = __main__.current_scope.find(name)
-            node.func.link = var
-            node.link = FuncCallTypeGraphNode(node, var)
-            node.link.processCall()
-        else:
-            node.link = UnknownTypeGraphNode(node);
+        
+        self.visit(node.func)
+        node.link = FuncCallTypeGraphNode(node)
+        node.link.processCall()
 
     def visit_For(self, node):
         self.visit(node.iter)

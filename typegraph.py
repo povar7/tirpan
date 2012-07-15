@@ -124,8 +124,12 @@ class TypeGraphNode(object):
 
     def arg_dep(self, dep):
         index = dep.args.index(self)
-        if dep.argsTypes[index] != self.nodeType:
-            dep.argsTypes[index] = deepcopy(self.nodeType)
+        if isinstance(self, GetAttributeTypeGraphNode):
+            nodeType = self.objects
+        else:
+            nodeType = self.nodeType
+        if dep.argsTypes[index] != nodeType:
+            dep.argsTypes[index] = deepcopy(nodeType)
             dep.processCall()
             dep.generic_dependency()
 
@@ -343,11 +347,13 @@ class ExternFuncDefTypeGraphNode(FuncDefTypeGraphNode):
         self.quasi = quasi
 
 class FuncCallTypeGraphNode(TypeGraphNode):
-    def __init__(self, node, var):
+    def __init__(self, node, var = None):
         super(FuncCallTypeGraphNode, self).__init__()
         self.nodeType  = set()
         self.funcs     = set()
         self.classes   = set()
+        if var is None:
+            var = node.func.link
         try:
             self.args  = None
             var.addDependency(DependencyType.Func, self)
@@ -357,17 +363,25 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             __main__.error_printer.printError(CallNotResolvedError(node))
         self.args      = []
         self.argsTypes = []
+        if isinstance(var, GetAttributeTypeGraphNode):
+            nodeArgs = [node.func]
+        else:
+            nodeArgs = []
         if isinstance(node, AugAssign):
-            nodeArgs = [node.target, node.value]
+            nodeArgs += [node.target, node.value]
         elif isinstance(node, BinOp):
-            nodeArgs = [node.left, node.right]
+            nodeArgs += [node.left, node.right]
         elif isinstance(node, UnaryOp):
-            nodeArgs = [node.operand]
+            nodeArgs += [node.operand]
         elif isinstance(node, Call):
-            nodeArgs = node.args
+            nodeArgs += node.args
         for arg in nodeArgs:
             link = arg.link
-            type_copy = deepcopy(link.nodeType)
+            if isinstance(link, GetAttributeTypeGraphNode):
+                nodeType = link.objects 
+            else:
+                nodeType = link.nodeType
+            type_copy = deepcopy(nodeType)
             self.args.append(link)
             self.argsTypes.append(type_copy)
             link.addDependency(DependencyType.Arg, self)
