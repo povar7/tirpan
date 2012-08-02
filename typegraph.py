@@ -20,17 +20,18 @@ type_str     = TypeStr()
 type_unknown = TypeUnknown()
 
 class DependencyType(object):
-    Assign     = 'assign'
-    AssignElem = 'assign_elem'
-    Elem       = 'elem'
-    Key        = 'key'
-    Val        = 'val'
-    Arg        = 'arg'
-    KWArg      = 'kwarg'
-    Func       = 'func'
-    Base       = 'base'
-    AttrObject = 'attrobject'
-    Object     = 'object'
+    Assign       = 'assign'
+    AssignElem   = 'assign_elem'
+    Elem         = 'elem'
+    Key          = 'key'
+    Val          = 'val'
+    Arg          = 'arg'
+    KWArg        = 'kwarg'
+    Func         = 'func'
+    Base         = 'base'
+    AttrObject   = 'attrobject'
+    AssignObject = 'assignobject'
+    Object       = 'object'
 
 class TypeGraphNode(object):
     def __init__(self):
@@ -77,7 +78,7 @@ class TypeGraphNode(object):
             if len(self.nodeType - dep.nodeType) != 0:
                 dep.nodeType = dep.nodeType.union(self.nodeType)
                 dep.generic_dependency()
-        elif isinstance(dep, SetAttributeTypeGraphNode):
+        elif isinstance(dep, AttributeTypeGraphNode):
             if len(self.nodeType - dep.values) != 0:
                 dep.values = dep.values.union(self.nodeType)
                 dep.processAttribute()
@@ -124,7 +125,7 @@ class TypeGraphNode(object):
 
     def arg_dep(self, dep):
         index = dep.args.index(self)
-        if isinstance(self, GetAttributeTypeGraphNode):
+        if isinstance(self, AttributeTypeGraphNode):
             nodeType = self.objects
         else:
             nodeType = self.nodeType
@@ -158,9 +159,15 @@ class TypeGraphNode(object):
         pass
 
     def attrobject_dep(self, dep):
-        if len(self.nodeType) > len(dep.objects):
+        if len(self.nodeType - dep.objects) != 0:
             dep.objects = self.nodeType
             dep.processAttribute()
+            dep.generic_dependency()
+
+    def assignobject_dep(self, dep):
+        if len(self.objects - dep.nodeType) != 0:
+            objects_copy = deepcopy(self.objects)
+            dep.nodeType = dep.nodeType.union(objects_copy)
             dep.generic_dependency()
 
     def object_dep(self, dep):
@@ -363,10 +370,12 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             __main__.error_printer.printError(CallNotResolvedError(node))
         self.args      = []
         self.argsTypes = []
-        if isinstance(var, GetAttributeTypeGraphNode):
+        if isinstance(var, AttributeTypeGraphNode):
             nodeArgs = [node.func]
+            self.attrCall = True
         else:
             nodeArgs = []
+            self.attrCall = False
         if isinstance(node, AugAssign):
             nodeArgs += [node.target, node.value]
         elif isinstance(node, BinOp):
@@ -377,7 +386,7 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             nodeArgs += node.args
         for arg in nodeArgs:
             link = arg.link
-            if isinstance(link, GetAttributeTypeGraphNode):
+            if isinstance(link, AttributeTypeGraphNode):
                 nodeType = link.objects 
             else:
                 nodeType = link.nodeType
@@ -397,7 +406,7 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             link.addDependency(DependencyType.KWArg, self)
 
     def processCall(self):
-        for arg in product(*self.argsTypes):
+        for args_type in product(*self.argsTypes):
             funcs = [(None, func) for func in self.funcs]
             inits = find_inits_in_classes(self.classes)
             callables  = []
@@ -410,24 +419,19 @@ class FuncCallTypeGraphNode(TypeGraphNode):
                         kwargs = func.getKWArgs(self.kwargsTypes)
                     except AttributeError:
                         kwargs = [None]
-                    for kwarg in kwargs: 
-                        self.nodeType = self.nodeType.union(process_product_elem(elem, arg, kwarg, self))
+                    for kwarg in kwargs:
+                        res = process_product_elem(elem, self.args, args_type, kwarg, self) 
+                        self.nodeType = self.nodeType.union(res)
 
 class ClassDefTypeGraphNode(TypeGraphNode):
-    def __init__(self, node, parent_scope):
+    def __init__(self, name, parent_scope):
         super(ClassDefTypeGraphNode, self).__init__()
         self.nodeType   = set([self])
-        self.name       = node.name
+        self.name       = name
         self.scope      = Scope(parent_scope, Scope.class_scope)
+        self.instances  = []
         self.bases      = []
         self.basesTypes = []
-        for base in node.bases:
-            link = base.link
-            type_copy = deepcopy(link.nodeType)
-            self.bases.append(link)
-            self.basesTypes.append(type_copy)
-            link.addDependency(DependencyType.Base, self)
-        self.instances  = []
 
     def __deepcopy__(self, memo):
         return self
@@ -437,6 +441,20 @@ class ClassDefTypeGraphNode(TypeGraphNode):
 
     def addInstance(self, inst):
         self.instances.append(inst)
+
+class UsualClassDefTypeGraphNode(ClassDefTypeGraphNode):
+    def __init__(self, node, parent_scope):
+        super(UsualClassDefTypeGraphNode, self).__init__(node.name, parent_scope)
+        for base in node.bases:
+            link = base.link
+            type_copy = deepcopy(link.nodeType)
+            self.bases.append(link)
+            self.basesTypes.append(type_copy)
+            link.addDependency(DependencyType.Base, self)
+
+class ExternClassDefTypeGraphNode(ClassDefTypeGraphNode):
+    def __init__(self, name, parent_scope):
+        super(ExternClassDefTypeGraphNode, self).__init__(name, parent_scope)
 
 class ClassInstanceTypeGraphNode(TypeGraphNode):
     def __init__(self, cls):
@@ -452,19 +470,9 @@ class ClassInstanceTypeGraphNode(TypeGraphNode):
     def getScope(self):
         return self.scope
 
-class GetAttributeTypeGraphNode(TypeGraphNode):
+class AttributeTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
-        super(GetAttributeTypeGraphNode, self).__init__()
-        self.attr     = node.attr
-        self.objects  = set()
-        self.nodeType = set()
-
-    def processAttribute(self):
-        self.nodeType = get_attributes(self.objects, self.attr)
-
-class SetAttributeTypeGraphNode(TypeGraphNode):
-    def __init__(self, node):
-        super(SetAttributeTypeGraphNode, self).__init__()
+        super(AttributeTypeGraphNode, self).__init__()
         self.attr     = node.attr
         self.objects  = set()
         self.values   = set()
@@ -472,6 +480,7 @@ class SetAttributeTypeGraphNode(TypeGraphNode):
 
     def processAttribute(self):
         set_attributes(self.objects, self.attr, self.values)
+        self.nodeType = get_attributes(self.objects, self.attr)
 
 class PrintTypeGraphNode(TypeGraphNode):
     def __init__(self):

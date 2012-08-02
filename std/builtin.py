@@ -7,7 +7,16 @@ Created on 01.04.2012
 from typenodes import *
 
 type_int  = TypeInt()
+type_none = TypeNone()
 type_type = TypeType()
+
+def quasi_append(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    type2 = list(scope.findParam(2).nodeType)[0]
+    if not isinstance(type1, TypeList):
+        return set([type_none])
+    type1.add_elem(type2)
+    return set([type_none])
 
 def quasi_len(scope):
     return set([type_int])
@@ -37,6 +46,9 @@ def quasi_type1(scope):
 
 def quasi_type_var():
     return type_type
+
+def get_quasi_list_name():
+    return '#list#'
 
 functions = [
                 ['len'  , quasi_len   , 1],                 \
@@ -69,5 +81,18 @@ modules   = [                                               \
                 ['sys']                                     \
             ]
 
+quasi_list_object = (                                       \
+                        get_quasi_list_name(),              \
+                        [                                   \
+                            ['append', quasi_append, 2]     \
+                        ],                                  \
+                        [                                   \
+                        ]
+                    )
+
+objects   = [                                               \
+                quasi_list_object                           \
+            ]
+
 def get_all():
-    return (functions, variables, modules)
+    return (functions, variables, modules, objects)

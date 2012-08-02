@@ -77,7 +77,10 @@ class TypeNone(TypeAtom):
     def __init__(self):
         self._type = NoneType
 
-class TypeListOrTuple(TypeNode):
+class TypeStandard(TypeNode):
+    pass
+
+class TypeListOrTuple(TypeStandard):
     def __init__(self):
         self.elems = set([])
 
@@ -103,7 +106,7 @@ class TypeTuple(TypeListOrTuple):
         super(TypeTuple, self).__init__()
         self._type = tuple
 
-class TypeDict(TypeNode):
+class TypeDict(TypeStandard):
     def __init__(self):
         self.keys  = set([])
         self.vals  = set([])

@@ -38,15 +38,38 @@ def copy_params(params):
     result.parent = save
     return result
 
+def create_dummy_variable(nodeType):
+    from typegraph import UsualVarTypeGraphNode
+    res = UsualVarTypeGraphNode(None)
+    res.nodeType = set([nodeType])
+    return res
+
 class TemplateValue:
     def __init__(self):
         self.ast    = None
         self.result = set()
+        self.args   = None
 
-def process_product_elem(pair, arg_elem, kwarg_elem, func_call):
+def process_out_params(args, elem, elem_copy, func_call, star_res):
+    from typegraph import DependencyType
+    if star_res is None:
+        star_res = len(args)
+    arg_index = 0
+    for arg in args[0:star_res]:
+        elem_atom = elem[arg_index]
+        copy_atom = elem_copy[arg_index]
+        if isinstance(copy_atom, (TypeStandard)):
+            var = create_dummy_variable(elem_atom)
+            if func_call.attrCall and arg_index == 0:
+                var.addDependency(DependencyType.AttrObject, arg)
+            else:
+                var.addDependency(DependencyType.Assign, arg)
+        arg_index += 1
+
+def process_product_elem(pair, args, arg_elem, kwarg_elem, func_call):
     import __main__
     from tivisitor import TIVisitor
-    from typegraph import ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
+    from typegraph import DependencyType, ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
     cls, func = pair
     cls_instance = make_new_instance(cls)
     if cls_instance:
@@ -55,14 +78,15 @@ def process_product_elem(pair, arg_elem, kwarg_elem, func_call):
         arg_list  = [cls_instance]
         arg_list += list(arg_elem)
         arg_elem  = tuple(arg_list)
-    elem = func.params.getArgs(arg_elem, kwarg_elem)
+    elem, star_res = func.params.getArgs(arg_elem, kwarg_elem)
     if elem is None:
         return set()
     key = find_previous_key(elem, func.templates.keys())
     if key is None:
-        params_copy = copy_params(func.params)
+        params_copy   = copy_params(func.params)
+        elem_copy     = deepcopy(elem)
         params_copy.linkParamsAndArgs(elem)
-        func.templates[elem] = TemplateValue()
+        func.templates[elem_copy] = TemplateValue()
         saved_scope   = __main__.current_scope
         func_scope    = Scope(params_copy)
         __main__.current_scope = func_scope
@@ -74,20 +98,24 @@ def process_product_elem(pair, arg_elem, kwarg_elem, func_call):
             for stmt in ast_copy:
                 visitor.visit(stmt)
             if cls_instance:
-                from typegraph import DependencyType
                 __main__.current_scope = saved_scope
                 cls_instance.addDependency(DependencyType.Object, func_call)
-                del func.templates[elem]
+                del func.templates[elem_copy]
                 return set([cls_instance])
             else:
-                func.templates[elem].ast    = ast_copy
-                func.templates[elem].result =             \
-                    process_results(__main__.current_res, \
+                func.templates[elem_copy].ast    = ast_copy
+                func.templates[elem_copy].result =             \
+                    process_results(__main__.current_res,      \
                                     func.defReturn)
+                func.templates[elem_copy].args   = elem
             __main__.current_res = saved_res
         elif isinstance(func, ExternFuncDefTypeGraphNode):
-            func.templates[elem].result = func.quasi(__main__.current_scope)
+            func.templates[elem_copy].result = func.quasi(__main__.current_scope)
+            func.templates[elem_copy].args   = elem
         __main__.current_scope = saved_scope
     else:
-        elem = key
-    return func.templates[elem].result 
+        elem_copy = key
+        elem = func.templates[elem_copy].args
+    if elem is not None:
+        process_out_params(args, elem, elem_copy, func_call, star_res)
+    return func.templates[elem_copy].result

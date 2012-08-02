@@ -37,5 +37,8 @@ variables = [                                       \
 modules   = [                                       \
             ]
 
+objects   = [                                       \
+            ]
+
 def get_all():
-    return (functions, variables, modules)
+    return (functions, variables, modules, objects)

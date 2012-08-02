@@ -4,7 +4,8 @@ Created on 01.07.2012
 @author: bronikkk 
 '''
 
-from copy import copy as shallowcopy, deepcopy
+from builtin import get_quasi_list
+from copy    import copy as shallowcopy, deepcopy
 
 def copy_class_inst(class_inst):
     res = shallowcopy(class_inst)
@@ -36,9 +37,13 @@ def find_inits_in_classes(classes):
 
 def get_attribute(elem, attr):
     from typegraph import ClassDefTypeGraphNode, ClassInstanceTypeGraphNode
+    from typenodes import TypeList
     if isinstance(elem, ClassInstanceTypeGraphNode):
         return find_name_in_class_inst(elem, attr)
     elif isinstance(elem, ClassDefTypeGraphNode):
+        return find_name_in_class_def(elem, attr)
+    elif isinstance(elem, TypeList):
+        elem = get_quasi_list()
         return find_name_in_class_def(elem, attr)
     else:
         return None

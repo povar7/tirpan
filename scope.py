@@ -104,6 +104,7 @@ class Scope(object):
         var_index = 0
         arg_index = 0
         res       = []
+        star_res  = None
         while True:
             if var_index >= vars_num:
                 break
@@ -118,6 +119,7 @@ class Scope(object):
                 continue
             elif var.varParam:
                 args_tuple = TypeTuple()
+                star_res   = arg_index
                 while True:
                     if arg_index >= args_num:
                         break
@@ -130,13 +132,13 @@ class Scope(object):
                 var_index += 1
             else:
                 if arg_index >= args_num:
-                    return None
+                    return None, star_res
                 res.append(args[arg_index])
                 var_index += 1
                 arg_index += 1
         if arg_index < args_num:
-            return None
-        return tuple(res)
+            return None, star_res
+        return tuple(res), star_res
 
     def linkParamsAndArgs(self, args):
         variables = sorted(self.variables.values(), sort_params)

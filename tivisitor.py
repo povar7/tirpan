@@ -177,10 +177,8 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_Attribute(self, node):
         self.visit(node.value)
-        if isinstance(node.ctx, ast.Load):
-            node.link = GetAttributeTypeGraphNode(node)
-        else:
-            node.link = SetAttributeTypeGraphNode(node)
+        node.link = AttributeTypeGraphNode(node)
+        node.link.addDependency(DependencyType.AssignObject, node.value.link)
         node.value.link.addDependency(DependencyType.AttrObject, node.link)
 
     def visit_Subscript(self, node): 
@@ -203,7 +201,7 @@ class TIVisitor(ast.NodeVisitor):
     def visit_ClassDef(self, node):
         for base in node.bases:
             self.visit(base)
-        classDefNode = ClassDefTypeGraphNode(node, __main__.current_scope)
+        classDefNode = UsualClassDefTypeGraphNode(node, __main__.current_scope)
         var  = __main__.current_scope.findOrAdd(node.name)
         var.setPos(node)
         node.link = classDefNode
