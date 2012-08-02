@@ -6,6 +6,12 @@ Created on 03.01.2012
 
 from typenodes import *
 
+def get_var_types(variables):
+    res = {}
+    for key in variables.keys():
+        res[key] = frozenset(variables[key].nodeType)
+    return res
+
 def sort_params(x, y):
     if x.kwParam:
         return 1
@@ -159,3 +165,19 @@ class Scope(object):
 
     def isInitScope(self):
         return self.has_globals == Scope.init_scope
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __eq__(self, other):
+        if not isinstance(other, Scope):
+            return False
+        return self.has_globals == other.has_globals and \
+               get_var_types(self.variables) == get_var_types(other.variables)
+
+    def __hash__(self):
+        return hash((self.__class__, self.instance_hash()))
+
+    def instance_hash(self):
+        return hash((self.has_globals, tuple(get_var_types(self.variables).items())))
+

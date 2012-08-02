@@ -9,7 +9,7 @@ from ast          import AugAssign, BinOp, UnaryOp, Call
 from copy         import deepcopy
 from types        import NoneType
 
-from classes      import find_inits_in_classes, get_attributes, set_attributes
+from classes      import copy_class_inst, find_inits_in_classes, get_attributes, set_attributes
 from funccall     import *
 from returns      import check_returns
 from scope        import Scope
@@ -459,13 +459,27 @@ class ExternClassDefTypeGraphNode(ClassDefTypeGraphNode):
 class ClassInstanceTypeGraphNode(TypeGraphNode):
     def __init__(self, cls):
         super(ClassInstanceTypeGraphNode, self).__init__()
-        self.nodeType = set([self])
         self.cls      = cls
         self.scope    = Scope(None)
+        self.nodeType = set([self])
         cls.addInstance(self)
 
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __eq__(self, other):
+        if not isinstance(other, ClassInstanceTypeGraphNode):
+            return False
+        return self.cls == other.cls and self.scope == other.scope
+
+    def __hash__(self):
+        return hash((self.__class__, self.instance_hash()))
+
+    def instance_hash(self):
+        return hash((self.cls, self.scope))
+
     def __deepcopy__(self, memo):
-        return self
+        return copy_class_inst(self)
 
     def getScope(self):
         return self.scope

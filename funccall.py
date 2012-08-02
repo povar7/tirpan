@@ -51,14 +51,14 @@ class TemplateValue:
         self.args   = None
 
 def process_out_params(args, elem, elem_copy, func_call, star_res):
-    from typegraph import DependencyType
+    from typegraph import ClassInstanceTypeGraphNode, DependencyType
     if star_res is None:
         star_res = len(args)
     arg_index = 0
     for arg in args[0:star_res]:
         elem_atom = elem[arg_index]
         copy_atom = elem_copy[arg_index]
-        if isinstance(copy_atom, (TypeStandard)):
+        if isinstance(copy_atom, (TypeStandard, ClassInstanceTypeGraphNode)):
             var = create_dummy_variable(elem_atom)
             if func_call.attrCall and arg_index == 0:
                 var.addDependency(DependencyType.AttrObject, arg)
