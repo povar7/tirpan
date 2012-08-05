@@ -52,8 +52,20 @@ class TemplateValue:
 
 def process_out_params(args, elem, elem_copy, func_call, star_res):
     from typegraph import ClassInstanceTypeGraphNode, DependencyType
+
     if star_res is None:
-        star_res = len(args)
+        star_res  = len(args)
+    else:
+        arg_index = star_res
+        star_arg  = elem[star_res]
+        if isinstance(star_arg, TypeTuple) and isinstance(star_arg.elems, tuple):
+            for elem_type in star_arg.elems:
+                arg = args[arg_index]
+                if isinstance(elem_type, (TypeStandard, ClassInstanceTypeGraphNode)):
+                    var = create_dummy_variable(elem_type)
+                    var.addDependency(DependencyType.Assign, arg)
+                arg_index += 1
+
     arg_index = 0
     for arg in args[0:star_res]:
         elem_atom = elem[arg_index]

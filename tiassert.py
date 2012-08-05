@@ -31,7 +31,7 @@ def check_type(var_type, var):
             return isinstance(var, FunctionType) 
         elif isinstance(var_type, (TypeList, TypeTuple)):
             for elem in var:
-                if not check_types(var_type.elems, elem):
+                if not check_types(var_type.elem_types(), elem):
                     return False
         elif isinstance(var_type, TypeDict):
             for key in var.keys():

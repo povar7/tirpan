@@ -126,11 +126,8 @@ class Scope(object):
             elif var.varParam:
                 args_tuple = TypeTuple()
                 star_res   = arg_index
-                while True:
-                    if arg_index >= args_num:
-                        break
-                    args_tuple.add_elem(args[arg_index])
-                    arg_index += 1
+                arg_index  = args_num
+                args_tuple.elems = args[star_res:args_num]
                 res.append(args_tuple)
                 var_index += 1
             elif var.kwParam:

@@ -82,34 +82,42 @@ class TypeStandard(TypeNode):
 
 class TypeListOrTuple(TypeStandard):
     def __init__(self):
-        self.elems = set([])
-
-    def add_elem(self, elem):
-        self.elems.add(elem)
+        self.elems = set()
 
     def instance_eq_to(self, other):
-        return self.elems == other.elems
+        return self.elem_types() == other.elem_types()
 
     def instance_hash(self):
-        return hash(tuple(self.elems))
+        return hash(frozenset(self.elems))
+
+class TypeList(TypeListOrTuple):
+    def add_elem(self, elem):
+        self.elems.add(elem)
 
     def elem_types(self):
         return self.elems
 
-class TypeList(TypeListOrTuple):
     def __init__(self):
         super(TypeList, self).__init__()
         self._type = list
 
 class TypeTuple(TypeListOrTuple):
+    def add_elem(self, elem):
+        if isinstance(self.elems, tuple):
+            self.elems = set(self.elems)
+        self.elems.add(elem)
+
+    def elem_types(self):
+        return set(self.elems)
+
     def __init__(self):
         super(TypeTuple, self).__init__()
         self._type = tuple
 
 class TypeDict(TypeStandard):
     def __init__(self):
-        self.keys  = set([])
-        self.vals  = set([])
+        self.keys  = set()
+        self.vals  = set()
         self._type = dict
 
     def add_val(self, val):
@@ -135,8 +143,8 @@ class TypeDict(TypeStandard):
 
 class TypeUnknown(TypeNode):
     def __init__(self):
-        self.keys  = set([])
-        self.vals  = set([])
+        self.keys  = set()
+        self.vals  = set()
         self._type = None
 
     def add_val(self, val):

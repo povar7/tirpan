@@ -113,7 +113,7 @@ def set_attributes(objects, attr, values):
         for value in values:  
             set_attribute(obj, attr, value, var, init_flag)
 
-def set_subscript(collection, values, is_index):
+def set_subscript(collection, values, is_index, index):
     from typenodes import TypeListOrTuple, TypeDict
     res = set()
     if not isinstance(collection, (TypeListOrTuple, TypeDict)):
@@ -134,29 +134,34 @@ def set_subscript(collection, values, is_index):
                 res.add(collection_copy)
     return res
 
-def set_subscripts(objects, values, is_index):
+def set_subscripts(objects, values, is_index, index):
     res = set()
     for obj in objects:
-        res = res.union(set_subscript(obj, values, is_index))
+        res = res.union(set_subscript(obj, values, is_index, index))
     return res
 
-def get_subscript(collection):
+def get_subscript(collection, index):
     from typenodes import TypeListOrTuple, TypeDict
     if isinstance(collection, TypeListOrTuple):
-        return collection.elems
+        if index is not None and isinstance(collection.elems, tuple):
+            try:
+                return set([collection.elems[index]])
+            except IndexError:
+                pass
+        return collection.elem_types()
     elif isinstance(collection, TypeDict):
         return collection.vals
     else:
         return set()
 
-def get_subscripts(objects, is_index):
+def get_subscripts(objects, is_index, index):
     res = set()
     for obj in objects:
         if is_index:
-            types = get_subscript(obj)
+            types = get_subscript(obj, index)
         else:
             types = set([obj])
-        res = res.union(deepcopy(types))
+        res = res.union(types)
     return res
 
 def set_slice(dictionary, slices_types):

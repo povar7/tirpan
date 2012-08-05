@@ -5,7 +5,7 @@ Created on 11.12.2011
 '''
 
 from itertools    import product
-from ast          import AugAssign, BinOp, UnaryOp, Call, Index
+from ast          import AugAssign, BinOp, UnaryOp, Call, Index, Num
 from copy         import deepcopy
 from types        import NoneType
 
@@ -513,6 +513,11 @@ class SubscriptTypeGraphNode(TypeGraphNode):
         self.values   = set()
         self.nodeType = set()
         self.is_index = isinstance(sub_slice, Index)
+        if isinstance(sub_slice, Index) and \
+           isinstance(sub_slice.value, Num):
+            self.index = sub_slice.value.n
+        else:
+            self.index = None
 
     def getKeysTypes(self):
         from typenodes import TypeDict
@@ -523,9 +528,9 @@ class SubscriptTypeGraphNode(TypeGraphNode):
         return res
 
     def process(self):
-        new_objects   = set_subscripts(self.objects, self.values, self.is_index)
+        new_objects   = set_subscripts(self.objects, self.values, self.is_index, self.index)
         self.objects  = self.objects.union(new_objects)
-        self.nodeType = get_subscripts(self.objects, self.is_index)
+        self.nodeType = get_subscripts(self.objects, self.is_index, self.index)
 
     def processSlice(self, slices_types):
         new_objects  = set_slices(self.objects, slices_types)
