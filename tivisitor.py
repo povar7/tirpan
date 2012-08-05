@@ -182,9 +182,10 @@ class TIVisitor(ast.NodeVisitor):
         node.value.link.addDependency(DependencyType.AttrObject, node.link)
 
     def visit_Subscript(self, node): 
-        self.generic_visit(node)
-        node.link = TypeGraphNode()
-        node.value.link.addDependency(DependencyType.AssignElem, node.link)
+        self.visit(node.value)
+        node.link = SubscriptTypeGraphNode()
+        node.link.addDependency(DependencyType.AssignObject, node.value.link)
+        node.value.link.addDependency(DependencyType.AttrObject, node.link)
 
     def visit_ListComp(self, node):
         node.link = UnknownTypeGraphNode(node)

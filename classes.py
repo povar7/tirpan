@@ -112,3 +112,38 @@ def set_attributes(objects, attr, values):
         var = get_attribute(obj, attr)
         for value in values:  
             set_attribute(obj, attr, value, var, init_flag)
+
+def set_subscript(collection, values):
+    from typenodes import TypeListOrTuple, TypeDict
+    res = set()
+    if not isinstance(collection, (TypeListOrTuple, TypeDict)):
+        return res
+    for value in values:
+        if value not in collection.elem_types():
+            collection_copy = deepcopy(collection)
+            collection_copy.add_elem(value)
+            res.add(collection_copy)
+    return res
+
+def set_subscripts(objects, values):
+    res = set()
+    for obj in objects:
+        res = res.union(set_subscript(obj, values))
+    return res
+
+def get_subscript(collection):
+    from typenodes import TypeListOrTuple, TypeDict
+    if isinstance(collection, TypeListOrTuple):
+        return collection.elems
+    elif isinstance(collection, TypeDict):
+        return collection.vals
+    else:
+        return set()
+
+def get_subscripts(objects):
+    res = set()
+    for obj in objects:
+        types = get_subscript(obj)
+        res = res.union(deepcopy(types))
+    return res
+

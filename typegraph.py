@@ -9,7 +9,9 @@ from ast          import AugAssign, BinOp, UnaryOp, Call
 from copy         import deepcopy
 from types        import NoneType
 
-from classes      import copy_class_inst, find_inits_in_classes, get_attributes, set_attributes
+from classes      import copy_class_inst, find_inits_in_classes
+from classes      import get_attributes, set_attributes
+from classes      import get_subscripts, set_subscripts
 from funccall     import *
 from returns      import check_returns
 from scope        import Scope
@@ -78,10 +80,10 @@ class TypeGraphNode(object):
             if len(self.nodeType - dep.nodeType) != 0:
                 dep.nodeType = dep.nodeType.union(self.nodeType)
                 dep.generic_dependency()
-        elif isinstance(dep, AttributeTypeGraphNode):
+        elif isinstance(dep, (AttributeTypeGraphNode, SubscriptTypeGraphNode)):
             if len(self.nodeType - dep.values) != 0:
                 dep.values = dep.values.union(self.nodeType)
-                dep.processAttribute()
+                dep.process()
                 dep.generic_dependency()
     
     def assign_elem_dep(self, dep):
@@ -161,7 +163,7 @@ class TypeGraphNode(object):
     def attrobject_dep(self, dep):
         if len(self.nodeType - dep.objects) != 0:
             dep.objects = self.nodeType
-            dep.processAttribute()
+            dep.process()
             dep.generic_dependency()
 
     def assignobject_dep(self, dep):
@@ -492,9 +494,21 @@ class AttributeTypeGraphNode(TypeGraphNode):
         self.values   = set()
         self.nodeType = set()
 
-    def processAttribute(self):
+    def process(self):
         set_attributes(self.objects, self.attr, self.values)
         self.nodeType = get_attributes(self.objects, self.attr)
+
+class SubscriptTypeGraphNode(TypeGraphNode):
+    def __init__(self):
+        super(SubscriptTypeGraphNode, self).__init__()
+        self.objects  = set()
+        self.values   = set()
+        self.nodeType = set()
+
+    def process(self):
+        new_objects = set_subscripts(self.objects, self.values)
+        self.objects = self.objects.union(new_objects)
+        self.nodeType = get_subscripts(self.objects)
 
 class PrintTypeGraphNode(TypeGraphNode):
     def __init__(self):

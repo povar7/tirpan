@@ -118,6 +118,9 @@ class TypeDict(TypeStandard):
     def add_key(self, key):
         self.keys.add(key)
 
+    def add_elem(self, elem):
+        self.add_val(elem)
+
     def instance_eq_to(self, other):
         return (self.keys == other.keys) and (self.vals == other.vals) 
 
