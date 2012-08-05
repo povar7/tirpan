@@ -183,9 +183,13 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_Subscript(self, node): 
         self.visit(node.value)
-        node.link = SubscriptTypeGraphNode()
+        sub_slice = node.slice
+        self.visit(sub_slice) 
+        node.link = SubscriptTypeGraphNode(sub_slice)
         node.link.addDependency(DependencyType.AssignObject, node.value.link)
         node.value.link.addDependency(DependencyType.AttrObject, node.link)
+        if isinstance(sub_slice, ast.Index):
+            sub_slice.value.link.addDependency(DependencyType.AttrSlice, node.link)
 
     def visit_ListComp(self, node):
         node.link = UnknownTypeGraphNode(node)
@@ -216,3 +220,9 @@ class TIVisitor(ast.NodeVisitor):
         for value in node.values:
              self.visit(value)
         node.link = PrintTypeGraphNode()
+
+    def visit_Index(self, node):
+        self.generic_visit(node)
+
+    def visit_Slice(self, node):
+        self.generic_visit(node)

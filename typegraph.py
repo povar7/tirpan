@@ -5,13 +5,14 @@ Created on 11.12.2011
 '''
 
 from itertools    import product
-from ast          import AugAssign, BinOp, UnaryOp, Call
+from ast          import AugAssign, BinOp, UnaryOp, Call, Index
 from copy         import deepcopy
 from types        import NoneType
 
 from classes      import copy_class_inst, find_inits_in_classes
 from classes      import get_attributes, set_attributes
 from classes      import get_subscripts, set_subscripts
+from classes      import set_slices
 from funccall     import *
 from returns      import check_returns
 from scope        import Scope
@@ -34,6 +35,7 @@ class DependencyType(object):
     AttrObject   = 'attrobject'
     AssignObject = 'assignobject'
     Object       = 'object'
+    AttrSlice    = 'attrslice'
 
 class TypeGraphNode(object):
     def __init__(self):
@@ -177,6 +179,12 @@ class TypeGraphNode(object):
             if len(self.nodeType - dep.nodeType) != 0:
                 dep.nodeType = dep.nodeType.union(self.nodeType)
                 dep.generic_dependency()
+
+    def attrslice_dep(self, dep):
+        keys_types = dep.getKeysTypes()
+        if any([len(self.nodeType - key_type) != 0 for key_type in keys_types]):
+            dep.processSlice(self.nodeType)
+            dep.generic_dependency()
 
     def elem_types(self):
         el_types = set()
@@ -499,16 +507,29 @@ class AttributeTypeGraphNode(TypeGraphNode):
         self.nodeType = get_attributes(self.objects, self.attr)
 
 class SubscriptTypeGraphNode(TypeGraphNode):
-    def __init__(self):
+    def __init__(self, sub_slice):
         super(SubscriptTypeGraphNode, self).__init__()
         self.objects  = set()
         self.values   = set()
         self.nodeType = set()
+        self.is_index = isinstance(sub_slice, Index)
+
+    def getKeysTypes(self):
+        from typenodes import TypeDict
+        dicts = [elem for elem in self.objects if isinstance(elem, TypeDict)]
+        res   = []
+        for dictionary in dicts:
+            res.append(dictionary.keys_types())
+        return res
 
     def process(self):
-        new_objects = set_subscripts(self.objects, self.values)
+        new_objects   = set_subscripts(self.objects, self.values, self.is_index)
+        self.objects  = self.objects.union(new_objects)
+        self.nodeType = get_subscripts(self.objects, self.is_index)
+
+    def processSlice(self, slices_types):
+        new_objects  = set_slices(self.objects, slices_types)
         self.objects = self.objects.union(new_objects)
-        self.nodeType = get_subscripts(self.objects)
 
 class PrintTypeGraphNode(TypeGraphNode):
     def __init__(self):

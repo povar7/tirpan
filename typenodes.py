@@ -130,6 +130,9 @@ class TypeDict(TypeStandard):
     def elem_types(self):
         return self.vals
 
+    def keys_types(self):
+        return self.keys
+
 class TypeUnknown(TypeNode):
     def __init__(self):
         self.keys  = set([])

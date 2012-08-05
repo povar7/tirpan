@@ -113,22 +113,31 @@ def set_attributes(objects, attr, values):
         for value in values:  
             set_attribute(obj, attr, value, var, init_flag)
 
-def set_subscript(collection, values):
+def set_subscript(collection, values, is_index):
     from typenodes import TypeListOrTuple, TypeDict
     res = set()
     if not isinstance(collection, (TypeListOrTuple, TypeDict)):
         return res
     for value in values:
-        if value not in collection.elem_types():
-            collection_copy = deepcopy(collection)
-            collection_copy.add_elem(value)
-            res.add(collection_copy)
+        if is_index:
+            if value not in collection.elem_types():
+                collection_copy = deepcopy(collection)
+                collection_copy.add_elem(value)
+                res.add(collection_copy)
+        else:
+            if not isinstance(value, TypeListOrTuple):
+                continue
+            if len(value.elem_types() - collection.elem_types()) != 0:
+                collection_copy = deepcopy(collection)
+                for elem_type in value.elem_types():
+                    collection_copy.add_elem(elem_type)
+                res.add(collection_copy)
     return res
 
-def set_subscripts(objects, values):
+def set_subscripts(objects, values, is_index):
     res = set()
     for obj in objects:
-        res = res.union(set_subscript(obj, values))
+        res = res.union(set_subscript(obj, values, is_index))
     return res
 
 def get_subscript(collection):
@@ -140,10 +149,29 @@ def get_subscript(collection):
     else:
         return set()
 
-def get_subscripts(objects):
+def get_subscripts(objects, is_index):
     res = set()
     for obj in objects:
-        types = get_subscript(obj)
+        if is_index:
+            types = get_subscript(obj)
+        else:
+            types = set([obj])
         res = res.union(deepcopy(types))
     return res
 
+def set_slice(dictionary, slices_types):
+    res = set()
+    for slice_type in slices_types:
+        if slice_type not in dictionary.keys_types():
+            dictionary_copy = deepcopy(dictionary)
+            dictionary_copy.add_key(slice_type)
+            res.add(dictionary_copy)
+    return res
+
+def set_slices(objects, slices_types):
+    from typenodes import TypeDict
+    dicts = [elem for elem in objects if isinstance(elem, TypeDict)]
+    res   = set()
+    for dictionary in dicts:
+        res = res.union(set_slice(dictionary, slices_types))
+    return res
