@@ -6,10 +6,19 @@ Created on 03.01.2012
 
 from typenodes import *
 
+type_str = TypeStr()
+
 def get_var_types(variables):
     res = {}
     for key in variables.keys():
         res[key] = frozenset(variables[key].nodeType)
+    return res
+
+def make_dict_for_kwargs(kwargs):
+    res = TypeDict()
+    res.add_key(type_str)
+    for pair in kwargs.items():
+        res.add_pair(pair)
     return res
 
 def sort_params(x, y):
@@ -111,6 +120,7 @@ class Scope(object):
         arg_index = 0
         res       = []
         star_res  = None
+        kw_res    = None
         while True:
             if var_index >= vars_num:
                 break
@@ -131,17 +141,18 @@ class Scope(object):
                 res.append(args_tuple)
                 var_index += 1
             elif var.kwParam:
-                res.append(kwargs)
+                res.append(make_dict_for_kwargs(kwargs))
+                kw_res     = var_index
                 var_index += 1
             else:
                 if arg_index >= args_num:
-                    return None, star_res
+                    return None, star_res, kw_res
                 res.append(args[arg_index])
                 var_index += 1
                 arg_index += 1
         if arg_index < args_num:
-            return None, star_res
-        return tuple(res), star_res
+            return None, star_res, kw_res
+        return tuple(res), star_res, kw_res
 
     def linkParamsAndArgs(self, args):
         variables = sorted(self.variables.values(), sort_params)

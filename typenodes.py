@@ -118,6 +118,7 @@ class TypeDict(TypeStandard):
     def __init__(self):
         self.keys  = set()
         self.vals  = set()
+        self._dict = None
         self._type = dict
 
     def add_val(self, val):
@@ -128,6 +129,13 @@ class TypeDict(TypeStandard):
 
     def add_elem(self, elem):
         self.add_val(elem)
+
+    def add_pair(self, pair):
+        key, val = pair
+        if self._dict is None:
+            self._dict = {}
+        self._dict[key] = val
+        self.add_val(val)
 
     def instance_eq_to(self, other):
         return (self.keys == other.keys) and (self.vals == other.vals) 

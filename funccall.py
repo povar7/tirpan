@@ -50,8 +50,20 @@ class TemplateValue:
         self.result = set()
         self.args   = None
 
-def process_out_params(args, elem, elem_copy, func_call, star_res):
+def process_out_params(args, kwargs, elem, elem_copy, func_call, star_res, kw_res):
     from typegraph import ClassInstanceTypeGraphNode, DependencyType
+
+    if kw_res is not None:
+        kw_arg = elem[kw_res]
+        for pair in kwargs.items():
+            key, arg = pair
+            try:
+                elem_type = kw_arg._dict[key]
+            except KeyError:
+                elem_type = None
+            if isinstance(elem_type, (TypeStandard, ClassInstanceTypeGraphNode)):
+                var = create_dummy_variable(elem_type)
+                var.addDependency(DependencyType.Assign, arg)
 
     if star_res is None:
         star_res  = len(args)
@@ -78,7 +90,7 @@ def process_out_params(args, elem, elem_copy, func_call, star_res):
                 var.addDependency(DependencyType.Assign, arg)
         arg_index += 1
 
-def process_product_elem(pair, args, arg_elem, kwarg_elem, func_call):
+def process_product_elem(pair, args, arg_elem, kwargs, kwarg_elem, func_call):
     import __main__
     from tivisitor import TIVisitor
     from typegraph import DependencyType, ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
@@ -90,7 +102,7 @@ def process_product_elem(pair, args, arg_elem, kwarg_elem, func_call):
         arg_list  = [cls_instance]
         arg_list += list(arg_elem)
         arg_elem  = tuple(arg_list)
-    elem, star_res = func.params.getArgs(arg_elem, kwarg_elem)
+    elem, star_res, kw_res = func.params.getArgs(arg_elem, kwarg_elem)
     if elem is None:
         return set()
     key = find_previous_key(elem, func.templates.keys())
@@ -129,5 +141,5 @@ def process_product_elem(pair, args, arg_elem, kwarg_elem, func_call):
         elem_copy = key
         elem = func.templates[elem_copy].args
     if elem is not None:
-        process_out_params(args, elem, elem_copy, func_call, star_res)
+        process_out_params(args, kwargs, elem, elem_copy, func_call, star_res, kw_res)
     return func.templates[elem_copy].result

@@ -5,7 +5,7 @@ Created on 11.12.2011
 '''
 
 from itertools    import product
-from ast          import AugAssign, BinOp, UnaryOp, Call, Index, Num
+from ast          import AugAssign, BinOp, UnaryOp, Call, Index, Num, Str
 from copy         import deepcopy
 from types        import NoneType
 
@@ -139,7 +139,10 @@ class TypeGraphNode(object):
             dep.generic_dependency()
 
     def kwarg_dep(self, dep):
-        index = dep.kwargs.index(self)
+        try:
+            index = dep.kwargsKeys[self]
+        except KeyError:
+            return
         if dep.kwargsTypes[index] != self.nodeType:
             dep.kwargsTypes[index] = deepcopy(self.nodeType)
             dep.processCall()
@@ -320,7 +323,7 @@ class FuncDefTypeGraphNode(TypeGraphNode):
     def getScope(self):
         return self.scope
 
-    def getKWArgs(self, kwargsTypes):
+    def getKWArgs(self, kwargs):
         return [None]
 
 class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
@@ -339,17 +342,19 @@ class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
             self.params.add(var)
         self.defReturn = not check_returns(self.ast)
 
-    def getKWArgs(self, kwargsTypes):
+    def getKWArgs(self, kwargs):
         if self.kwarg is None:
             return [None] 
         else:
             res = []
-            for item in product(*kwargsTypes):
-                type_dict = TypeDict()
-                type_dict.add_key(type_str)
-                for elem in item:
-                    type_dict.add_val(elem) 
-                res.append(type_dict)
+            tmp = []
+            for item in kwargs.items():
+                sub_list = []
+                for sub_item in product((item[0],), deepcopy(item[1].nodeType)):
+                    sub_list.append(sub_item)
+                tmp.append(sub_list)
+            for item in product(*tmp):
+                res.append(dict(item))
             return res
 
 class ExternFuncDefTypeGraphNode(FuncDefTypeGraphNode):
@@ -404,16 +409,20 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             self.args.append(link)
             self.argsTypes.append(type_copy)
             link.addDependency(DependencyType.Arg, self)
-        self.kwargs      = []
+        self.kwargs      = {}
+        self.kwargsKeys  = {}
         self.kwargsTypes = []
         if not isinstance(node, Call):
             return
+        kwarg_index = 0
         for kwarg in node.keywords:
             link = kwarg.value.link
             type_copy = deepcopy(link.nodeType)
-            self.kwargs.append(link)
+            self.kwargs[kwarg.arg] = link
+            self.kwargsKeys[link] = kwarg_index
             self.kwargsTypes.append(type_copy)
             link.addDependency(DependencyType.KWArg, self)
+            kwarg_index += 1
 
     def processCall(self):
         for args_type in product(*self.argsTypes):
@@ -426,11 +435,11 @@ class FuncCallTypeGraphNode(TypeGraphNode):
                 if hasattr(self, 'kwargsTypes'):
                     _, func = elem
                     try:
-                        kwargs = func.getKWArgs(self.kwargsTypes)
+                        kwargs = func.getKWArgs(self.kwargs)
                     except AttributeError:
                         kwargs = [None]
-                    for kwarg in kwargs:
-                        res = process_product_elem(elem, self.args, args_type, kwarg, self) 
+                    for kwargs_type in kwargs:
+                        res = process_product_elem(elem, self.args, args_type, self.kwargs, kwargs_type, self)
                         self.nodeType = self.nodeType.union(res)
 
 class ClassDefTypeGraphNode(TypeGraphNode):
@@ -513,9 +522,13 @@ class SubscriptTypeGraphNode(TypeGraphNode):
         self.values   = set()
         self.nodeType = set()
         self.is_index = isinstance(sub_slice, Index)
-        if isinstance(sub_slice, Index) and \
-           isinstance(sub_slice.value, Num):
-            self.index = sub_slice.value.n
+        if isinstance(sub_slice, Index):
+            if isinstance(sub_slice.value, Num):
+                self.index = sub_slice.value.n
+            elif isinstance(sub_slice.value, Str):
+                self.index = sub_slice.value.s
+            else:
+                self.index = None
         else:
             self.index = None
 

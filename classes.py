@@ -150,6 +150,11 @@ def get_subscript(collection, index):
                 pass
         return collection.elem_types()
     elif isinstance(collection, TypeDict):
+        if index is not None and isinstance(collection._dict, dict):
+            try:
+                return set([collection._dict[index]])
+            except KeyError:
+                pass        
         return collection.vals
     else:
         return set()
