@@ -1,3 +1,5 @@
-a = [1, 2, 3.14]
-for i in a:
-    print i
+True = 1
+print True
+False = 3.14
+print False
+
