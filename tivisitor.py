@@ -27,17 +27,10 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_False(self, node):
         node.link = ConstTypeGraphNode(False)
-
-    def visit_None(self, node):
-        node.link = ConstTypeGraphNode(None)
         
     def visit_Name(self, node):
-        if node.id == 'True':
-            self.visit_True(node)
-        elif node.id == 'False':
-            self.visit_False(node)
-        elif node.id == 'None':
-            self.visit_None(node)
+        if node.id == 'None':
+            node.link = ConstTypeGraphNode(None)
         else:
             if self.left_part:
                 file_scope = __main__.importer.get_ident(node.fileno).scope 
@@ -45,6 +38,8 @@ class TIVisitor(ast.NodeVisitor):
             else:
                 link       = __main__.current_scope.findOrAdd(node.id)
             node.link = link
+            if node.id == 'True' or node.id == 'False':
+                node.link.addBool()
             try:
                 node.link.setPos(node)
             except AttributeError:

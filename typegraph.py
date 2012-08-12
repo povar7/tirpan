@@ -19,6 +19,7 @@ from scope        import Scope
 from typenodes    import *
 from utils        import *
 
+type_bool    = TypeBool()
 type_str     = TypeStr()
 type_unknown = TypeUnknown()
 
@@ -238,6 +239,10 @@ class UsualVarTypeGraphNode(VarTypeGraphNode):
         if not self.line:
             self.line = getLine(node)
             self.col  = getCol (node)
+
+    def addBool(self):
+        self.nodeType.add(type_bool)
+        self.generic_dependency()
 
 class ExternVarTypeGraphNode(VarTypeGraphNode):
     def __init__(self, name, var_type):
