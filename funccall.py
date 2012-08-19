@@ -21,7 +21,7 @@ def process_results(results, def_return):
         try:
             types = types.union(res.value.link.nodeType)
         except AttributeError:
-            types = types.union(set([type_none]))
+            types.add(type_none)
     return types
 
 def find_previous_key(elem, keys):

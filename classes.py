@@ -89,7 +89,7 @@ def set_attribute_smart(obj, attr, value, var, init_flag):
         var.nodeType = set([value])
         res.generic_dependency()
     else:
-        var.nodeType = var.nodeType.union(set([value]))
+        var.nodeType.add(value)
 
 def set_attribute(obj, attr, value, var, init_flag):
     from typegraph import ClassInstanceTypeGraphNode
@@ -97,7 +97,7 @@ def set_attribute(obj, attr, value, var, init_flag):
         var = None
     if not var:
         var = obj.scope.addToScope(attr)
-    var.nodeType = var.nodeType.union(set([value]))
+    var.nodeType.add(value)
 
 def set_attributes(objects, attr, values):
     import __main__
