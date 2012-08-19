@@ -123,7 +123,6 @@ def process_product_elem(pair, args, arg_elem, kwargs, kwarg_elem, func_call):
                 visitor.visit(stmt)
             if cls_instance:
                 __main__.current_scope = saved_scope
-                cls_instance.addDependency(DependencyType.Object, func_call)
                 del func.templates[elem_copy]
                 return set([cls_instance])
             else:

@@ -23,7 +23,7 @@ import tirpan
 
 class TestTirpan(unittest.TestCase):
     def setUp(self):
-        global global_scope, current_scope, current_res, error_printer, importer, verbose, test_results, test_precision
+        global global_scope, current_scope, current_res, error_printer, importer, verbose, test_results, test_precision, types_number
         global_scope   = Scope(None)
         current_scope  = global_scope
         current_res    = None
@@ -32,6 +32,7 @@ class TestTirpan(unittest.TestCase):
         verbose        = False
         test_results   = False
         test_precision = False
+        types_number   = 15
 
         common_init(global_scope, importer)
         tirpan.run(test_file_name)

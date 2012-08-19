@@ -37,6 +37,9 @@ def getFile(node):
         name = None
     return name
 
+def getFileNumber(node):
+    return getattr(node, 'fileno', None)
+
 def findNode(tree, **kwargs):
     try:
         line = kwargs['line']

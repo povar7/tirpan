@@ -1,12 +1,12 @@
 '''
-Created on 18.03.2012
+Created on 19.08.2012
 
 @author: bronikkk
 '''
 
 import unittest
 from tests_common import *
-test_file_name = get_test_file_name('func06.py')
+test_file_name = get_test_file_name('misc01.py')
 
 import ast
 
@@ -20,6 +20,15 @@ from typenodes    import *
 from utils        import findNode
 
 import tirpan
+
+def import_files(mainfile, aliases):
+    global importer
+    importer.import_files(mainfile, aliases)
+
+def import_from_file(mainfile, module, aliases):
+    global importer
+    alias = QuasiAlias(module)
+    importer.import_files(mainfile, [alias], aliases)
 
 class TestTirpan(unittest.TestCase):
     def setUp(self):
@@ -38,19 +47,21 @@ class TestTirpan(unittest.TestCase):
         tirpan.run(test_file_name)
         self.ast = importer.imported_files['__main__'].ast
 
-        self.type_float   = TypeFloat()
+        self.type_int = TypeInt()
 
-    def test_walk_var_z(self):
-        node = findNode(self.ast, line=4, col=1, kind=ast.Name)
+    def test_walk_var_answer(self):
+        node = findNode(self.ast, line=121, kind=ast.Name)
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
         nodeType = node.link.nodeType
-        type1 = self.type_float
-        self.assertTrue(len(nodeType) == 1 and                                              \
-                        any([type1 == elem for elem in nodeType]),                          \
+        tmp = TypeTuple()
+        tmp.add_elem(self.type_int)
+        type1 = TypeList()
+        type1.add_elem(tmp)
+        self.assertTrue(any([type1 == elem for elem in nodeType]),                   \
                         'wrong types calculated')
-        self.assertEqual(node.link.name, 'z', 'name is not "z"')
+        self.assertEqual(node.link.name, 'answer', 'name is not "answer"')
 
 if __name__ == '__main__':
     unittest.main()

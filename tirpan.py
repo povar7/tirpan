@@ -32,6 +32,7 @@ if __name__ == '__main__':
     parser.add_argument('-V', '--verbose'  , action='store_true', help='verbose output')
     parser.add_argument('-t', '--test'     , action='store_true', help='test results'  )
     parser.add_argument('-p', '--precision', action='store_true', help='test precision')
+    parser.add_argument('-l', '--limit', type=int, default=10, help='limit number of types')
     args = parser.parse_args()
 
     global_scope   = Scope(None)
@@ -42,6 +43,7 @@ if __name__ == '__main__':
     verbose        = args.verbose
     test_results   = args.test
     test_precision = args.precision
+    types_number   = args.limit
 
     common_init(global_scope, importer)
 
