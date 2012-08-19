@@ -4,7 +4,7 @@ Created on 24.03.2012
 @author: bronikkk
 '''
 
-from ast       import Add, BitAnd, BitOr, Div, FloorDiv, LShift, Mod, Mult, RShift, Sub
+from ast       import Add, BitAnd, BitOr, Div, FloorDiv, LShift, Mod, Mult, RShift, Sub, Pow
 from typegraph import *
 from typenodes import *
 
@@ -18,7 +18,8 @@ operator_names_table = {                    \
                            Mult     : '*' , \
                            Mod      : '%' , \
                            RShift   : '>>', \
-                           Sub      : '-'   \
+                           Sub      : '-' , \
+                           Pow      : '**'  \
                        }
 
 def get_binary_operator_name(op):
@@ -167,6 +168,19 @@ def quasi_sub(scope):
 
     return quasi_plus(scope)
 
+def quasi_pow(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    type2 = list(scope.findParam(2).nodeType)[0]
+
+    if isinstance(type1, (TypeBaseString, TypeListOrTuple)):
+        return set()
+    if isinstance(type2, (TypeBaseString, TypeListOrTuple)):
+        return set()
+
+    if type1 == type_int and type2 == type_int:
+        return set([type_int, type_long])
+    return quasi_div(scope)
+
 def init_binop(scope, op, quasi):
     name = get_binary_operator_name(op)
     func = ExternFuncDefTypeGraphNode(2, quasi, name, scope)
@@ -185,3 +199,4 @@ def init_binops(scope):
     init_binop(scope, Mod     , quasi_mod     )
     init_binop(scope, RShift  , quasi_rshift  )
     init_binop(scope, Sub     , quasi_sub     )
+    init_binop(scope, Pow     , quasi_pow     )

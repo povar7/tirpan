@@ -114,6 +114,18 @@ class TypeTuple(TypeListOrTuple):
         super(TypeTuple, self).__init__()
         self._type = tuple
 
+    def instance_eq_to(self, other):
+        if isinstance(self.elems, tuple) and isinstance(other.elems, tuple):
+            return self.elems == other.elems
+        else:
+            return self.elem_types() == other.elem_types()
+
+    def instance_hash(self):
+        if isinstance(self.elems, tuple):
+            return hash(self.elems)
+        else:
+            return hash(frozenset(self.elems))
+
 class TypeDict(TypeStandard):
     def __init__(self):
         self.keys  = set()

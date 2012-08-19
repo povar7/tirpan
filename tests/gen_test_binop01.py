@@ -11,7 +11,7 @@ from os import sys
 
 import re
 
-op = ['+', '-', '*', '/', '//', '%', '<<', '>>', '&', '|']
+op = ['+', '-', '*', '/', '//', '%', '<<', '>>', '&', '|', '**']
 operands = ['True', '1', '1l', '1.0', '1j', 'None', '\'1\'', 'u\'1\'', '[1, 1]', '(1, 1)']
 
 tests_dir = os.path.dirname(sys.argv[0])
@@ -73,7 +73,7 @@ with open(testname, 'w') as t:
                 exec full
                 f.write(full)
                 var_type = get_type_name(locals()[name])
-                if (elem[0] == '+' or elem[0] == '-' or elem[0] == '*') and \
+                if (elem[0] == '+' or elem[0] == '-' or elem[0] == '*' or elem[0] == '**') and \
                    (elem[1] == '1' and elem[2] == '1'):
                     num = 2
                 elif (elem[0] == '+' or elem[0] == '-') and \

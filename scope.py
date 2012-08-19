@@ -130,7 +130,11 @@ class Scope(object):
                     res.append(args[arg_index])
                     arg_index += 1
                 else:
-                    res.append(list(var.nodeType)[0])
+                    try:
+                        def_type = list(var.nodeType)[0]
+                    except IndexError:
+                        def_type = TypeUnknown()
+                    res.append(def_type)
                 var_index += 1
                 continue
             elif var.varParam:
@@ -173,6 +177,12 @@ class Scope(object):
 
     def isInitScope(self):
         return self.has_globals == Scope.init_scope
+
+    def isFuncScope(self):
+        return self.has_globals == Scope.func_scope
+
+    def isCommonFuncScope(self):
+        return self.isInitScope() or self.isFuncScope()
 
     def __ne__(self, other):
         return not (self == other)

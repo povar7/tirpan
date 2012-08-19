@@ -6,7 +6,7 @@ Created on 19.08.2012
 
 import unittest
 from tests_common import *
-test_file_name = get_test_file_name('misc02.py')
+test_file_name = get_test_file_name('misc04.py')
 
 import ast
 
@@ -20,6 +20,15 @@ from typenodes    import *
 from utils        import findNode
 
 import tirpan
+
+def import_files(mainfile, aliases):
+    global importer
+    importer.import_files(mainfile, aliases)
+
+def import_from_file(mainfile, module, aliases):
+    global importer
+    alias = QuasiAlias(module)
+    importer.import_files(mainfile, [alias], aliases)
 
 class TestTirpan(unittest.TestCase):
     def setUp(self):
@@ -41,7 +50,7 @@ class TestTirpan(unittest.TestCase):
         self.type_int = TypeInt()
 
     def test_walk_var_a(self):
-        node = findNode(self.ast, line=47, kind=ast.Name)
+        node = findNode(self.ast, line=7, kind=ast.Name)
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')

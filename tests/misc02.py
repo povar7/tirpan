@@ -44,3 +44,5 @@ def iter_importer_modules(importer, prefix=''):
     return importer.iter_modules(prefix)
 
 iter_importer_modules = simplegeneric(iter_importer_modules)
+a = 1
+

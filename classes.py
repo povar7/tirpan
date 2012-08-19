@@ -96,8 +96,12 @@ def set_attribute(obj, attr, value, var, init_flag):
     if var and var.parent.isClassScope() and isinstance(obj, ClassInstanceTypeGraphNode):
         var = None
     if not var:
-        var = obj.scope.addToScope(attr)
-    var.nodeType.add(value)
+        try:
+            var = obj.scope.addToScope(attr)
+        except AttributeError:
+            var = None
+    if var:
+        var.nodeType.add(value)
 
 def set_attributes(objects, attr, values):
     import __main__

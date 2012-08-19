@@ -51,8 +51,8 @@ class TestTirpan(unittest.TestCase):
                         any([isinstance(elem, FuncDefTypeGraphNode) for elem in nodeType]), \
                         'type is a function definition')
         funcDef  = list(nodeType)[0]
-        self.assertEqual(len(funcDef.templates.keys()), 1,
-                         'there must be 1 template') 
+        self.assertEqual(len(funcDef.templates.keys()), 2,
+                         'there must be 2 templates') 
         self.assertEqual(node.link.name, 'foo', 'name is not "foo"')
 
     def test_walk_var_x(self):

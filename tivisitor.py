@@ -101,13 +101,20 @@ class TIVisitor(ast.NodeVisitor):
     def visit_arguments(self, node):
         nonDefs = len(node.args) - len(node.defaults)
         for i in range(len(node.args)):
+            defPos = i - nonDefs
+            defVal = node.defaults[defPos] if defPos >= 0 else None
+            if defVal:
+                self.visit(defVal)
+        for i in range(len(node.args)):
             arg    = node.args[i]
             defPos = i - nonDefs
             defVal = node.defaults[defPos] if defPos >= 0 else None
+            save   = __main__.current_scope.parent
+            __main__.current_scope.parent = None 
             self.visit(arg)
+            __main__.current_scope.parent = save
             arg.link.setParamNumber(i + 1)
             if defVal:
-                self.visit(defVal)
                 defVal.link.addDependency(DependencyType.Assign, arg.link)
                 arg.link.setDefaultParam()
             
@@ -118,10 +125,7 @@ class TIVisitor(ast.NodeVisitor):
         var.setPos(node)
         node.link = funcDefNode
         __main__.current_scope = funcDefNode.getParams()
-        save = __main__.current_scope.parent
-        __main__.current_scope.parent = None
         self.visit(node.args)
-        __main__.current_scope.parent = save
         __main__.current_scope = __main__.current_scope.getParent()
         funcDefNode.addDependency(DependencyType.Assign, var)
 
