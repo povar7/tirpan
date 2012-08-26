@@ -8,9 +8,28 @@ from builtin import get_quasi_list
 from copy    import copy as shallowcopy, deepcopy
 
 def copy_class_inst(class_inst):
-    res = shallowcopy(class_inst)
+    save = class_inst.scope
+    class_inst.scope = None
+    res  = shallowcopy(class_inst)
+    class_inst.scope = save
     res.nodeType = set([res])
-    res.scope = deepcopy(class_inst.scope)
+    save = class_inst.scope.variables
+    class_inst.scope.variables = None 
+    res.scope = shallowcopy(class_inst.scope)
+    class_inst.scope.variables = save
+    res.scope.variables = {}
+    try:
+        for pair in class_inst.scope.variables.items():
+            name, var = pair
+            save = var.nodeType
+            var.nodeType = None
+            var_copy = shallowcopy(var)
+            var.nodeType = save
+            var_copy.nodeType = shallowcopy(var.nodeType)
+            var_copy.parent = res.scope
+            res.scope.variables[name] = var_copy 
+    except AttributeError:
+        pass
     res.cls.addInstance(res)
     return res
 
