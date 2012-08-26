@@ -15,6 +15,24 @@ from builtin   import import_standard_module
 from tiparser  import TIParser
 from typegraph import UsualVarTypeGraphNode, UsualModuleTypeGraphNode, ExternModuleTypeGraphNode, DependencyType
 
+def get_init_name(name):
+    return os.path.join(name, '__init__')
+
+def get_names_from_alias_name(name):
+    if name is None:
+        name    = '.'
+    parts       = name.split('.')
+    number      = len(parts)
+    index       = 1
+    current     = parts[0]
+    result      = []
+    while index < number:
+        result.append((False, current))
+        current = os.path.join(current, parts[index])
+        index  += 1
+    result.append((True, current))
+    return result
+
 class QuasiAlias(object):
     def __init__(self, name):
         self.name   = name
@@ -42,7 +60,11 @@ class Importer(object):
 
     def find_module(self, name, paths):
         for path in paths:
-            filename = os.path.join(path, name) + '.py'
+            canonical = os.path.join(path, name)
+            if os.path.isdir(canonical):
+                filename = os.path.join(canonical, '__init__.py')
+            else:
+                filename = canonical + '.py'
             if os.path.exists(filename):
                 return filename
         return None
@@ -52,54 +74,59 @@ class Importer(object):
         paths.extend(sys.path)
         return self.find_module(name, paths)
 
-    def import_files(self, mainfile, aliases, from_aliases = None):
+    def import_files_extended(self, mainfile, alias, name, terminal, from_aliases):
         main_module = False
+        if name in self.standard_modules:
+            module = self.standard_modules[name]
+            import_standard_module(module, self)
+        else:
+            if name == '__main__':
+                filename     = os.path.abspath(mainfile)
+                searchname   = name
+                main_module  = True
+            else:
+                try: 
+                    filename = os.path.abspath(self.process_name(name, mainfile))
+                except AttributeError:
+                    filename = None
+                if filename is None:
+                    from errorprinter import ImportStmtError
+                    __main__.error_printer.printError(ImportStmtError(name))
+                    return
+                searchname = filename
+            if searchname in self.imported_files:
+                imported_tree = self.imported_files[searchname].ast
+                module = imported_tree.link 
+            else:
+                parser = TIParser(filename)
+                imported_tree = parser.ast
+                module = UsualModuleTypeGraphNode(imported_tree, filename, __main__.current_scope)
+                imported_tree.link = module
+                fileno = self.put_ident(module)
+                for node in ast.walk(imported_tree):
+                    node.fileno = fileno
+                self.imported_files[searchname] = imported_tree.link 
+                parser.walk(main_module)
+        if from_aliases is None:
+            var_name = alias.asname if alias.asname else name
+            alias.link = __main__.current_scope.findOrAdd(var_name)
+            module.addDependency(DependencyType.Assign, alias.link)
+        elif terminal:
+            if len(from_aliases) == 1 and from_aliases[0].name == '*':
+                from_aliases = [QuasiAlias(key) for key in module.scope.variables.keys() if key != '__all__']
+            for from_alias in from_aliases:
+                old_var_name = from_alias.name  
+                new_var_name = from_alias.asname if from_alias.asname else old_var_name
+                old_var      = module.scope.find(old_var_name)
+                try:
+                    new_var = UsualVarTypeGraphNode(new_var_name)
+                    __main__.current_scope.add(new_var)
+                    old_var.addDependency(DependencyType.Assign, new_var)
+                except AttributeError:
+                    from errorprinter import ImportFromStmtError
+                    __main__.error_printer.printError(ImportFromStmtError(old_var_name, module.name))
+
+    def import_files(self, mainfile, aliases, from_aliases = None):
         for alias in aliases:
-            name = alias.name
-            if name in self.standard_modules:
-                module = self.standard_modules[name]
-                import_standard_module(module, self)
-            else:
-                if name == '__main__':
-                    filename     = os.path.abspath(mainfile)
-                    searchname   = name
-                    main_module  = True
-                else:
-                    try: 
-                        filename = os.path.abspath(self.process_name(name, mainfile))
-                    except AttributeError:
-                        filename = None
-                    if filename is None:
-                        from errorprinter import ImportStmtError
-                        __main__.error_printer.printError(ImportStmtError(name))
-                        return
-                    searchname = filename
-                if searchname in self.imported_files:
-                    imported_tree = self.imported_files[searchname].ast
-                    module = imported_tree.link 
-                else:
-                    parser = TIParser(filename)
-                    imported_tree = parser.ast
-                    module = UsualModuleTypeGraphNode(imported_tree, filename, __main__.current_scope)
-                    imported_tree.link = module
-                    fileno = self.put_ident(module)
-                    for node in ast.walk(imported_tree):
-                        node.fileno = fileno
-                    self.imported_files[searchname] = imported_tree.link 
-                    parser.walk(main_module)
-            if from_aliases is None:
-                var_name = alias.asname if alias.asname else alias.name
-                alias.link = __main__.current_scope.findOrAdd(var_name)
-                module.addDependency(DependencyType.Assign, alias.link)
-            else:
-                for from_alias in from_aliases:
-                    var_name  = from_alias.name  
-                    var_alias = from_alias.asname if from_alias.asname else var_name
-                    var = module.scope.find(var_name)
-                    try:
-                        alias = UsualVarTypeGraphNode(var_alias)
-                        __main__.current_scope.add(alias)
-                        var.addDependency(DependencyType.Assign, alias)
-                    except AttributeError:
-                        from errorprinter import ImportFromStmtError
-                        __main__.error_printer.printError(ImportFromStmtError(var_name, module.name))
+            for terminal, name in get_names_from_alias_name(alias.name): 
+                self.import_files_extended(mainfile, alias, name, terminal, from_aliases)

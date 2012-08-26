@@ -195,9 +195,11 @@ class TypeGraphNode(object):
 
     def attrobject_dep(self, dep):
         if len(self.nodeType - dep.objects) > 0:
-            dep.objects = self.nodeType
-            dep.process()
-            dep.generic_dependency()
+            old_len = len(dep.objects)
+            dep.objects = smart_union(dep.objects, self.nodeType)
+            if len(dep.objects) > old_len:
+                dep.process()
+                dep.generic_dependency()
 
     def assignobject_dep(self, dep):
         if len(self.objects - dep.nodeType) > 0:
@@ -407,6 +409,9 @@ class FuncCallTypeGraphNode(TypeGraphNode):
         self.nodeType  = set()
         self.funcs     = set()
         self.classes   = set()
+        self.line      = getLine(node)
+        self.col       = getCol(node)
+        self.fno       = getFileNumber(node)
         if var is None:
             var = node.func.link
         try:
