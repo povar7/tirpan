@@ -91,8 +91,10 @@ class TypeGraphNode(object):
     def assign_dep(self, dep):
         if isinstance(dep, VarTypeGraphNode):
             if len(self.nodeType - dep.nodeType) > 0:
+                old_len = len(dep.nodeType)
                 dep.nodeType = smart_union(dep.nodeType, self.nodeType)
-                dep.generic_dependency()
+                if len(dep.nodeType) > old_len:
+                    dep.generic_dependency()
         elif isinstance(dep, (AttributeTypeGraphNode, SubscriptTypeGraphNode)):
             if len(self.nodeType - dep.values) > 0:
                 dep.values = smart_union(dep.values, self.nodeType)
@@ -490,12 +492,9 @@ class FuncCallTypeGraphNode(TypeGraphNode):
                 if hasattr(self, 'kwargsTypes'):
                     _, func = elem
                     if self.attrCall and isinstance(args_type_orig[0], (ModuleTypeGraphNode, ClassDefTypeGraphNode, FuncDefTypeGraphNode)):
-                        if args_type_orig[0].scope == func.params.parent:
-                            args_type = args_type_orig[1:]
-                            args = self.args[1:]
-                            attr_call = False
-                        else:
-                            continue
+                        args_type = args_type_orig[1:]
+                        args = self.args[1:]
+                        attr_call = False
                     else:
                         args_type = args_type_orig
                         args = self.args
