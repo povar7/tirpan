@@ -36,6 +36,9 @@ def copy_class_inst(class_inst):
 def find_name_in_class_def(class_def, name):
     return class_def.scope.findInScope(name)
 
+def find_name_in_module(module, name):
+    return module.scope.findInScope(name)
+
 def find_name_in_class_inst(class_inst, name):
     res = class_inst.scope.findInScope(name)
     if res:
@@ -55,9 +58,11 @@ def find_inits_in_classes(classes):
     return res 
 
 def get_attribute(elem, attr):
-    from typegraph import ClassDefTypeGraphNode, ClassInstanceTypeGraphNode
+    from typegraph import ClassDefTypeGraphNode, ClassInstanceTypeGraphNode, ModuleTypeGraphNode
     from typenodes import TypeList
-    if isinstance(elem, ClassInstanceTypeGraphNode):
+    if isinstance(elem, ModuleTypeGraphNode):
+        return find_name_in_module(elem, attr)
+    elif isinstance(elem, ClassInstanceTypeGraphNode):
         return find_name_in_class_inst(elem, attr)
     elif isinstance(elem, ClassDefTypeGraphNode):
         return find_name_in_class_def(elem, attr)
