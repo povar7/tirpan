@@ -76,6 +76,9 @@ class TypeGraphNode(object):
             self.deps[dep_type] = set()     
         self.deps[dep_type].add(dep)
         self.walk_dependency(dep_type, dep)
+
+    def removeDependency(self, dep_type, dep):
+        self.deps[dep_type].discard(dep)
     
     def walk_dependency(self, dep_type, dep):
         getattr(self, dep_type + '_dep')(dep)
@@ -116,6 +119,11 @@ class TypeGraphNode(object):
                 tmp.add_elem(tt2)
                 res.add(tmp)
         dep.nodeType = res
+        try:
+            if self in dep.deps[DependencyType.Assign]:
+                dep.removeDependency(DependencyType.Assign, self)
+        except KeyError:
+            pass
         dep.generic_dependency()
 
     def key_dep(self, dep):
