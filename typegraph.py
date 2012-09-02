@@ -328,7 +328,10 @@ class ModuleTypeGraphNode(TypeGraphNode):
         return self
 
     def getScope(self):
-        return self.scope 
+        return self.scope
+
+    def elem_types(self):
+        return set()
 
 class UsualModuleTypeGraphNode(ModuleTypeGraphNode):
     def __init__(self, ast, name, parent_scope):
@@ -355,6 +358,7 @@ class FuncDefTypeGraphNode(TypeGraphNode):
         self.nodeType  = set([self])
         self.name      = name
         self.params    = Scope(parent_scope, scope_flag)
+        self.scope     = Scope()
         self.templates = {}
 
     def __deepcopy__(self, memo):
@@ -368,6 +372,9 @@ class FuncDefTypeGraphNode(TypeGraphNode):
 
     def getKWArgs(self, kwargs):
         return [None]
+
+    def elem_types(self):
+        return set()
 
 class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
     def __init__(self, node, name, parent_scope):
@@ -473,7 +480,7 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             kwarg_index += 1
 
     def processCall(self):
-        for args_type in product(*self.argsTypes):
+        for args_type_orig in product(*self.argsTypes):
             funcs = [(None, func) for func in self.funcs]
             inits = find_inits_in_classes(self.classes)
             callables  = []
@@ -482,12 +489,23 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             for elem in callables:
                 if hasattr(self, 'kwargsTypes'):
                     _, func = elem
+                    if self.attrCall and isinstance(args_type_orig[0], (ModuleTypeGraphNode, ClassDefTypeGraphNode, FuncDefTypeGraphNode)):
+                        if args_type_orig[0].scope == func.params.parent:
+                            args_type = args_type_orig[1:]
+                            args = self.args[1:]
+                            attr_call = False
+                        else:
+                            continue
+                    else:
+                        args_type = args_type_orig
+                        args = self.args
+                        attr_call = self.attrCall
                     try:
                         kwargs = func.getKWArgs(self.kwargs)
                     except AttributeError:
                         kwargs = [None]
                     for kwargs_type in kwargs:
-                        res = process_product_elem(elem, self.args, args_type, self.kwargs, kwargs_type, self)
+                        res = process_product_elem(elem, args, args_type, self.kwargs, kwargs_type, attr_call)
                         self.nodeType = smart_union(self.nodeType, res)
 
 class ClassDefTypeGraphNode(TypeGraphNode):
@@ -550,6 +568,9 @@ class ClassInstanceTypeGraphNode(TypeGraphNode):
 
     def getScope(self):
         return self.scope
+
+    def elem_types(self):
+        return set()
 
 class AttributeTypeGraphNode(TypeGraphNode):
     def __init__(self, node):

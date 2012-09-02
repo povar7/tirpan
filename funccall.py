@@ -50,7 +50,7 @@ class TemplateValue:
         self.result = set()
         self.args   = None
 
-def process_out_params(args, kwargs, elem, elem_copy, func_call, star_res, kw_res):
+def process_out_params(args, kwargs, elem, elem_copy, star_res, kw_res, attr_call):
     from typegraph import ClassInstanceTypeGraphNode, DependencyType
 
     if kw_res is not None:
@@ -84,13 +84,13 @@ def process_out_params(args, kwargs, elem, elem_copy, func_call, star_res, kw_re
         copy_atom = elem_copy[arg_index]
         if isinstance(copy_atom, (TypeStandard, ClassInstanceTypeGraphNode)):
             var = create_dummy_variable(elem_atom)
-            if func_call.attrCall and arg_index == 0:
+            if attr_call and arg_index == 0:
                 var.addDependency(DependencyType.AttrObject, arg)
             else:
                 var.addDependency(DependencyType.Assign, arg)
         arg_index += 1
 
-def process_product_elem(pair, args, arg_elem, kwargs, kwarg_elem, func_call):
+def process_product_elem(pair, args, arg_elem, kwargs, kwarg_elem, attr_call):
     import __main__
     from tivisitor import TIVisitor
     from typegraph import DependencyType, ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
@@ -140,5 +140,5 @@ def process_product_elem(pair, args, arg_elem, kwargs, kwarg_elem, func_call):
         elem_copy = key
         elem = func.templates[elem_copy].args
     if elem is not None:
-        process_out_params(args, kwargs, elem, elem_copy, func_call, star_res, kw_res)
+        process_out_params(args, kwargs, elem, elem_copy, star_res, kw_res, attr_call)
     return func.templates[elem_copy].result
