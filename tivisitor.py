@@ -10,6 +10,7 @@ import __main__
 
 from init      import get_operator_name 
 from typegraph import *
+from utils     import *
 
 class TIVisitor(ast.NodeVisitor):
     def __init__(self, filename):
@@ -195,6 +196,26 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_IfExp(self, node):
         node.link = UnknownTypeGraphNode(node)
+
+    def visit_If(self, node):
+        fileno = getFileNumber(node)
+        skip   = False
+        if fileno != 0:
+            test = node.test
+            if isinstance(test, ast.Compare):
+                if isinstance(test.left, ast.Name) and \
+                   test.left.id  == '__name__' and \
+                   len(test.ops) == 1 and \
+                   isinstance(test.ops[0], ast.Eq) and \
+                   len(test.comparators) == 1 and \
+                   isinstance(test.comparators[0], ast.Str) and \
+                   test.comparators[0].s == '__main__':
+                    skip = True
+        if not skip:
+            for stmt in node.body:
+                self.visit(stmt)
+        for stmt in node.orelse:
+            self.visit(stmt)
 
     def visit_GeneratorExp(self, node):
         node.link = UnknownTypeGraphNode(node)
