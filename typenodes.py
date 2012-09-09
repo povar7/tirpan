@@ -117,6 +117,8 @@ class TypeTuple(TypeListOrTuple):
     def instance_eq_to(self, other):
         if isinstance(self.elems, tuple) and isinstance(other.elems, tuple):
             return self.elems == other.elems
+        elif isinstance(self.elems, tuple) or isinstance(other.elems, tuple):
+            return False
         else:
             return self.elem_types() == other.elem_types()
 

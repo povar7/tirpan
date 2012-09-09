@@ -1,12 +1,12 @@
 '''
-Created on 19.08.2012
+Created on 09.09.2012
 
 @author: bronikkk
 '''
 
 import unittest
 from tests_common import *
-test_file_name = get_test_file_name('misc01.py')
+test_file_name = get_test_file_name('misc08.py')
 
 import ast
 
@@ -20,6 +20,8 @@ from typenodes    import *
 from utils        import findNode
 
 import tirpan
+
+MAX_SECONDS_LIMIT = 10
 
 def import_files(mainfile, aliases):
     global importer
@@ -44,24 +46,17 @@ class TestTirpan(unittest.TestCase):
         types_number   = 10
 
         common_init(global_scope, importer)
+
+        from datetime import datetime
+        start_time = datetime.now()
         tirpan.run(test_file_name)
-        self.ast = importer.imported_files['__main__'].ast
+        end_time   = datetime.now()
 
-        self.type_int = TypeInt()
+        self.delta = end_time - start_time
 
-    def test_walk_var_answer(self):
-        node = findNode(self.ast, line=121, kind=ast.Name)
-        self.assertTrue(node is not None, 'required node was not found')
-        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
-        self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
-        nodeType = node.link.nodeType
-        tmp = TypeTuple()
-        tmp.elems = (self.type_int, self.type_int)
-        type1 = TypeList()
-        type1.add_elem(tmp)
-        self.assertTrue(any([type1 == elem for elem in nodeType]),                   \
-                        'wrong types calculated')
-        self.assertEqual(node.link.name, 'answer', 'name is not "answer"')
+    def test_time(self):
+        self.assertTrue(self.delta.seconds < MAX_SECONDS_LIMIT,
+                        'tirpan has exceeded its time limit')
 
 if __name__ == '__main__':
     unittest.main()

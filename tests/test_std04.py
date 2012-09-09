@@ -48,7 +48,7 @@ class TestTirpan(unittest.TestCase):
         nodeType = node.link.nodeType
         type1 = TypeList()
         tmp   = TypeTuple()
-        tmp.add_elem(self.type_int)
+        tmp.elems = (self.type_int, self.type_int)
         type2 = TypeList()
         type2.add_elem(tmp)
         self.assertTrue(len(nodeType) == 2 and                                       \

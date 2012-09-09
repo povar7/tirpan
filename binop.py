@@ -45,9 +45,13 @@ def quasi_plus(scope):
         return set([res])
 
     if isinstance(type1, TypeTuple) and isinstance(type2, TypeTuple):
-        res = deepcopy(type1)
-        for elem in type2.elem_types():
-            res.add_elem(elem)
+        if isinstance(type1.elems, tuple) and isinstance(type2.elems, tuple):
+            res = TypeTuple()
+            res.elems = type1.elems + type2.elems
+        else:
+            res = deepcopy(type1)
+            for elem in type2.elem_types():
+                res.add_elem(elem)
         return set([res])
 
     if isinstance(type1, TypeBaseString) and isinstance(type2, TypeBaseString):

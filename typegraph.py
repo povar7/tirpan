@@ -71,22 +71,22 @@ class TypeGraphNode(object):
             return TypeNone()
         return None
 
-    def addDependency(self, dep_type, dep):
+    def addDependency(self, dep_type, dep, *args):
         if not dep_type in self.deps:
-            self.deps[dep_type] = set()     
-        self.deps[dep_type].add(dep)
-        self.walk_dependency(dep_type, dep)
+            self.deps[dep_type] = set()
+        self.deps[dep_type].add((dep, args))
+        self.walk_dependency(dep_type, dep, *args)
 
     def removeDependency(self, dep_type, dep):
-        self.deps[dep_type].discard(dep)
+        self.deps[dep_type].discard((dep, ()))
     
-    def walk_dependency(self, dep_type, dep):
-        getattr(self, dep_type + '_dep')(dep)
+    def walk_dependency(self, dep_type, dep, *args):
+        getattr(self, dep_type + '_dep')(dep, *args)
 
     def generic_dependency(self):
         for dep_type in self.deps:
-            for dep in self.deps[dep_type]:
-                self.walk_dependency(dep_type, dep)
+            for dep, args in self.deps[dep_type]:
+                self.walk_dependency(dep_type, dep, *args)
 
     def assign_dep(self, dep):
         if isinstance(dep, VarTypeGraphNode):
@@ -101,15 +101,23 @@ class TypeGraphNode(object):
                 dep.process()
                 dep.generic_dependency()
     
-    def assign_elem_dep(self, dep):
-        new_types = self.elem_types()
+    def assign_elem_dep(self, dep, *args):
+        try:
+            index = args[0]
+            new_types = self.elem_types_index(index)
+        except IndexError:
+            new_types = self.elem_types()
         if len(new_types - dep.nodeType) > 0:
             dep.nodeType = smart_union(dep.nodeType, new_types)
             dep.generic_dependency()
     
-    def elem_dep(self, dep):
+    def elem_dep(self, dep, *args):
         import __main__
         res = set()
+        try:
+            index = args[0]
+        except IndexError:
+            index = None 
         while len(dep.nodeType) > 0:
             tt1 = dep.nodeType.pop()
             if len(tt1.elems) >= __main__.types_number:
@@ -118,7 +126,12 @@ class TypeGraphNode(object):
                 if len(res) >= __main__.types_number:
                     break
                 tmp = deepcopy(tt1)
-                tmp.add_elem(tt2)
+                if index is None or not isinstance(tmp.elems, tuple):
+                    tmp.add_elem(tt2)
+                else:
+                    elems_list = list(tmp.elems)
+                    elems_list[index] = tt2
+                    tmp.elems  = tuple(elems_list)
                 res.add(tmp)
         dep.nodeType = res
         try:
@@ -234,6 +247,18 @@ class TypeGraphNode(object):
         for tt in self.nodeType:
             el_types |= tt.elem_types()
         return el_types
+
+    def elem_types_index(self, index):
+        el_types = set()
+        for tt in self.nodeType:
+            if isinstance(tt, TypeTuple) and isinstance(tt.elems, tuple):
+                try:
+                    el_types.add(tt.elems[index])
+                    continue
+                except IndexError:
+                    pass
+            el_types |= tt.elem_types()
+        return el_types
    
 class ConstTypeGraphNode(TypeGraphNode):
     def __init__(self, value):
@@ -301,11 +326,15 @@ class ListTypeGraphNode(TypeGraphNode):
 class TupleTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
         super(TupleTypeGraphNode, self).__init__()
-        self.nodeType  = set([TypeTuple()])
-        self.nodeValue = None
+        tuple_type       = TypeTuple()
+        tuple_type.elems = (None,) * len(node.elts)
+        self.nodeType    = set([tuple_type])
+        self.nodeValue   = None
+        index = 0
         for elt in node.elts:
             link = elt.link
-            link.addDependency(DependencyType.Elem, self)
+            link.addDependency(DependencyType.Elem, self, index)
+            index += 1
 
 class DictTypeGraphNode(TypeGraphNode):
     def __init__(self, node):

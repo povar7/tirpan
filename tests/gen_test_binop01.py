@@ -41,7 +41,7 @@ def get_type_name(var):
     if var_type == list:
         return 'TypeList();  type1.add_elem(self.type_int)'
     if var_type == tuple:
-        return 'TypeTuple(); type1.add_elem(self.type_int)'
+        return 'TypeTuple(); type1.elems = (self.type_int,) * %d' % len(var)
     return 'self.type_int'
 
 def process_head_line(line):

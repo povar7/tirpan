@@ -109,10 +109,8 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(isinstance(node.link, TupleTypeGraphNode), 'type is not a tuple')
         nodeType = node.link.nodeType
         type1 = TypeTuple()
-        type1.add_elem(self.type_int)
-        type1.add_elem(self.type_float)
-        type1.add_elem(self.type_str)
-        type1.add_elem(self.type_unicode)
+        type1.elems = (self.type_int, self.type_float,                               \
+                       self.type_str, self.type_unicode)
         self.assertTrue(len(nodeType) == 1 and                                       \
                         any([type1 == elem for elem in nodeType]),                   \
                         'elems are int, float, str and unicode')
@@ -155,10 +153,8 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
         nodeType = node.link.nodeType
         type1 = TypeTuple()
-        type1.add_elem(self.type_int)
-        type1.add_elem(self.type_float)
-        type1.add_elem(self.type_str)
-        type1.add_elem(self.type_unicode)
+        type1.elems = (self.type_int, self.type_float,                               \
+                       self.type_str, self.type_unicode)
         self.assertTrue(len(nodeType) == 1 and                                       \
                         any([type1 == elem for elem in nodeType]),                   \
                         'elems are int, float, str and unicode')

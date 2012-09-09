@@ -55,8 +55,10 @@ class TIVisitor(ast.NodeVisitor):
             for ast_el in target.elts:
                 self.visit(ast_el)
             self.left_part = save
+            index = 0
             for ast_el in target.elts:
-                node.value.link.addDependency(DependencyType.AssignElem, ast_el.link)
+                node.value.link.addDependency(DependencyType.AssignElem, ast_el.link, index)
+                index += 1
         else:
             self.visit(target)
             self.left_part = save

@@ -62,8 +62,7 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
         nodeType = node.link.nodeType
         type1 = TypeTuple()
-        type1.add_elem(self.type_float)
-        type1.add_elem(self.type_str)
+        type1.elems = (self.type_float, self.type_str)
         self.assertTrue(len(nodeType) == 1 and                                             \
                         any([type1 == elem for elem in nodeType]),                         \
                         'wrong types calculated')
@@ -76,8 +75,7 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
         nodeType = node.link.nodeType
         type1 = TypeTuple()
-        type1.add_elem(self.type_float)
-        type1.add_elem(self.type_str)
+        type1.elems = (self.type_float, self.type_str, self.type_float)
         self.assertTrue(len(nodeType) == 1 and                                             \
                         any([type1 == elem for elem in nodeType]),                         \
                         'wrong types calculated')
