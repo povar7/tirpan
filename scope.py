@@ -112,7 +112,8 @@ class Scope(object):
         for var in variables:
             print var.name, ':', var.nodeType
 
-    def getArgs(self, args, kwargs):
+    def getArgs(self, args, starargs, kwargs):
+        args     += starargs
         variables = sorted(self.variables.values(), sort_params)
         args_num  = len(args)
         vars_num  = len(variables)

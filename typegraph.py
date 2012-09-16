@@ -174,18 +174,42 @@ class TypeGraphNode(object):
         dep.generic_dependency()
 
     def arg_dep(self, dep):
-        index = dep.args.index(self)
+        try:
+            index  = dep.args.index(self)
+            is_arg = True
+        except ValueError:
+            is_arg = False 
         nodeType = self.nodeType
-        if dep.argsTypes[index] != nodeType:
-            dep.argsTypes[index] = deepcopy(nodeType)
+        if is_arg:
+            old_type = dep.argsTypes[index]
+        else:
+            old_type = dep.starargsTypes
+        if old_type != nodeType:
+            type_copy = deepcopy(nodeType)
+            if is_arg:
+                dep.argsTypes[index] = type_copy
+            else:
+                dep.starargsTypes    = type_copy
             dep.processCall()
             dep.generic_dependency()
 
     def attrarg_dep(self, dep):
-        index = dep.args.index(self)
+        try:
+            index  = dep.args.index(self)
+            is_arg = True
+        except ValueError:
+            is_arg = False
         nodeType = self.objects
-        if dep.argsTypes[index] != nodeType:
-            dep.argsTypes[index] = deepcopy(nodeType)
+        if is_arg:
+            old_type = dep.argsTypes[index]
+        else:
+            old_type = dep.starargsTypes
+        if old_type != nodeType:
+            type_copy = deepcopy(nodeType)
+            if is_arg:
+                dep.argsTypes[index] = type_copy
+            else:
+                dep.starargsTypes    = type_copy
             dep.processCall()
             dep.generic_dependency()
 
@@ -469,6 +493,8 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             __main__.error_printer.printError(CallNotResolvedError(node))
         self.args      = []
         self.argsTypes = []
+        self.starargs      = None
+        self.starargsTypes = None
         if isinstance(var, AttributeTypeGraphNode):
             nodeArgs = [node.func]
             self.attrCall = True
@@ -495,6 +521,22 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             self.args.append(link)
             self.argsTypes.append(type_copy)
             link.addDependency(dep, self)
+        try:
+            stararg = node.starargs
+        except AttributeError:
+            stararg = None
+        if stararg is not None:
+            link = stararg.link
+            if link is var and isinstance(link, AttributeTypeGraphNode):
+                nodeType = link.objects
+                dep      = DependencyType.AttrArg
+            else:
+                nodeType = link.nodeType
+                dep      = DependencyType.Arg
+            type_copy = deepcopy(nodeType)
+            self.starargs      = link
+            self.starargsTypes = type_copy
+            link.addDependency(dep, self)
         self.kwargs      = {}
         self.kwargsKeys  = {}
         self.kwargsTypes = []
@@ -511,12 +553,20 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             kwarg_index += 1
 
     def processCall(self):
+        funcs = [(None, func) for func in self.funcs]
+        inits = find_inits_in_classes(self.classes)
+        callables  = []
+        callables += funcs
+        callables += inits
+        starargs   = []
+        if self.starargsTypes is not None:
+            for star_type in self.starargsTypes:
+                if isinstance(star_type, TypeTuple) and \
+                   isinstance(star_type.elems, tuple):
+                    starargs.append(star_type.elems)
+        if len(starargs) == 0:
+            starargs.append(())
         for args_type_orig in product(*self.argsTypes):
-            funcs = [(None, func) for func in self.funcs]
-            inits = find_inits_in_classes(self.classes)
-            callables  = []
-            callables += funcs
-            callables += inits
             for elem in callables:
                 if hasattr(self, 'kwargsTypes'):
                     _, func = elem
@@ -532,9 +582,10 @@ class FuncCallTypeGraphNode(TypeGraphNode):
                         kwargs = func.getKWArgs(self.kwargs)
                     except AttributeError:
                         kwargs = [None]
-                    for kwargs_type in kwargs:
-                        res = process_product_elem(elem, args, args_type, self.kwargs, kwargs_type, attr_call)
-                        self.nodeType = smart_union(self.nodeType, res)
+                    for starargs_type in starargs:
+                        for kwargs_type in kwargs:
+                            res = process_product_elem(elem, args, args_type, self.starargs, starargs_type, self.kwargs, kwargs_type, attr_call)
+                            self.nodeType = smart_union(self.nodeType, res)
 
 class ClassDefTypeGraphNode(TypeGraphNode):
     def __init__(self, name, parent_scope):

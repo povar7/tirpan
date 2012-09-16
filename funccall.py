@@ -50,7 +50,7 @@ class TemplateValue:
         self.result = set()
         self.args   = None
 
-def process_out_params(args, kwargs, elem, elem_copy, star_res, kw_res, attr_call):
+def process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res, attr_call):
     from typegraph import ClassInstanceTypeGraphNode, DependencyType
 
     if kw_res is not None:
@@ -72,10 +72,15 @@ def process_out_params(args, kwargs, elem, elem_copy, star_res, kw_res, attr_cal
         star_arg  = elem[star_res]
         if isinstance(star_arg, TypeTuple) and isinstance(star_arg.elems, tuple):
             for elem_type in star_arg.elems:
-                arg = args[arg_index]
-                if isinstance(elem_type, (TypeStandard, ClassInstanceTypeGraphNode)):
-                    var = create_dummy_variable(elem_type)
+                if not isinstance(elem_type, (TypeStandard, ClassInstanceTypeGraphNode)):
+                    arg_index += 1
+                    continue
+                var = create_dummy_variable(elem_type)
+                try:
+                    arg = args[arg_index]
                     var.addDependency(DependencyType.Assign, arg)
+                except IndexError:
+                    pass
                 arg_index += 1
 
     arg_index = 0
@@ -90,7 +95,7 @@ def process_out_params(args, kwargs, elem, elem_copy, star_res, kw_res, attr_cal
                 var.addDependency(DependencyType.Assign, arg)
         arg_index += 1
 
-def process_product_elem(pair, args, arg_elem, kwargs, kwarg_elem, attr_call):
+def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, kwarg_elem, attr_call):
     import __main__
     from tivisitor import TIVisitor
     from typegraph import DependencyType, ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
@@ -102,7 +107,7 @@ def process_product_elem(pair, args, arg_elem, kwargs, kwarg_elem, attr_call):
         arg_list  = [cls_instance]
         arg_list += list(arg_elem)
         arg_elem  = tuple(arg_list)
-    elem, star_res, kw_res = func.params.getArgs(arg_elem, kwarg_elem)
+    elem, star_res, kw_res = func.params.getArgs(arg_elem, stararg_elem, kwarg_elem)
     if elem is None:
         return set()
     key = find_previous_key(elem, func.templates.keys())
@@ -144,5 +149,5 @@ def process_product_elem(pair, args, arg_elem, kwargs, kwarg_elem, attr_call):
         elem_copy = key
         elem = func.templates[elem_copy].args
     if elem is not None:
-        process_out_params(args, kwargs, elem, elem_copy, star_res, kw_res, attr_call)
+        process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res, attr_call)
     return func.templates[elem_copy].result

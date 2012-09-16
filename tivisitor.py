@@ -135,6 +135,8 @@ class TIVisitor(ast.NodeVisitor):
     def visit_Call(self, node):
         for arg in node.args:
             self.visit(arg)
+        if node.starargs is not None:
+            self.visit(node.starargs)
         for kwarg in node.keywords:
             self.visit(kwarg.value)
         
