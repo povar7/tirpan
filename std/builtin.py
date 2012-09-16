@@ -59,6 +59,9 @@ functions = [
                 ['xrange', quasi_range3, 3, {3 : type_int}], \
             ]
 
+stubs     = [                                                \
+            ]
+
 variables = [                                                \
                 ['type'     , quasi_type_var],               \
                 ['object'   , quasi_type_var],               \
@@ -79,7 +82,8 @@ variables = [                                                \
             ]
 
 modules   = [                                                \
-                ['sys']                                      \
+                ['sys'],                                     \
+                ['_glib']                                    \
             ]
 
 quasi_list_object = (                                        \
@@ -96,4 +100,4 @@ objects   = [                                                \
             ]
 
 def get_all():
-    return (functions, variables, modules, objects)
+    return (functions, stubs, variables, modules, objects)

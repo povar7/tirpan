@@ -23,9 +23,12 @@ def quasi_path():
     res.add_elem(type_str)
     return res
 
-functions = [
+functions = [                                       \
                 ['getsizeof', quasi_getsizeof1, 1], \
                 ['getsizeof', quasi_getsizeof2, 2]  \
+            ]
+
+stubs     = [                                       \
             ]
 
 variables = [                                       \
@@ -41,4 +44,4 @@ objects   = [                                       \
             ]
 
 def get_all():
-    return (functions, variables, modules, objects)
+    return (functions, stubs, variables, modules, objects)

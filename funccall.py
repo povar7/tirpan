@@ -118,7 +118,11 @@ def process_product_elem(pair, args, arg_elem, kwargs, kwarg_elem, attr_call):
             ast_copy  = deepcopy(func.ast)
             saved_res = __main__.current_res
             __main__.current_res = set()
-            visitor   = TIVisitor(__main__.importer.get_ident(ast_copy[0].fileno).name)
+            try:
+                filename = __main__.importer.get_ident(ast_copy[0].fileno).name
+            except AttributeError:
+                filename = None
+            visitor = TIVisitor(filename)
             for stmt in ast_copy:
                 visitor.visit(stmt)
             if cls_instance:

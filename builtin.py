@@ -4,12 +4,22 @@ Created on 25.03.2012
 @author: bronikkk
 '''
 
+import ast
+
 def init_builtin_function(scope, name, quasi, num, def_vals = {}):
     from typegraph import ExternFuncDefTypeGraphNode, DependencyType
     func = ExternFuncDefTypeGraphNode(num, quasi, name, scope, def_vals)
     var  = scope.findOrAdd(name)
     func.addDependency(DependencyType.Assign, var)
     scope.add(var)
+
+def init_builtin_stub(scope, name, quasi):
+    from tivisitor import TIVisitor
+    from typegraph import UsualFuncDefTypeGraphNode, DependencyType
+    module  = ast.parse(quasi)
+    stmt    = module.body[0]
+    visitor = TIVisitor(None)
+    visitor.visit(stmt)
 
 def init_builtin_variable(scope, name, type_func):
     from typegraph import ExternVarTypeGraphNode, DependencyType
@@ -33,10 +43,12 @@ def import_standard_module(module, importer):
         return
     command = 'from std.%s import get_all' % module.name
     exec command
-    functions, variables, modules, objects = get_all()
+    functions, stubs, variables, modules, objects = get_all()
     scope = module.getScope()
     for func in functions:
         init_builtin_function(scope, *func)
+    for stub in stubs:
+        init_builtin_stub(scope, *stub)
     for var in variables:
         init_builtin_variable(scope, *var)
     for mod in modules:

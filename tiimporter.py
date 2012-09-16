@@ -18,21 +18,6 @@ from typegraph import UsualVarTypeGraphNode, UsualModuleTypeGraphNode, ExternMod
 def get_init_name(name):
     return os.path.join(name, '__init__')
 
-def get_names_from_alias_name(name):
-    if name is None:
-        name    = '.'
-    parts       = name.split('.')
-    number      = len(parts)
-    index       = 1
-    current     = parts[0]
-    result      = []
-    while index < number:
-        result.append((False, current))
-        current = os.path.join(current, parts[index])
-        index  += 1
-    result.append((True, current))
-    return result
-
 class QuasiAlias(object):
     def __init__(self, name):
         self.name   = name
@@ -74,10 +59,13 @@ class Importer(object):
         paths.extend(sys.path)
         return self.find_module(name, paths)
 
-    def import_files_extended(self, mainfile, alias, name, terminal, from_aliases):
+    def import_files_extended(self, mainfile, alias, parts, terminal, from_aliases):
         main_module = False
-        if name in self.standard_modules:
-            module = self.standard_modules[name]
+        python_name = '.'.join(parts)
+        ospath_name = os.path.join(*parts)
+        name = ospath_name
+        if python_name in self.standard_modules:
+            module = self.standard_modules[python_name]
             import_standard_module(module, self)
         else:
             if name == '__main__':
@@ -101,6 +89,8 @@ class Importer(object):
                 parser = TIParser(filename)
                 imported_tree = parser.ast
                 module = UsualModuleTypeGraphNode(imported_tree, filename, __main__.current_scope)
+                if name == 'glib':
+                    self.add_module(module.getScope(), 'glib._glib')
                 imported_tree.link = module
                 fileno = self.put_ident(module)
                 for node in ast.walk(imported_tree):
@@ -128,5 +118,11 @@ class Importer(object):
 
     def import_files(self, mainfile, aliases, from_aliases = None):
         for alias in aliases:
-            for terminal, name in get_names_from_alias_name(alias.name): 
-                self.import_files_extended(mainfile, alias, name, terminal, from_aliases)
+            name = alias.name
+            if name is None:
+                name    = '.'
+            parts = name.split('.')
+            size  = len(parts)
+            for last in range(0, size):
+                terminal = (last == size - 1)
+                self.import_files_extended(mainfile, alias, parts[0:last + 1], terminal, from_aliases)
