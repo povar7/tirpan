@@ -146,10 +146,19 @@ def set_subscript(collection, values, is_index, index):
     res = set()
     if not isinstance(collection, (TypeList, TypeTuple, TypeDict)):
         return res
+    if isinstance(collection, TypeDict) and \
+        collection._dict is None and \
+        len(collection.keys) == 0:
+        return res
     for value in values:
         if is_index:
             if value not in collection.elem_types():
-                collection_copy = deepcopy(collection)
+                if isinstance(collection, TypeDict) and \
+                   collection._dict is None and \
+                   len(collection.vals) == 0:
+                    collection_copy = collection
+                else:
+                    collection_copy = deepcopy(collection)
                 if index is not None and \
                    isinstance(collection_copy, TypeTuple) and \
                    isinstance(collection_copy.elems, tuple):

@@ -95,7 +95,7 @@ class Importer(object):
                 fileno = self.put_ident(module)
                 for node in ast.walk(imported_tree):
                     node.fileno = fileno
-                self.imported_files[searchname] = imported_tree.link 
+                self.imported_files[searchname] = imported_tree.link
                 parser.walk(main_module)
         if from_aliases is None:
             var_name = alias.asname if alias.asname else name

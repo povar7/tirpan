@@ -85,10 +85,15 @@ class TypeGraphNode(object):
 
     def generic_dependency(self):
         for dep_type in self.deps:
-            for dep, args in self.deps[dep_type]:
+            for dep, args in tuple(self.deps[dep_type]):
                 self.walk_dependency(dep_type, dep, *args)
 
     def assign_dep(self, dep):
+        try:
+            if (self, ()) in dep.deps[DependencyType.Arg]:
+                dep.removeDependency(DependencyType.Arg, self)
+        except KeyError:
+            pass
         if isinstance(dep, VarTypeGraphNode):
             if len(self.nodeType - dep.nodeType) > 0:
                 old_len = len(dep.nodeType)
@@ -588,7 +593,10 @@ class FuncCallTypeGraphNode(TypeGraphNode):
                         kwargs = [None]
                     for starargs_type in starargs:
                         for kwargs_type in kwargs:
-                            res = process_product_elem(elem, args, args_type, self.starargs, starargs_type, self.kwargs, kwargs_type, attr_call)
+                            if getattr(func, 'name', None) == 'getLogger':
+                                res = set()
+                            else:
+                                res = process_product_elem(elem, args, args_type, self.starargs, starargs_type, self.kwargs, kwargs_type, attr_call)
                             self.nodeType = smart_union(self.nodeType, res)
 
 class ClassDefTypeGraphNode(TypeGraphNode):

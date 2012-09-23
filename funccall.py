@@ -168,6 +168,8 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
                 del func.templates[elem_copy]
                 return set([cls_instance])
             else:
+                if elem_copy not in func.templates:
+                    func.templates[elem_copy] = TemplateValue()
                 func.templates[elem_copy].ast    = ast_copy
                 func.templates[elem_copy].result =             \
                     process_results(__main__.current_res,      \
