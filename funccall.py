@@ -4,7 +4,8 @@ Created on 09.03.2012
 @author: bronikkk
 '''
 
-from copy  import deepcopy
+from copy      import deepcopy
+from itertools import product
 
 from classes   import make_new_instance
 from scope     import Scope
@@ -51,7 +52,7 @@ class TemplateValue:
         self.args   = None
 
 def process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res, attr_call):
-    from typegraph import ClassInstanceTypeGraphNode, DependencyType
+    from typegraph import ClassInstanceTypeGraphNode, SubscriptTypeGraphNode, DependencyType
 
     if kw_res is not None:
         kw_arg = elem[kw_res]
@@ -66,10 +67,11 @@ def process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res
                 var.addDependency(DependencyType.Assign, arg)
 
     if star_res is None:
-        star_res  = len(args)
+        last_index   = len(args)
     else:
-        arg_index = star_res
-        star_arg  = elem[star_res]
+        last_index   = star_res
+        arg_index    = star_res
+        star_arg     = elem[star_res]
         if isinstance(star_arg, TypeTuple) and isinstance(star_arg.elems, tuple):
             for elem_type in star_arg.elems:
                 if not isinstance(elem_type, (TypeStandard, ClassInstanceTypeGraphNode)):
@@ -80,11 +82,15 @@ def process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res
                     arg = args[arg_index]
                     var.addDependency(DependencyType.Assign, arg)
                 except IndexError:
-                    pass
+                    star_index = arg_index - len(args)
+                    star_link  = SubscriptTypeGraphNode(True, star_index)
+                    star_link.addDependency(DependencyType.AssignObject, starargs)
+                    starargs.addDependency(DependencyType.AttrObject, star_link)
+                    var.addDependency(DependencyType.Assign, star_link)
                 arg_index += 1
 
     arg_index = 0
-    for arg in args[0:star_res]:
+    for arg in args[0:last_index]:
         elem_atom = elem[arg_index]
         copy_atom = elem_copy[arg_index]
         if isinstance(copy_atom, (TypeStandard, ClassInstanceTypeGraphNode)):
@@ -94,6 +100,33 @@ def process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res
             else:
                 var.addDependency(DependencyType.Assign, arg)
         arg_index += 1
+
+    if starargs is None:
+        return
+
+    if star_res is None:
+        last_index = len(elem)
+    else:
+        last_index = star_res
+
+    for arg_index in range(len(args), last_index):
+        elem_atom = elem[arg_index]
+        copy_atom = elem_copy[arg_index]
+        if isinstance(copy_atom, (TypeStandard, ClassInstanceTypeGraphNode)):
+            var = create_dummy_variable(elem_atom)
+            star_index = arg_index - len(args)
+            star_link  = SubscriptTypeGraphNode(True, star_index)
+            star_link.addDependency(DependencyType.AssignObject, starargs)
+            starargs.addDependency(DependencyType.AttrObject, star_link)
+            var.addDependency(DependencyType.Assign, star_link)
+
+def get_elem_set(elem, params_copy):
+    sorted_params = params_copy.getSortedParams()
+    params_types  = []
+    for param_index in range(0, len(elem)):
+        params_types.append(sorted_params[param_index].nodeType)
+    for item in product(*params_types):
+        yield item
 
 def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, kwarg_elem, attr_call):
     import __main__
@@ -146,8 +179,13 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
             func.templates[elem_copy].args   = elem
         __main__.current_scope = saved_scope
     else:
-        elem_copy = key
+        params_copy = None
+        elem_copy   = key
         elem = func.templates[elem_copy].args
     if elem is not None:
-        process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res, attr_call)
+        if params_copy is None:
+            process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res, attr_call)
+        else:
+            for new_elem in get_elem_set(elem, params_copy):
+                process_out_params(args, starargs, kwargs, new_elem, elem_copy, star_res, kw_res, attr_call)
     return func.templates[elem_copy].result

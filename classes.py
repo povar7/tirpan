@@ -142,18 +142,28 @@ def set_attributes(objects, attr, values):
             set_attribute(obj, attr, value, var, init_flag)
 
 def set_subscript(collection, values, is_index, index):
-    from typenodes import TypeListOrTuple, TypeDict
+    from typenodes import TypeList, TypeTuple, TypeDict
     res = set()
-    if not isinstance(collection, (TypeListOrTuple, TypeDict)):
+    if not isinstance(collection, (TypeList, TypeTuple, TypeDict)):
         return res
     for value in values:
         if is_index:
             if value not in collection.elem_types():
                 collection_copy = deepcopy(collection)
-                collection_copy.add_elem(value)
+                if index is not None and \
+                   isinstance(collection_copy, TypeTuple) and \
+                   isinstance(collection_copy.elems, tuple):
+                    try:
+                        elems_list = list(collection_copy.elems)
+                        elems_list[index] = value
+                        collection_copy.elems = tuple(elems_list)
+                    except IndexError:
+                        collection_copy.add_elem(value)
+                else:
+                    collection_copy.add_elem(value)
                 res.add(collection_copy)
         else:
-            if not isinstance(value, TypeListOrTuple):
+            if not isinstance(value, (TypeList, TypeTuple)):
                 continue
             if len(value.elem_types() - collection.elem_types()) != 0:
                 collection_copy = deepcopy(collection)

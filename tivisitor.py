@@ -189,7 +189,17 @@ class TIVisitor(ast.NodeVisitor):
         self.visit(node.value)
         sub_slice = node.slice
         self.visit(sub_slice) 
-        node.link = SubscriptTypeGraphNode(sub_slice)
+        is_index = isinstance(sub_slice, Index)
+        if isinstance(sub_slice, Index):
+            if isinstance(sub_slice.value, Num):
+                index = sub_slice.value.n
+            elif isinstance(sub_slice.value, Str):
+                index = sub_slice.value.s
+            else:
+                index = None
+        else:
+            index = None
+        node.link = SubscriptTypeGraphNode(is_index, index)
         node.link.addDependency(DependencyType.AssignObject, node.value.link)
         node.value.link.addDependency(DependencyType.AttrObject, node.link)
         if isinstance(sub_slice, ast.Index):

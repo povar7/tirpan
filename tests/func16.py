@@ -1,6 +1,6 @@
 def foo(x, y, z, *args):
     args[0].append(3j)
-    z.append(3j)
+    z.append(3l)
 
 def bar(x, *args):
     return foo(x, *args)

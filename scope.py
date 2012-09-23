@@ -159,6 +159,10 @@ class Scope(object):
             return None, star_res, kw_res
         return tuple(res), star_res, kw_res
 
+    def getSortedParams(self):
+        variables = sorted(self.variables.values(), sort_params)
+        return variables
+
     def linkParamsAndArgs(self, args):
         variables = sorted(self.variables.values(), sort_params)
         vars_num  = len(variables)

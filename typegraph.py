@@ -135,7 +135,7 @@ class TypeGraphNode(object):
                 res.add(tmp)
         dep.nodeType = res
         try:
-            if self in dep.deps[DependencyType.Assign]:
+            if (self, ()) in dep.deps[DependencyType.Assign]:
                 dep.removeDependency(DependencyType.Assign, self)
         except KeyError:
             pass
@@ -252,6 +252,10 @@ class TypeGraphNode(object):
         if len(self.objects - dep.nodeType) > 0:
             objects_copy = deepcopy(self.objects)
             dep.nodeType = smart_union(dep.nodeType, objects_copy)
+            if isinstance(dep, (AttributeTypeGraphNode, SubscriptTypeGraphNode)): 
+                if len(dep.nodeType - dep.values) > 0:
+                    dep.values = smart_union(dep.values, dep.nodeType)
+                    dep.process()
             dep.generic_dependency()
 
     def object_dep(self, dep):
@@ -664,21 +668,13 @@ class AttributeTypeGraphNode(TypeGraphNode):
         self.nodeType = get_attributes(self.objects, self.attr)
 
 class SubscriptTypeGraphNode(TypeGraphNode):
-    def __init__(self, sub_slice):
+    def __init__(self, is_index, index):
         super(SubscriptTypeGraphNode, self).__init__()
         self.objects  = set()
         self.values   = set()
         self.nodeType = set()
-        self.is_index = isinstance(sub_slice, Index)
-        if isinstance(sub_slice, Index):
-            if isinstance(sub_slice.value, Num):
-                self.index = sub_slice.value.n
-            elif isinstance(sub_slice.value, Str):
-                self.index = sub_slice.value.s
-            else:
-                self.index = None
-        else:
-            self.index = None
+        self.is_index = is_index
+        self.index    = index
 
     def getKeysTypes(self):
         from typenodes import TypeDict
