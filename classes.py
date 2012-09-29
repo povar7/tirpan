@@ -25,7 +25,10 @@ def copy_class_inst(class_inst):
             var.nodeType = None
             var_copy = shallowcopy(var)
             var.nodeType = save
-            var_copy.nodeType = shallowcopy(var.nodeType)
+            try:
+                var_copy.nodeType = shallowcopy(var.nodeType)
+            except RuntimeError:
+                var_copy.nodeType = var.nodeType
             var_copy.parent = res.scope
             res.scope.variables[name] = var_copy 
     except AttributeError:
@@ -77,7 +80,10 @@ def get_attributes(objects, attr):
     for obj in objects:
         var = get_attribute(obj, attr)
         if var:
-            res = res.union(var.nodeType)
+            try:
+                res = res.union(var.nodeType)
+            except RuntimeError:
+                pass
     return res
 
 def make_new_instance(cls):
@@ -125,7 +131,10 @@ def set_attribute(obj, attr, value, var, init_flag):
         except AttributeError:
             var = None
     if var:
-        var.nodeType.add(value)
+        try:
+            var.nodeType.add(value)
+        except RuntimeError:
+            pass
 
 def set_attributes(objects, attr, values):
     import __main__
@@ -217,9 +226,14 @@ def get_subscripts(objects, is_index, index):
     return res
 
 def set_slice(dictionary, slices_types):
+    from typegraph import ClassInstanceTypeGraphNode
     res = set()
+    keys = dictionary.keys_types()
     for slice_type in slices_types:
-        if slice_type not in dictionary.keys_types():
+        if slice_type not in keys:
+            if isinstance(slice_type, ClassInstanceTypeGraphNode) and \
+               any([isinstance(key, ClassInstanceTypeGraphNode) and key.cls == slice_type.cls for key in keys]):
+                continue
             dictionary_copy = deepcopy(dictionary)
             dictionary_copy.add_key(slice_type)
             res.add(dictionary_copy)

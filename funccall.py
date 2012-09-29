@@ -23,12 +23,17 @@ def process_results(results, def_return):
             types = types.union(res.value.link.nodeType)
         except AttributeError:
             types.add(type_none)
+        except RuntimeError:
+            pass
     return types
 
 def find_previous_key(elem, keys):
     for key in keys:
-        if key == elem:
-            return key
+        try:
+            if key == elem:
+                return key
+        except RuntimeError:
+            pass
     return None
 
 def copy_params(params):
@@ -42,7 +47,10 @@ def copy_params(params):
 def create_dummy_variable(nodeType):
     from typegraph import UsualVarTypeGraphNode
     res = UsualVarTypeGraphNode(None)
-    res.nodeType = set([nodeType])
+    try: 
+        res.nodeType = set([nodeType])
+    except RuntimeError:
+        pass
     return res
 
 class TemplateValue:
@@ -145,10 +153,15 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
         return set()
     key = find_previous_key(elem, func.templates.keys())
     if key is None:
+        if len(func.templates.keys()) > 100:
+            return set()
         params_copy   = copy_params(func.params)
         elem_copy     = deepcopy(elem)
         params_copy.linkParamsAndArgs(elem)
-        func.templates[elem_copy] = TemplateValue()
+        try:
+            func.templates[elem_copy] = TemplateValue()
+        except RuntimeError:
+            return set()
         saved_scope   = __main__.current_scope
         func_scope    = Scope(params_copy)
         __main__.current_scope = func_scope
@@ -183,11 +196,17 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
     else:
         params_copy = None
         elem_copy   = key
-        elem = func.templates[elem_copy].args
+        try:
+            elem = func.templates[elem_copy].args
+        except KeyError:
+            return set()
     if elem is not None:
         if params_copy is None:
             process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res, attr_call)
         else:
             for new_elem in get_elem_set(elem, params_copy):
                 process_out_params(args, starargs, kwargs, new_elem, elem_copy, star_res, kw_res, attr_call)
-    return func.templates[elem_copy].result
+    try:
+        return func.templates[elem_copy].result
+    except KeyError:
+        return set()

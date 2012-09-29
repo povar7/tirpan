@@ -28,7 +28,24 @@ def smart_union(set1, set2):
     for elem in set2:
         if len(set1) >= __main__.types_number:
             return set1
-        set1.add(elem)
+        try:
+            set1.add(elem)
+        except RuntimeError:
+            pass
+    return set1
+
+def smart_deepcopy_union(set1, set2):
+    import __main__
+    if len(set1) >= __main__.types_number:
+        return set1
+    set2_copy = deepcopy(set2)
+    for elem in set2_copy:
+        if len(set1) >= __main__.types_number:
+            return set1
+        try:
+            set1.add(elem)
+        except RuntimeError:
+            pass
     return set1
 
 class DependencyType(object):
@@ -95,16 +112,22 @@ class TypeGraphNode(object):
         except KeyError:
             pass
         if isinstance(dep, VarTypeGraphNode):
-            if len(self.nodeType - dep.nodeType) > 0:
-                old_len = len(dep.nodeType)
-                dep.nodeType = smart_union(dep.nodeType, self.nodeType)
-                if len(dep.nodeType) > old_len:
-                    dep.generic_dependency()
+            try:
+                if len(self.nodeType - dep.nodeType) > 0:
+                    old_len = len(dep.nodeType)
+                    dep.nodeType = smart_union(dep.nodeType, self.nodeType)
+                    if len(dep.nodeType) > old_len:
+                        dep.generic_dependency()
+            except RuntimeError:
+                pass
         elif isinstance(dep, (AttributeTypeGraphNode, SubscriptTypeGraphNode)):
-            if len(self.nodeType - dep.values) > 0:
-                dep.values = smart_union(dep.values, self.nodeType)
-                dep.process()
-                dep.generic_dependency()
+            try:
+                if len(self.nodeType - dep.values) > 0:
+                    dep.values = smart_union(dep.values, self.nodeType)
+                    dep.process()
+                    dep.generic_dependency()
+            except RuntimeError:
+                pass
     
     def assign_elem_dep(self, dep, *args):
         try:
@@ -189,14 +212,17 @@ class TypeGraphNode(object):
             old_type = dep.argsTypes[index]
         else:
             old_type = dep.starargsTypes
-        if old_type != nodeType:
-            type_copy = deepcopy(nodeType)
-            if is_arg:
-                dep.argsTypes[index] = type_copy
-            else:
-                dep.starargsTypes    = type_copy
-            dep.processCall()
-            dep.generic_dependency()
+        try:
+            if old_type != nodeType:
+                type_copy = deepcopy(nodeType)
+                if is_arg:
+                    dep.argsTypes[index] = type_copy
+                else:
+                    dep.starargsTypes    = type_copy
+                dep.processCall()
+                dep.generic_dependency()
+        except RuntimeError:
+            pass
 
     def attrarg_dep(self, dep):
         try:
@@ -246,22 +272,29 @@ class TypeGraphNode(object):
         pass
 
     def attrobject_dep(self, dep):
-        if len(self.nodeType - dep.objects) > 0:
-            old_len = len(dep.objects)
-            dep.objects = smart_union(dep.objects, self.nodeType)
-            if len(dep.objects) > old_len:
-                dep.process()
-                dep.generic_dependency()
+        try:
+            if len(self.nodeType - dep.objects) > 0:
+                old_len = len(dep.objects)
+                dep.objects = smart_union(dep.objects, self.nodeType)
+                if len(dep.objects) > old_len:
+                    dep.process()
+                    dep.generic_dependency()
+        except RuntimeError:
+            pass
 
     def assignobject_dep(self, dep):
-        if len(self.objects - dep.nodeType) > 0:
-            objects_copy = deepcopy(self.objects)
-            dep.nodeType = smart_union(dep.nodeType, objects_copy)
-            if isinstance(dep, (AttributeTypeGraphNode, SubscriptTypeGraphNode)): 
-                if len(dep.nodeType - dep.values) > 0:
-                    dep.values = smart_union(dep.values, dep.nodeType)
-                    dep.process()
-            dep.generic_dependency()
+        try:
+            if len(self.objects - dep.nodeType) > 0:
+                old_len = len(dep.nodeType)
+                dep.nodeType = smart_deepcopy_union(dep.nodeType, self.objects)
+                if isinstance(dep, (AttributeTypeGraphNode, SubscriptTypeGraphNode)): 
+                    if len(dep.nodeType - dep.values) > 0:
+                        dep.values = smart_union(dep.values, dep.nodeType)
+                        dep.process()
+                if len(dep.nodeType) > old_len: 
+                    dep.generic_dependency()
+        except RuntimeError:
+            pass
 
     def object_dep(self, dep):
         if isinstance(dep, FuncCallTypeGraphNode):
@@ -272,8 +305,8 @@ class TypeGraphNode(object):
     def attrslice_dep(self, dep):
         keys_types = dep.getKeysTypes()
         if any([len(self.nodeType - key_type) > 0 for key_type in keys_types]):
-            dep.processSlice(self.nodeType)
-            dep.generic_dependency()
+            if dep.processSlice(self.nodeType):
+                dep.generic_dependency()
 
     def elem_types(self):
         el_types = set()
@@ -526,7 +559,10 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             else:
                 nodeType = link.nodeType
                 dep      = DependencyType.Arg
-            type_copy = deepcopy(nodeType)
+            try:
+                type_copy = deepcopy(nodeType)
+            except RuntimeError:
+                type_copy = nodeType
             self.args.append(link)
             self.argsTypes.append(type_copy)
             link.addDependency(dep, self)
@@ -593,7 +629,8 @@ class FuncCallTypeGraphNode(TypeGraphNode):
                         kwargs = [None]
                     for starargs_type in starargs:
                         for kwargs_type in kwargs:
-                            if getattr(func, 'name', None) == 'getLogger':
+#                            if getattr(func, 'name', None) == 'getLogger':
+                            if False:
                                 res = set()
                             else:
                                 res = process_product_elem(elem, args, args_type, self.starargs, starargs_type, self.kwargs, kwargs_type, attr_call)
@@ -646,8 +683,10 @@ class ClassInstanceTypeGraphNode(TypeGraphNode):
     def __eq__(self, other):
         if not isinstance(other, ClassInstanceTypeGraphNode):
             return False
-        return self.cls == other.cls and self.scope == other.scope
-
+        if self.cls != other.cls:
+            return False
+        return self.scope == other.scope
+       
     def __hash__(self):
         return hash((self.__class__, self.instance_hash()))
 
@@ -693,13 +732,15 @@ class SubscriptTypeGraphNode(TypeGraphNode):
         return res
 
     def process(self):
-        new_objects   = set_subscripts(self.objects, self.values, self.is_index, self.index)
-        self.objects  = smart_union(self.objects, new_objects)
-        self.nodeType = get_subscripts(self.objects, self.is_index, self.index)
+        new_objects    = set_subscripts(self.objects, self.values, self.is_index, self.index)
+        self.objects   = smart_union(self.objects, new_objects)
+        self.nodeType  = get_subscripts(self.objects, self.is_index, self.index)
 
     def processSlice(self, slices_types):
-        new_objects   = set_slices(self.objects, slices_types)
-        self.objects  = smart_union(self.objects, new_objects)
+        new_objects    = set_slices(self.objects, slices_types)
+        old_len        = len(self.objects)
+        self.objects   = smart_union(self.objects, new_objects)
+        return len(self.objects) > old_len
 
 class PrintTypeGraphNode(TypeGraphNode):
     def __init__(self):
