@@ -29,6 +29,7 @@ class Importer(object):
         self.standard_modules = {}
         self.ident_table      = {}
         self.total_idents     = 0
+        self.main_path        = None
 
     def put_ident(self, name):
         self.ident_table[self.total_idents] = name
@@ -56,6 +57,8 @@ class Importer(object):
 
     def process_name(self, name, filename):
         paths = [os.path.dirname(filename)]
+        if self.main_path is not None:
+            paths.append(self.main_path)
         paths.extend(sys.path)
         return self.find_module(name, paths)
 
@@ -69,9 +72,10 @@ class Importer(object):
             import_standard_module(module, self)
         else:
             if name == '__main__':
-                filename     = os.path.abspath(mainfile)
-                searchname   = name
-                main_module  = True
+                filename       = os.path.abspath(mainfile)
+                searchname     = name
+                main_module    = True
+                self.main_path = os.path.dirname(filename) 
             else:
                 try: 
                     filename = os.path.abspath(self.process_name(name, mainfile))
@@ -88,7 +92,7 @@ class Importer(object):
             else:
                 parser = TIParser(filename)
                 imported_tree = parser.ast
-                module = UsualModuleTypeGraphNode(imported_tree, filename, __main__.current_scope)
+                module = UsualModuleTypeGraphNode(imported_tree, filename, __main__.global_scope)
                 if name == 'glib':
                     self.add_module(module.getScope(), 'glib._glib')
                 imported_tree.link = module
@@ -96,7 +100,10 @@ class Importer(object):
                 for node in ast.walk(imported_tree):
                     node.fileno = fileno
                 self.imported_files[searchname] = imported_tree.link
+                save = __main__.current_scope
+                __main__.current_scope = module.getScope()
                 parser.walk(main_module)
+                __main__.current_scope = save
         if from_aliases is None:
             var_name = alias.asname if alias.asname else name
             alias.link = __main__.current_scope.findOrAdd(var_name)
