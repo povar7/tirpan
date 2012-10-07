@@ -695,12 +695,19 @@ class ClassInstanceTypeGraphNode(TypeGraphNode):
             return False
         if self.cls != other.cls:
             return False
+        if self.cls.name == 'ViewManager':
+            return True
         return self.scope == other.scope
        
     def __hash__(self):
         return hash((self.__class__, self.instance_hash()))
 
     def instance_hash(self):
+        try:
+            if self.cls.name == 'ViewManager':
+                return hash((self.cls))
+        except AttributeError:
+            pass
         return hash((self.cls, self.scope))
 
     def __deepcopy__(self, memo):

@@ -212,10 +212,11 @@ class TIVisitor(ast.NodeVisitor):
         node.link = UnknownTypeGraphNode(node)
 
     def visit_If(self, node):
-        fileno = getFileNumber(node)
-        skip   = False
+        fileno    = getFileNumber(node)
+        skip_if   = False
+        skip_else = False
+        test      = node.test
         if fileno != 0:
-            test = node.test
             if isinstance(test, ast.Compare):
                 if isinstance(test.left, ast.Name) and \
                    test.left.id  == '__name__' and \
@@ -224,12 +225,19 @@ class TIVisitor(ast.NodeVisitor):
                    len(test.comparators) == 1 and \
                    isinstance(test.comparators[0], ast.Str) and \
                    test.comparators[0].s == '__main__':
-                    skip = True
-        if not skip:
+                    skip_if = True
+        if isinstance(test, ast.Call) and \
+           isinstance(test.func, ast.Attribute) and \
+           isinstance(test.func.value, ast.Name) and \
+           test.func.value.id == 'argpars' and \
+           test.func.attr == 'need_gui':
+            skip_else = True
+        if not skip_if:
             for stmt in node.body:
                 self.visit(stmt)
-        for stmt in node.orelse:
-            self.visit(stmt)
+        if not skip_else:
+            for stmt in node.orelse:
+                self.visit(stmt)
 
     def visit_GeneratorExp(self, node):
         node.link = UnknownTypeGraphNode(node)
