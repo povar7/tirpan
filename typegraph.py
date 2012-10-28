@@ -13,6 +13,7 @@ from classes      import copy_class_inst, find_inits_in_classes
 from classes      import get_attributes, set_attributes
 from classes      import get_subscripts, set_subscripts
 from classes      import set_slices
+from classes      import get_singletons_list
 from funccall     import *
 from returns      import check_returns
 from scope        import Scope
@@ -610,6 +611,9 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             kwarg_index += 1
 
     def processCall(self):
+        import __main__
+        if self.line == 283 and self.fno == 188:
+            print self.argsTypes
         funcs = [(None, func) for func in self.funcs]
         inits = find_inits_in_classes(self.classes)
         callables  = []
@@ -670,7 +674,8 @@ class UsualClassDefTypeGraphNode(ClassDefTypeGraphNode):
         super(UsualClassDefTypeGraphNode, self).__init__(node.name, parent_scope)
         for base in node.bases:
             link = base.link
-            type_copy = deepcopy(link.nodeType)
+            # type_copy = deepcopy(link.nodeType)
+            type_copy = link.nodeType
             self.bases.append(link)
             self.basesTypes.append(type_copy)
             link.addDependency(DependencyType.Base, self)
@@ -695,7 +700,7 @@ class ClassInstanceTypeGraphNode(TypeGraphNode):
             return False
         if self.cls != other.cls:
             return False
-        if self.cls.name == 'ViewManager':
+        if self.cls.name in get_singletons_list():
             return True
         return self.scope == other.scope
        
@@ -704,7 +709,7 @@ class ClassInstanceTypeGraphNode(TypeGraphNode):
 
     def instance_hash(self):
         try:
-            if self.cls.name == 'ViewManager':
+            if self.cls.name in get_singletons_list(): 
                 return hash((self.cls))
         except AttributeError:
             pass

@@ -7,7 +7,15 @@ Created on 01.07.2012
 from builtin import get_quasi_list
 from copy    import copy as shallowcopy, deepcopy
 
+def get_singletons_list():
+    return ['ViewManager', 'CLIManager', 'GuiPluginManager', 'BasePluginManager', 'DbState', 'DisplayState', 'PluginRegister']
+
 def copy_class_inst(class_inst):
+    try:
+        if class_inst.cls.name in get_singletons_list():
+            return class_inst
+    except AttributeError:
+        pass
     save = class_inst.scope
     class_inst.scope = None
     res  = shallowcopy(class_inst)
@@ -37,7 +45,17 @@ def copy_class_inst(class_inst):
     return res
 
 def find_name_in_class_def(class_def, name):
-    return class_def.scope.findInScope(name)
+    from typegraph import ClassDefTypeGraphNode
+    res = class_def.scope.findInScope(name)
+    if res is not None:
+        return res
+    for baseType in class_def.basesTypes:
+        base_class_defs = set([elem for elem in baseType if isinstance(elem, ClassDefTypeGraphNode)])
+        for elem in base_class_defs:
+            res = elem.scope.findInScope(name)
+            if res is not None:
+                return res
+    return None
 
 def find_name_in_module(module, name):
     return module.scope.findInScope(name)
