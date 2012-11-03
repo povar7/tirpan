@@ -167,7 +167,12 @@ class TIVisitor(ast.NodeVisitor):
         node.link.processCall()
         
     def visit_BoolOp(self, node):
-        node.link = ConstTypeGraphNode(False)
+        for value in node.values:
+            self.visit(value)
+        name = get_operator_name(node.op.__class__)
+        var = __main__.current_scope.find(name)
+        node.link = FuncCallTypeGraphNode(node, var)
+        node.link.processCall()
 
     def visit_Compare(self, node):
         node.link = ConstTypeGraphNode(False)

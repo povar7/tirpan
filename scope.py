@@ -90,6 +90,27 @@ class Scope(object):
     def findParam(self, num):
         return self.find(self._getParamName(num))
 
+    def findStarParam(self, num):
+        var = self.find('args')
+        try:
+            varType = var.nodeType
+        except AttributeError:
+            return None
+        try:
+            tupleType = list(varType)[0]
+        except IndexError:
+            return None
+        try:
+            tupleElems = tupleType.elems
+        except AttributeError:
+            return None
+        if not isinstance(tupleElems, tuple):
+            return None
+        try:
+            return tupleElems[num]
+        except IndexError:
+            return None
+
     def findOrAdd(self, name, consider_globals = False, file_scope = None):
         wrap_file_scope = DummyWrap(file_scope)
         res = self.find(name, consider_globals, wrap_file_scope)

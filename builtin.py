@@ -38,10 +38,9 @@ def init_builtin_object(scope, name, methods, fields):
     for method in methods:
         init_builtin_function(obj_scope, *method)
 
-def import_standard_module(module, importer):
-    if module.isLoaded:
-        return
-    command = 'from std.%s import get_all' % module.name
+def import_standard_module(module, importer, name = None):
+    name = name or module.name
+    command = 'from std.%s import get_all' % name
     exec command
     functions, stubs, variables, modules, objects = get_all()
     scope = module.getScope()
@@ -55,7 +54,6 @@ def import_standard_module(module, importer):
         importer.add_module(scope, *mod)
     for obj in objects:
         init_builtin_object(scope, *obj)
-    module.isLoaded = True
 
 class QuasiModule(object):
     def __init__(self, name, scope):
@@ -69,6 +67,7 @@ class QuasiModule(object):
 def init_builtins(global_scope, importer):
     builtin_module = QuasiModule('builtin', global_scope)
     import_standard_module(builtin_module, importer)
+    builtin_module.isLoaded = True
 
 def get_quasi_list():
     import __main__

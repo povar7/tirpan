@@ -5,7 +5,7 @@ Created on 11.12.2011
 '''
 
 from itertools    import product
-from ast          import AugAssign, BinOp, UnaryOp, Call, Index, Num, Str
+from ast          import AugAssign, BinOp, UnaryOp, BoolOp, Call, Index, Num, Str
 from copy         import deepcopy
 from types        import NoneType
 
@@ -20,9 +20,7 @@ from scope        import Scope
 from typenodes    import *
 from utils        import *
 
-type_bool    = TypeBool()
 type_none    = TypeNone()
-type_str     = TypeStr()
 type_unknown = TypeUnknown()
 
 def smart_union(set1, set2):
@@ -515,7 +513,7 @@ class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
             return res
 
 class ExternFuncDefTypeGraphNode(FuncDefTypeGraphNode):
-    def __init__(self, params_num, quasi, name, parent_scope, def_vals = {}):
+    def __init__(self, params_num, quasi, name, parent_scope, def_vals = {}, vararg = False):
         super(ExternFuncDefTypeGraphNode, self).__init__(name, parent_scope)
         for i in range(1, params_num + 1):
             param = self.params.addParam(i)
@@ -523,6 +521,10 @@ class ExternFuncDefTypeGraphNode(FuncDefTypeGraphNode):
                 def_type = def_vals[i]
                 param.setDefaultParam()
                 param.nodeType = set([def_type])
+        if vararg:
+            param = UsualVarTypeGraphNode('args')
+            param.setVarParam()
+            self.params.add(param)
         self.quasi = quasi
 
 class FuncCallTypeGraphNode(TypeGraphNode):
@@ -559,6 +561,8 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             nodeArgs += [node.left, node.right]
         elif isinstance(node, UnaryOp):
             nodeArgs += [node.operand]
+        elif isinstance(node, BoolOp):
+            nodeArgs += node.values
         elif isinstance(node, Call):
             nodeArgs += node.args
         for arg in nodeArgs:
@@ -609,6 +613,8 @@ class FuncCallTypeGraphNode(TypeGraphNode):
 
     def processCall(self):
         import __main__
+        #if (self.fno, self.line) == (235, 113):
+        #    print self.argsTypes
         funcs = [(None, func) for func in self.funcs]
         inits = find_inits_in_classes(self.classes)
         callables  = []

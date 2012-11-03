@@ -69,7 +69,9 @@ class Importer(object):
         name = ospath_name
         if python_name in self.standard_modules:
             module = self.standard_modules[python_name]
-            import_standard_module(module, self)
+            if not module.isLoaded:
+                import_standard_module(module, self)
+            module.isLoaded = True
         else:
             if name == '__main__':
                 filename       = os.path.abspath(mainfile)
@@ -95,6 +97,8 @@ class Importer(object):
                 module = UsualModuleTypeGraphNode(imported_tree, filename, __main__.global_scope)
                 if name == 'glib':
                     self.add_module(module.getScope(), 'glib._glib')
+                elif name == 'os':
+                    import_standard_module(module, self, name)
                 imported_tree.link = module
                 fileno = self.put_ident(module)
                 #print '%d\t%s' % (fileno, filename)
