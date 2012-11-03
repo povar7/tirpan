@@ -97,6 +97,7 @@ class Importer(object):
                     self.add_module(module.getScope(), 'glib._glib')
                 imported_tree.link = module
                 fileno = self.put_ident(module)
+                #print '%d\t%s' % (fileno, filename)
                 for node in ast.walk(imported_tree):
                     node.fileno = fileno
                 self.imported_files[searchname] = imported_tree.link

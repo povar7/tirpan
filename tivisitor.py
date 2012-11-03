@@ -22,12 +22,6 @@ class TIVisitor(ast.NodeVisitor):
     
     def visit_Str(self, node):
         node.link = ConstTypeGraphNode(node.s)
-
-    def visit_True(self, node):
-        node.link = ConstTypeGraphNode(True)
-
-    def visit_False(self, node):
-        node.link = ConstTypeGraphNode(False)
         
     def visit_Name(self, node):
         if node.id == 'None':
@@ -39,14 +33,14 @@ class TIVisitor(ast.NodeVisitor):
             else:
                 link       = __main__.current_scope.findOrAdd(node.id)
             node.link = link
-            if node.id == 'True' or node.id == 'False':
-                node.link.addBool()
             try:
                 node.link.setPos(node)
             except AttributeError:
                 pass
         
     def visit_Assign(self, node):
+        #if node.fileno == 235 and node.lineno == 67:
+        #    print '###' 
         self.visit(node.value)
         target = node.targets[0]
         save   = self.left_part
@@ -97,7 +91,13 @@ class TIVisitor(ast.NodeVisitor):
         __main__.import_from_file(self.filename, node.module, node.names)
 
     def visit_Module(self, node):
+        from typenodes import TypeBool
+        type_bool = TypeBool()
         __main__.current_scope = node.link.getScope()
+        var_true  = ExternVarTypeGraphNode('True' , type_bool)
+        __main__.current_scope.add(var_true)
+        var_false = ExternVarTypeGraphNode('False', type_bool)
+        __main__.current_scope.add(var_false)
         self.generic_visit(node)
         __main__.current_scope = __main__.current_scope.getParent()
 
@@ -180,10 +180,13 @@ class TIVisitor(ast.NodeVisitor):
         node.link = UnknownTypeGraphNode(node)
 
     def visit_Attribute(self, node):
+        save = self.left_part
+        self.left_part = False
         self.visit(node.value)
         node.link = AttributeTypeGraphNode(node)
         node.link.addDependency(DependencyType.AssignObject, node.value.link)
         node.value.link.addDependency(DependencyType.AttrObject, node.link)
+        self.left_part = save
 
     def visit_Subscript(self, node): 
         self.visit(node.value)
@@ -268,3 +271,7 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_Slice(self, node):
         self.generic_visit(node)
+
+    def visit_Set(self, node):
+        node.link = UnknownTypeGraphNode(node)
+

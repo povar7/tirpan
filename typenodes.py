@@ -4,6 +4,7 @@ Created on 03.03.2012
 @author: ramil
 '''
 
+from copy  import copy as shallowcopy
 from types import NoneType
 
 class TypeNode(object):
@@ -90,6 +91,11 @@ class TypeListOrTuple(TypeStandard):
     def instance_hash(self):
         return hash(frozenset(self.elems))
 
+    def __deepcopy__(self, memo):
+        res = shallowcopy(self)
+        res.elems = shallowcopy(self.elems)
+        return res
+
 class TypeList(TypeListOrTuple):
     def add_elem(self, elem):
         self.elems.add(elem)
@@ -163,6 +169,12 @@ class TypeDict(TypeStandard):
     def keys_types(self):
         return self.keys
 
+    def __deepcopy__(self, memo):
+        res = shallowcopy(self)
+        res.keys = shallowcopy(self.keys)
+        res.vals = shallowcopy(self.vals)
+        return res
+
 class TypeUnknown(TypeNode):
     def __init__(self):
         self.keys  = set()
@@ -186,3 +198,7 @@ class TypeUnknown(TypeNode):
 
     def __str__(self):
         return 'unknown'
+
+    def __deepcopy__(self, memo):
+        return self
+

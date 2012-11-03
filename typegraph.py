@@ -21,6 +21,7 @@ from typenodes    import *
 from utils        import *
 
 type_bool    = TypeBool()
+type_none    = TypeNone()
 type_str     = TypeStr()
 type_unknown = TypeUnknown()
 
@@ -352,6 +353,8 @@ class VarTypeGraphNode(TypeGraphNode):
         self.nodeValue    = set()
         self.name         = name
         self.parent       = None
+        self.line         = None
+        self.col          = None
 
     def setParent(self, parent):
         self.parent       = parent
@@ -360,8 +363,6 @@ class UsualVarTypeGraphNode(VarTypeGraphNode):
     def __init__(self, name):
         super(UsualVarTypeGraphNode, self).__init__(name)
         self.paramNumber  = None
-        self.line         = None
-        self.col          = None
         self.defaultParam = False
         self.varParam     = False
         self.kwParam      = False
@@ -383,10 +384,6 @@ class UsualVarTypeGraphNode(VarTypeGraphNode):
             self.line = getLine(node)
             self.col  = getCol (node)
             self.fno  = getFileNumber(node)
-
-    def addBool(self):
-        self.nodeType.add(type_bool)
-        self.generic_dependency()
 
 class ExternVarTypeGraphNode(VarTypeGraphNode):
     def __init__(self, name, var_type):
@@ -612,8 +609,6 @@ class FuncCallTypeGraphNode(TypeGraphNode):
 
     def processCall(self):
         import __main__
-        if self.line == 283 and self.fno == 188:
-            print self.argsTypes
         funcs = [(None, func) for func in self.funcs]
         inits = find_inits_in_classes(self.classes)
         callables  = []
@@ -645,7 +640,10 @@ class FuncCallTypeGraphNode(TypeGraphNode):
                         kwargs = [None]
                     for starargs_type in starargs:
                         for kwargs_type in kwargs:
-                            res = process_product_elem(elem, args, args_type, self.starargs, starargs_type, self.kwargs, kwargs_type, attr_call)
+                            if must_be_skipped(func):
+                                res = set([type_none])
+                            else:
+                                res = process_product_elem(elem, args, args_type, self.starargs, starargs_type, self.kwargs, kwargs_type, attr_call)
                             self.nodeType = smart_union(self.nodeType, res)
         if len(self.nodeType) == 0:
             self.nodeType.add(type_unknown)
@@ -663,6 +661,20 @@ class ClassDefTypeGraphNode(TypeGraphNode):
     def __deepcopy__(self, memo):
         return self
 
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __eq__(self, other):
+        if not isinstance(other, ClassDefTypeGraphNode):
+            return False
+        return self.instance_hash() == other.instance_hash()
+       
+    def __hash__(self):
+        return hash((self.__class__, self.instance_hash()))
+
+    def instance_hash(self):
+        return hash(id(self))
+
     def getScope(self):
         return self.scope
 
@@ -674,7 +686,7 @@ class UsualClassDefTypeGraphNode(ClassDefTypeGraphNode):
         super(UsualClassDefTypeGraphNode, self).__init__(node.name, parent_scope)
         for base in node.bases:
             link = base.link
-            # type_copy = deepcopy(link.nodeType)
+            #type_copy = deepcopy(link.nodeType)
             type_copy = link.nodeType
             self.bases.append(link)
             self.basesTypes.append(type_copy)
@@ -700,23 +712,20 @@ class ClassInstanceTypeGraphNode(TypeGraphNode):
             return False
         if self.cls != other.cls:
             return False
-        if self.cls.name in get_singletons_list():
+        if self.cls.name in get_singletons_list(): 
             return True
-        return self.scope == other.scope
+        return self.instance_hash() == other.instance_hash()
        
     def __hash__(self):
         return hash((self.__class__, self.instance_hash()))
 
     def instance_hash(self):
-        try:
-            if self.cls.name in get_singletons_list(): 
-                return hash((self.cls))
-        except AttributeError:
-            pass
-        return hash((self.cls, self.scope))
+        if self.cls.name in get_singletons_list():
+            return hash((self.cls))
+        return hash((self.cls, id(self)))
 
     def __deepcopy__(self, memo):
-        return copy_class_inst(self)
+        return self
 
     def getScope(self):
         return self.scope

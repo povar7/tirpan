@@ -13,6 +13,14 @@ from typenodes import *
 
 type_none = TypeNone()
 
+def must_be_skipped(func):
+    try:
+        if func.name == 'rmtree':
+            return True
+    except AttributeError:
+        pass
+    return False
+
 def process_results(results, def_return):
     if def_return:
         types = set([type_none])

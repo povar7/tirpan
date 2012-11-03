@@ -8,7 +8,7 @@ from builtin import get_quasi_list
 from copy    import copy as shallowcopy, deepcopy
 
 def get_singletons_list():
-    return ['ViewManager', 'CLIManager', 'GuiPluginManager', 'BasePluginManager', 'DbState', 'DisplayState', 'PluginRegister']
+    return ['GuiPluginManager', 'BasePluginManager', 'PluginRegister']
 
 def copy_class_inst(class_inst):
     try:
