@@ -170,13 +170,15 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
         return set()
     key = find_previous_key(elem, func.templates.keys())
     if key is None:
-        if len(func.templates.keys()) > 100:
+        if func.isLoadTooBig():
             return set()
         params_copy   = copy_params(func.params)
         elem_copy     = deepcopy(elem)
         params_copy.linkParamsAndArgs(elem)
+        load_increase = False
         try:
             func.templates[elem_copy] = TemplateValue()
+            load_increase = func.increaseLoad(elem_copy)
         except RuntimeError:
             return set()
         saved_scope   = __main__.current_scope
@@ -196,10 +198,13 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
             if cls_instance:
                 __main__.current_scope = saved_scope
                 del func.templates[elem_copy]
+                if load_increase:
+                    func.decreaseLoad()
                 return set([cls_instance])
             else:
                 if elem_copy not in func.templates:
                     func.templates[elem_copy] = TemplateValue()
+                    func.increaseLoad(elem_copy)
                 func.templates[elem_copy].ast    = ast_copy
                 func.templates[elem_copy].result =             \
                     process_results(__main__.current_res,      \

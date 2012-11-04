@@ -52,7 +52,6 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(len(nodeType) == 1 and                                       \
                         any([isinstance(elem, TypeInt) for elem in nodeType]),       \
                         'type of node is not an int')
-        self.assertEqual(node.link.nodeValue, 1, 'value of node is not 1')
 
     def test_walk_float(self):
         node = findNode(self.ast, line=1, col=9)
@@ -63,7 +62,6 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(len(nodeType) == 1 and                                       \
                         any([isinstance(elem, TypeFloat) for elem in nodeType]),     \
                         'type of node is not a float')
-        self.assertEqual(node.link.nodeValue, 3.14, 'value of node is not 3.14')
 
     def test_walk_str(self):
         node = findNode(self.ast, line=1, col=15)
@@ -74,7 +72,6 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(len(nodeType) == 1 and                                       \
                         any([isinstance(elem, TypeStr) for elem in nodeType]),       \
                         'type of node is not a str')
-        self.assertEqual(node.link.nodeValue, 'abc', 'value of node is not "abc"')
 
     def test_walk_unicode(self):
         node = findNode(self.ast, line=1, col=22)
@@ -85,7 +82,6 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(len(nodeType) == 1 and                                       \
                         any([isinstance(elem, TypeUnicode) for elem in nodeType]),   \
                         'type of node is not a unicode')
-        self.assertEqual(node.link.nodeValue, u'XYZ', 'value of node is not u"XYZ"')
 
     def test_walk_list(self):
         node = findNode(self.ast, line=1, kind=ast.List)

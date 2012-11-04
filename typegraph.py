@@ -97,7 +97,6 @@ def common_elem_types_index(nodeType, index):
 class TypeGraphNode(object):
     def __init__(self):
         self.deps = {}
-        self.nodeValue = None
         self.nodeType  = set()
 
     def get_atom_type_node(self, atom_type):
@@ -361,12 +360,10 @@ class ConstTypeGraphNode(TypeGraphNode):
         super(ConstTypeGraphNode, self).__init__()
         tp = self.get_atom_type_node(value.__class__)
         self.nodeType  = set([tp])
-        self.nodeValue = value
 
 class VarTypeGraphNode(TypeGraphNode):
     def __init__(self, name):
         super(VarTypeGraphNode, self).__init__()
-        self.nodeValue    = set()
         self.name         = name
         self.parent       = None
         self.line         = None
@@ -410,7 +407,6 @@ class ListTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
         super(ListTypeGraphNode, self).__init__()
         self.nodeType  = set([TypeList()])
-        self.nodeValue = None
         for elt in node.elts:
             link = elt.link
             link.addDependency(DependencyType.Elem, self)
@@ -421,7 +417,6 @@ class TupleTypeGraphNode(TypeGraphNode):
         tuple_type       = TypeTuple()
         tuple_type.elems = (None,) * len(node.elts)
         self.nodeType    = set([tuple_type])
-        self.nodeValue   = None
         index = 0
         for elt in node.elts:
             link = elt.link
@@ -432,13 +427,11 @@ class DictTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
         super(DictTypeGraphNode, self).__init__()
         self.nodeType  = set([TypeDict()])
-        self.nodeValue = {}
         for i in range(len(node.keys)):
             keyLink   = node.keys[i].link
             valueLink = node.values[i].link
             keyLink  .addDependency(DependencyType.Key, self)
             valueLink.addDependency(DependencyType.Val, self)
-            self.nodeValue[keyLink] = valueLink
 
 class ModuleTypeGraphNode(TypeGraphNode):
     def __init__(self, name, parent_scope):
@@ -467,6 +460,8 @@ class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
         self.isLoaded = False
 
 class FuncDefTypeGraphNode(TypeGraphNode):
+    MAX_LOAD = 64
+
     def __init__(self, name, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()
         try:
@@ -483,6 +478,7 @@ class FuncDefTypeGraphNode(TypeGraphNode):
         self.params    = Scope(parent_scope, scope_flag)
         self.scope     = Scope()
         self.templates = {}
+        self.load      = 0
 
     def __deepcopy__(self, memo):
         return self
@@ -498,6 +494,17 @@ class FuncDefTypeGraphNode(TypeGraphNode):
 
     def elem_types(self):
         return set()
+
+    def isLoadTooBig(self):
+        return self.load > FuncDefTypeGraphNode.MAX_LOAD
+
+    def increaseLoad(self, types_tuple):
+        self.load += 1
+        return True
+    
+    def decreaseLoad(self):
+        if self.load > 0:
+            self.load -= 1
 
 class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
     def __init__(self, node, name, parent_scope):
@@ -631,6 +638,8 @@ class FuncCallTypeGraphNode(TypeGraphNode):
 
     def processCall(self):
         import __main__
+        if (self.fno, self.line) == (235, 113):
+            print self.argsTypes
         funcs = [(None, func) for func in self.funcs]
         inits = find_inits_in_classes(self.classes)
         callables  = []
