@@ -63,6 +63,7 @@ def smart_len(a_set):
 class DependencyType(object):
     Assign       = 'assign'
     AssignElem   = 'assign_elem'
+    AssignDouble = 'assign_double'
     Elem         = 'elem'
     Key          = 'key'
     Val          = 'val'
@@ -74,6 +75,24 @@ class DependencyType(object):
     AttrObject   = 'attrobject'
     AssignObject = 'assignobject'
     AttrSlice    = 'attrslice'
+
+def common_elem_types(nodeType):
+    el_types = set()
+    for tt in nodeType:
+        el_types |= tt.elem_types()
+    return el_types
+
+def common_elem_types_index(nodeType, index):
+    el_types = set()
+    for tt in nodeType:
+        if isinstance(tt, TypeTuple) and isinstance(tt.elems, tuple):
+            try:
+                el_types.add(tt.elems[index])
+                continue
+            except IndexError:
+                pass
+        el_types |= tt.elem_types()
+    return el_types
 
 class TypeGraphNode(object):
     def __init__(self):
@@ -147,6 +166,17 @@ class TypeGraphNode(object):
             new_types = self.elem_types_index(index)
         except IndexError:
             new_types = self.elem_types()
+        if len(new_types - dep.nodeType) > 0:
+            dep.nodeType = smart_union(dep.nodeType, new_types)
+            dep.generic_dependency()
+
+    def assign_double_dep(self, dep, *args):
+        first_level = self.elem_types()
+        try:
+            index = args[0]
+            new_types = common_elem_types_index(first_level, index)
+        except IndexError:
+            new_types = common_elem_types(first_level)
         if len(new_types - dep.nodeType) > 0:
             dep.nodeType = smart_union(dep.nodeType, new_types)
             dep.generic_dependency()
@@ -321,22 +351,10 @@ class TypeGraphNode(object):
                 dep.generic_dependency()
 
     def elem_types(self):
-        el_types = set()
-        for tt in self.nodeType:
-            el_types |= tt.elem_types()
-        return el_types
+        return common_elem_types(self.nodeType)
 
     def elem_types_index(self, index):
-        el_types = set()
-        for tt in self.nodeType:
-            if isinstance(tt, TypeTuple) and isinstance(tt.elems, tuple):
-                try:
-                    el_types.add(tt.elems[index])
-                    continue
-                except IndexError:
-                    pass
-            el_types |= tt.elem_types()
-        return el_types
+        return common_elem_types_index(self.nodeType, index)
    
 class ConstTypeGraphNode(TypeGraphNode):
     def __init__(self, value):
@@ -613,8 +631,6 @@ class FuncCallTypeGraphNode(TypeGraphNode):
 
     def processCall(self):
         import __main__
-        #if (self.fno, self.line) == (235, 113):
-        #    print self.argsTypes
         funcs = [(None, func) for func in self.funcs]
         inits = find_inits_in_classes(self.classes)
         callables  = []

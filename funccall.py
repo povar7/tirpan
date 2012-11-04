@@ -4,6 +4,8 @@ Created on 09.03.2012
 @author: bronikkk
 '''
 
+import ast
+
 from copy      import deepcopy
 from itertools import product
 
@@ -28,7 +30,14 @@ def process_results(results, def_return):
         types = set()
     for res in results:
         try:
-            types = types.union(res.value.link.nodeType)
+            res_type = res.value.link.nodeType
+            if isinstance(res, ast.Return):
+                types = types.union(res.value.link.nodeType)
+            elif isinstance(res, ast.Yield):
+                tmp = TypeList()
+                for elem in res_type:
+                    tmp.add_elem(elem)
+                types.add(tmp)
         except AttributeError:
             types.add(type_none)
         except RuntimeError:

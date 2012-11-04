@@ -39,8 +39,6 @@ class TIVisitor(ast.NodeVisitor):
                 pass
         
     def visit_Assign(self, node):
-        #if node.fileno == 235 and node.lineno == 67:
-        #    print '###' 
         self.visit(node.value)
         target = node.targets[0]
         save   = self.left_part
@@ -146,8 +144,21 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_For(self, node):
         self.visit(node.iter)
-        self.visit(node.target)
-        node.iter.link.addDependency(DependencyType.AssignElem, node.target.link)
+        target = node.target
+        save   = self.left_part
+        self.left_part = True
+        if isinstance(target, ast.Tuple):
+            for ast_el in target.elts:
+                self.visit(ast_el)
+            self.left_part = save
+            index = 0
+            for ast_el in target.elts:
+                node.iter.link.addDependency(DependencyType.AssignDouble, ast_el.link, index)
+                index += 1
+        else:
+            self.visit(target)
+            self.left_part = save
+            node.iter.link.addDependency(DependencyType.AssignElem, target.link)
         for nn in node.body:
             self.visit(nn)
 
@@ -178,6 +189,10 @@ class TIVisitor(ast.NodeVisitor):
         node.link = ConstTypeGraphNode(False)
 
     def visit_Return(self, node):
+        self.generic_visit(node)
+        __main__.current_res.add(node)
+
+    def visit_Yield(self, node):
         self.generic_visit(node)
         __main__.current_res.add(node)
 
