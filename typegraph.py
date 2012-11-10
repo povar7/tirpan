@@ -99,7 +99,7 @@ class TypeGraphNode(object):
         self.deps = {}
         self.nodeType  = set()
 
-    def get_atom_type_node(self, atom_type):
+    def get_atom_type_node(self, atom_type, value = None):
         if atom_type == int:
             return TypeInt()
         elif atom_type == long:
@@ -109,9 +109,9 @@ class TypeGraphNode(object):
         elif atom_type == float:
             return TypeFloat()
         elif atom_type == str:
-            return TypeStr()
+            return TypeStr(value)
         elif atom_type == unicode:
-            return TypeUnicode()
+            return TypeUnicode(value)
         elif atom_type == bool:
             return TypeBool()
         elif atom_type == NoneType:
@@ -356,10 +356,10 @@ class TypeGraphNode(object):
         return common_elem_types_index(self.nodeType, index)
    
 class ConstTypeGraphNode(TypeGraphNode):
-    def __init__(self, value):
+    def __init__(self, value, save = False):
         super(ConstTypeGraphNode, self).__init__()
-        tp = self.get_atom_type_node(value.__class__)
-        self.nodeType  = set([tp])
+        tp = self.get_atom_type_node(value.__class__, value if save else None)
+        self.nodeType = set([tp])
 
 class VarTypeGraphNode(TypeGraphNode):
     def __init__(self, name):
@@ -460,7 +460,8 @@ class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
         self.isLoaded = False
 
 class FuncDefTypeGraphNode(TypeGraphNode):
-    MAX_LOAD = 64
+    MAX_LOAD           = 64
+    EXTERNAL_FUNCTIONS = ['abspath', 'dirname', 'unicode']
 
     def __init__(self, name, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()
@@ -496,6 +497,8 @@ class FuncDefTypeGraphNode(TypeGraphNode):
         return set()
 
     def isLoadTooBig(self):
+        if self.name in FuncDefTypeGraphNode.EXTERNAL_FUNCTIONS:
+            return False 
         return self.load > FuncDefTypeGraphNode.MAX_LOAD
 
     def increaseLoad(self, types_tuple):
@@ -537,6 +540,9 @@ class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
                 res.append(dict(item))
             return res
 
+    def mustBeExternal(self):
+        return self.name in FuncDefTypeGraphNode.EXTERNAL_FUNCTIONS
+
 class ExternFuncDefTypeGraphNode(FuncDefTypeGraphNode):
     def __init__(self, params_num, quasi, name, parent_scope, def_vals = {}, vararg = False):
         super(ExternFuncDefTypeGraphNode, self).__init__(name, parent_scope)
@@ -551,6 +557,9 @@ class ExternFuncDefTypeGraphNode(FuncDefTypeGraphNode):
             param.setVarParam()
             self.params.add(param)
         self.quasi = quasi
+
+    def mustBeExternal(self):
+        return False
 
 class FuncCallTypeGraphNode(TypeGraphNode):
     def __init__(self, node, var = None):
@@ -638,7 +647,7 @@ class FuncCallTypeGraphNode(TypeGraphNode):
 
     def processCall(self):
         import __main__
-        if (self.fno, self.line) == (235, 113):
+        if (self.fno, self.line) == (15, 146):
             print self.argsTypes
         funcs = [(None, func) for func in self.funcs]
         inits = find_inits_in_classes(self.classes)

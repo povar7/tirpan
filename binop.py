@@ -5,6 +5,7 @@ Created on 24.03.2012
 '''
 
 from ast       import Add, BitAnd, BitOr, Div, FloorDiv, LShift, Mod, Mult, RShift, Sub, Pow
+
 from typegraph import *
 from typenodes import *
 
@@ -55,10 +56,19 @@ def quasi_plus(scope):
         return set([res])
 
     if isinstance(type1, TypeBaseString) and isinstance(type2, TypeBaseString):
-        if type1 == type_unicode or type2 == type_unicode:
-            return set([type_unicode])
-        else:
-            return set([type_str])
+        try:
+            value = type1.value + type2.value
+            if isinstance(type1, TypeUnicode) or isinstance(type2, TypeUnicode):
+                res = TypeUnicode()
+            else:
+                res = TypeStr()
+            res.value = value
+        except TypeError:
+            if isinstance(type1, TypeUnicode) or isinstance(type2, TypeUnicode):
+                res = type_unicode
+            else:
+                res = type_str 
+        return set([res])
 
     if not isinstance(type1, TypeNumOrBool) or not isinstance(type2, TypeNumOrBool):
         return set()
@@ -126,9 +136,9 @@ def quasi_lshift(scope):
 
 def quasi_mod(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
-    if type1 == type_str:
+    if isinstance(type1, TypeStr):
         return set([type_str])
-    if type1 == type_unicode:
+    if isinstance(type1, TypeUnicode):
         return set([type_unicode])
     return quasi_div(scope)
 
@@ -136,10 +146,22 @@ def quasi_mult(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     type2 = list(scope.findParam(2).nodeType)[0]
 
-    if isinstance(type1, (TypeBaseString, TypeListOrTuple)) and (type2 == type_bool or type2 == type_int or type2 == type_long):
+    if isinstance(type1, TypeBaseString) and (type2 == type_bool or type2 == type_int or type2 == type_long):
+        if isinstance(type1, TypeStr):
+            return set([type_str])
+        if isinstance(type1, TypeUnicode):
+            return set([type_unicode])
+    if isinstance(type2, TypeBaseString) and (type1 == type_bool or type1 == type_int or type1 == type_long):
+        if isinstance(type2, TypeStr):
+            return set([type_str])
+        if isinstance(type2, TypeUnicode):
+            return set([type_unicode])
+
+    if isinstance(type1, TypeListOrTuple) and (type2 == type_bool or type2 == type_int or type2 == type_long):
         return set([type1])
-    if isinstance(type2, (TypeBaseString, TypeListOrTuple)) and (type1 == type_bool or type1 == type_int or type1 == type_long):
+    if isinstance(type2, TypeListOrTuple) and (type1 == type_bool or type1 == type_int or type1 == type_long):
         return set([type2])
+
     if type1 == type_int and type2 == type_int:
         return set([type_int, type_long])
 

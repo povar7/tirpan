@@ -21,6 +21,8 @@ class TIVisitor(ast.NodeVisitor):
         node.link = ConstTypeGraphNode(node.n)
     
     def visit_Str(self, node):
+        #if self.filename.endswith('const.py'):
+        #    print node.lineno
         node.link = ConstTypeGraphNode(node.s)
         
     def visit_Name(self, node):
@@ -248,6 +250,15 @@ class TIVisitor(ast.NodeVisitor):
                    len(test.comparators) == 1 and \
                    isinstance(test.comparators[0], ast.Str) and \
                    test.comparators[0].s == '__main__':
+                    skip_if = True
+            elif isinstance(test, ast.Call):
+                if isinstance(test.func, ast.Name) and \
+                   test.func.id == 'hasattr' and \
+                   len(test.args) == 2 and \
+                   isinstance(test.args[0], ast.Name) and \
+                   test.args[0].id == 'sys' and \
+                   isinstance(test.args[1], ast.Str) and \
+                   test.args[1].s == 'frozen':
                     skip_if = True
         if isinstance(test, ast.Call) and \
            isinstance(test.func, ast.Attribute) and \

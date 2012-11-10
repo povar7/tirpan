@@ -170,7 +170,7 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
         return set()
     key = find_previous_key(elem, func.templates.keys())
     if key is None:
-        if func.isLoadTooBig():
+        if func.mustBeExternal() or func.isLoadTooBig():
             return set()
         params_copy   = copy_params(func.params)
         elem_copy     = deepcopy(elem)

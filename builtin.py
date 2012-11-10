@@ -40,7 +40,7 @@ def init_builtin_object(scope, name, methods, fields):
 
 def import_standard_module(module, importer, name = None):
     name = name or module.name
-    command = 'from std.%s import get_all' % name
+    command = 'from std.%s_ import get_all' % name
     exec command
     functions, stubs, variables, modules, objects = get_all()
     scope = module.getScope()
@@ -71,7 +71,7 @@ def init_builtins(global_scope, importer):
 
 def get_quasi_list():
     import __main__
-    from std.builtin import get_quasi_list_name
+    from std.builtin_ import get_quasi_list_name
     var = __main__.current_scope.find(get_quasi_list_name())
     cls = list(var.nodeType)[0]
     return cls

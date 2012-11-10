@@ -6,9 +6,11 @@ Created on 01.04.2012
 
 from typenodes import *
 
-type_int  = TypeInt()
-type_none = TypeNone()
-type_type = TypeType()
+type_int     = TypeInt()
+type_none    = TypeNone()
+type_str     = TypeStr()
+type_type    = TypeType()
+type_unicode = TypeUnicode()
 
 def quasi_append(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
@@ -47,16 +49,25 @@ def quasi_type1(scope):
 def quasi_type_var():
     return type_type
 
+def quasi_unicode(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    if not isinstance(type1, TypeStr) or type1.value is None:
+        return set([type_unicode])
+    else:
+        res = TypeUnicode(unicode(type1.value))
+        return set([res])
+
 def get_quasi_list_name():
     return '#list#'
 
 functions = [
-                ['len'  , quasi_len   , 1],                  \
-                ['range', quasi_range1, 1],                  \
-                ['range', quasi_range3, 3, {3 : type_int}],  \
-                ['type' , quasi_type1 , 1],                  \
-                ['xrange', quasi_range1, 1],                 \
-                ['xrange', quasi_range3, 3, {3 : type_int}], \
+                ['len'    , quasi_len    , 1],                  \
+                ['range'  , quasi_range1 , 1],                  \
+                ['range'  , quasi_range3 , 3 , {3 : type_int}], \
+                ['type'   , quasi_type1  , 1],                  \
+                ['xrange' , quasi_range1 , 1],                  \
+                ['xrange' , quasi_range3 , 3 , {3 : type_int}], \
+                ['unicode', quasi_unicode, 3 , {3 : type_str}]  \
             ]
 
 stubs     = [                                                \

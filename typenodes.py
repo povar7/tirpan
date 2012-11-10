@@ -60,14 +60,23 @@ class TypeComplex(TypeNum):
         self._type = complex
 
 class TypeBaseString(TypeAtom):
-    pass
+    def __init__(self, value):
+        self.value = value
+
+    def instance_eq_to(self, other):
+        return self.value == other.value
+
+    def instance_hash(self):
+        return hash(self.value)
 
 class TypeStr(TypeBaseString):
-    def __init__(self):
+    def __init__(self, value = None):
+        super(TypeStr, self).__init__(value)
         self._type = str
 
 class TypeUnicode(TypeBaseString):
-    def __init__(self):
+    def __init__(self, value = None):
+        super(TypeUnicode, self).__init__(value)
         self._type = unicode
 
 class TypeBool(TypeNumOrBool):

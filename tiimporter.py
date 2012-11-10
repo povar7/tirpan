@@ -13,7 +13,10 @@ import __main__
 
 from builtin   import import_standard_module
 from tiparser  import TIParser
-from typegraph import UsualVarTypeGraphNode, UsualModuleTypeGraphNode, ExternModuleTypeGraphNode, DependencyType
+from typegraph import DependencyType
+from typegraph import UsualModuleTypeGraphNode, ExternModuleTypeGraphNode
+from typegraph import UsualVarTypeGraphNode, ExternVarTypeGraphNode
+from typenodes import *
 
 def get_init_name(name):
     return os.path.join(name, '__init__')
@@ -74,13 +77,15 @@ class Importer(object):
             module.isLoaded = True
         else:
             if name == '__main__':
-                filename       = os.path.abspath(mainfile)
+                rel_name       = mainfile
+                filename       = os.path.abspath(rel_name)
                 searchname     = name
                 main_module    = True
                 self.main_path = os.path.dirname(filename) 
             else:
                 try: 
-                    filename = os.path.abspath(self.process_name(name, mainfile))
+                    rel_name = self.process_name(name, mainfile)
+                    filename = os.path.abspath(rel_name)
                 except AttributeError:
                     filename = None
                 if filename is None:
@@ -97,7 +102,7 @@ class Importer(object):
                 module = UsualModuleTypeGraphNode(imported_tree, filename, __main__.global_scope)
                 if name == 'glib':
                     self.add_module(module.getScope(), 'glib._glib')
-                elif name == 'os':
+                elif name in ['os', 'posixpath']:
                     import_standard_module(module, self, name)
                 imported_tree.link = module
                 fileno = self.put_ident(module)
@@ -107,6 +112,8 @@ class Importer(object):
                 self.imported_files[searchname] = imported_tree.link
                 save = __main__.current_scope
                 __main__.current_scope = module.getScope()
+                var_file = ExternVarTypeGraphNode('__file__', TypeStr(rel_name))
+                __main__.current_scope.add(var_file)
                 parser.walk(main_module)
                 __main__.current_scope = save
         if from_aliases is None:
