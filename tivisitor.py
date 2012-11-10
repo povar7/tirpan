@@ -249,21 +249,38 @@ class TIVisitor(ast.NodeVisitor):
                    isinstance(test.comparators[0], ast.Str) and \
                    test.comparators[0].s == '__main__':
                     skip_if = True
-            elif isinstance(test, ast.Call):
-                if isinstance(test.func, ast.Name) and \
-                   test.func.id == 'hasattr' and \
-                   len(test.args) == 2 and \
-                   isinstance(test.args[0], ast.Name) and \
-                   test.args[0].id == 'sys' and \
-                   isinstance(test.args[1], ast.Str) and \
-                   test.args[1].s == 'frozen':
-                    skip_if = True
-        if isinstance(test, ast.Call) and \
-           isinstance(test.func, ast.Attribute) and \
-           isinstance(test.func.value, ast.Name) and \
-           test.func.value.id == 'argpars' and \
-           test.func.attr == 'need_gui':
-            skip_else = True
+        if isinstance(test, ast.Call):
+            if isinstance(test.func, ast.Name) and \
+               test.func.id == 'hasattr' and \
+               len(test.args) == 2 and \
+               isinstance(test.args[0], ast.Name) and \
+               test.args[0].id == 'sys' and \
+               isinstance(test.args[1], ast.Str) and \
+               test.args[1].s == 'frozen':
+                skip_if = True
+            if isinstance(test.func, ast.Attribute) and \
+               isinstance(test.func.value, ast.Name) and \
+               test.func.value.id == 'argpars' and \
+               test.func.attr == 'need_gui':
+                skip_else = True
+        elif isinstance(test, ast.Compare):
+            if isinstance(test.left, ast.Str) and \
+               isinstance(test.left.s, str) and \
+               len(test.ops) == 1 and \
+               isinstance(test.ops[0], ast.In) and \
+               len(test.comparators) == 1 and \
+               isinstance(test.comparators[0], ast.Name):
+                save = self.left_part
+                self.left_part = False
+                self.visit(test.comparators[0])
+                nodeType = test.comparators[0].link.nodeType
+                if len(nodeType) == 1:
+                    type1 = list(nodeType)[0]
+                    if isinstance(type1, TypeTuple):
+                        tmp_str  = TypeStr(test.left.s)
+                        if tmp_str in type1.elem_types():
+                            skip_else = True
+                self.left_part = save 
         if not skip_if:
             for stmt in node.body:
                 self.visit(stmt)

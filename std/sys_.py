@@ -1,3 +1,5 @@
+import sys
+
 from typenodes import *
 
 type_str = TypeStr()
@@ -23,24 +25,32 @@ def quasi_path():
     res.add_elem(type_str)
     return res
 
-functions = [                                       \
-                ['getsizeof', quasi_getsizeof1, 1], \
-                ['getsizeof', quasi_getsizeof2, 2]  \
+def quasi_builtin_module_names():
+    res = TypeTuple()
+    for elem in sys.builtin_module_names:
+        res.add_elem(TypeStr(elem))
+        res.elems = tuple(res.elems)
+    return res
+
+functions = [                                                         \
+                ['getsizeof', quasi_getsizeof1, 1],                   \
+                ['getsizeof', quasi_getsizeof2, 2]                    \
             ]
 
-stubs     = [                                       \
+stubs     = [                                                         \
             ]
 
-variables = [                                       \
-                ['argv'  , quasi_argv  ],           \
-                ['maxint', quasi_maxint],           \
-                ['path'  , quasi_path  ]            \
+variables = [                                                         \
+                ['argv'  , quasi_argv  ],                             \
+                ['builtin_module_names', quasi_builtin_module_names], \
+                ['maxint', quasi_maxint],                             \
+                ['path'  , quasi_path  ]                              \
             ]
 
-modules   = [                                       \
+modules   = [                                                         \
             ]
 
-objects   = [                                       \
+objects   = [                                                         \
             ]
 
 def get_all():
