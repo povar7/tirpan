@@ -56,7 +56,8 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
         nodeType = node.link.nodeType
         type1 = self.type_int
-        self.assertTrue(any([type1 == elem for elem in nodeType]),                   \
+        self.assertTrue(len(nodeType) == 1 and                                       \
+                        any([type1 == elem for elem in nodeType]),                   \
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'a', 'name is not "a"')
 

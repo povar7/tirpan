@@ -1,1 +1,2 @@
 closed = { None }
+print closed

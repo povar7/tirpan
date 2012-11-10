@@ -21,9 +21,7 @@ class TIVisitor(ast.NodeVisitor):
         node.link = ConstTypeGraphNode(node.n)
     
     def visit_Str(self, node):
-        #if self.filename.endswith('const.py'):
-        #    print node.lineno
-        node.link = ConstTypeGraphNode(node.s)
+        node.link = ConstTypeGraphNode(node.s, self.filename.endswith('const.py'))
         
     def visit_Name(self, node):
         if node.id == 'None':

@@ -461,7 +461,7 @@ class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
 
 class FuncDefTypeGraphNode(TypeGraphNode):
     MAX_LOAD           = 64
-    EXTERNAL_FUNCTIONS = ['abspath', 'dirname', 'unicode']
+    EXTERNAL_FUNCTIONS = ['abspath', 'dirname', 'join', 'unicode']
 
     def __init__(self, name, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()
@@ -647,8 +647,6 @@ class FuncCallTypeGraphNode(TypeGraphNode):
 
     def processCall(self):
         import __main__
-        if (self.fno, self.line) == (15, 146):
-            print self.argsTypes
         funcs = [(None, func) for func in self.funcs]
         inits = find_inits_in_classes(self.classes)
         callables  = []
