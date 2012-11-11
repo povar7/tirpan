@@ -25,12 +25,15 @@ type_unknown = TypeUnknown()
 
 def smart_union(set1, set2):
     import __main__
+    added_strings = 0
     for elem in set2:
-        if len(set1) >= __main__.types_number:
+        if len(set1) - added_strings >= __main__.types_number:
 	    set1.discard(type_unknown)
             return set1
         try:
             set1.add(elem)
+            if isinstance(elem, TypeBaseString):
+                added_strings += 1
         except RuntimeError:
             pass
     if len(set1) > 1:
@@ -41,13 +44,16 @@ def smart_deepcopy_union(set1, set2):
     import __main__
     if len(set1) >= __main__.types_number:
         return set1
+    added_strings = 0
     set2_copy = deepcopy(set2)
     for elem in set2_copy:
-        if len(set1) >= __main__.types_number:
+        if len(set1) - added_strings >= __main__.types_number:
             set1.discard(type_unknown)
             return set1
         try:
             set1.add(elem)
+            if isinstance(elem, TypeBaseString):
+                added_strings += 1
         except RuntimeError:
             pass
     if len(set1) > 1:
@@ -461,7 +467,7 @@ class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
 
 class FuncDefTypeGraphNode(TypeGraphNode):
     MAX_LOAD           = 64
-    EXTERNAL_FUNCTIONS = ['abspath', 'dirname', 'join', 'unicode']
+    EXTERNAL_FUNCTIONS = ['abspath', 'dirname', 'join', 'unicode', 'walk']
 
     def __init__(self, name, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()

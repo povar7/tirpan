@@ -9,12 +9,7 @@ def quasi_abspath(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     try:
         res_str = os.path.abspath(type1.value)
-        if isinstance(res_str, str):
-            res = TypeStr(res_str)
-        elif isinstance(res_str, unicode):
-            res = TypeUnicode(res_str)
-        else:
-            res = TypeUnknown()
+        res     = get_new_string(res_str)
         return set([res])
     except:
         pass
@@ -24,12 +19,7 @@ def quasi_dirname(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     try:
         res_str = os.path.dirname(type1.value)
-        if isinstance(res_str, str):
-            res = TypeStr(res_str)
-        elif isinstance(res_str, unicode):
-            res = TypeUnicode(res_str)
-        else:
-            res = TypeUnknown()
+        res     = get_new_string(res_str)
         return set([res])
     except:
         pass
@@ -40,12 +30,7 @@ def quasi_join(scope):
     type2 = list(scope.findParam(2).nodeType)[0]
     try:
         res_str = os.path.join(type1.value, type2.value)
-        if isinstance(res_str, str):
-            res = TypeStr(res_str)
-        elif isinstance(res_str, unicode):
-            res = TypeUnicode(res_str)
-        else:
-            res = TypeUnknown()
+        res     = get_new_string(res_str)
         return set([res])
     except:
         pass
@@ -54,7 +39,7 @@ def quasi_join(scope):
 functions = [                                       \
                 ['abspath', quasi_abspath, 1],      \
                 ['dirname', quasi_dirname, 1],      \
-                ['join',    quasi_join   , 2],      \
+                ['join',    quasi_join   , 2]       \
             ]
 
 stubs     = [                                       \

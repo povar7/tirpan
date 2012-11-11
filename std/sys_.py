@@ -27,9 +27,10 @@ def quasi_path():
 
 def quasi_builtin_module_names():
     res = TypeTuple()
+    tmp = []
     for elem in sys.builtin_module_names:
-        res.add_elem(TypeStr(elem))
-        res.elems = tuple(res.elems)
+        tmp.append(TypeStr(elem))
+    res.elems = tuple(tmp)
     return res
 
 functions = [                                                         \

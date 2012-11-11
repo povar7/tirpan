@@ -1,3 +1,4 @@
 import os
-for (dirpath, dirnames, filenames) in os.walk('tests/import03'):
-    print dirpath, dirnames, filenames
+import const
+for (x, y, z) in os.walk(const.DIR_FOR_BUILTIN05):
+    print x, y, z

@@ -6,7 +6,7 @@ Created on 03.11.2012
 
 import unittest
 from tests_common import *
-test_file_name = get_test_file_name('std07.py')
+test_file_name = get_test_file_name('std06.py')
 
 import ast
 

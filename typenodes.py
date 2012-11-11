@@ -211,3 +211,10 @@ class TypeUnknown(TypeNode):
     def __deepcopy__(self, memo):
         return self
 
+def get_new_string(value):
+    if isinstance(value, str):
+        return TypeStr(value)
+    elif isinstance(value, unicode):
+        return TypeUnicode(value)
+    else:
+        return TypeUnknown()
