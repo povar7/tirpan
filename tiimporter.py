@@ -97,7 +97,16 @@ class Importer(object):
                 imported_tree = self.imported_files[searchname].ast
                 module = imported_tree.link 
             else:
-                parser = TIParser(filename)
+                try:
+                    parser = TIParser(filename)
+                except IOError:
+                    if main_module: 
+                        print 'Cannot open "' + filename + '" file'
+                        exit(1)
+                    else:
+                        return
+                except SyntaxError:
+                    return
                 imported_tree = parser.ast
                 module = UsualModuleTypeGraphNode(imported_tree, filename, __main__.global_scope)
                 if name == 'glib':

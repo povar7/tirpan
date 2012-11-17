@@ -4,7 +4,7 @@ Created on 01.07.2012
 @author: bronikkk 
 '''
 
-from builtin import get_quasi_list
+from builtin import get_quasi_list, get_quasi_str, get_quasi_unicode
 from copy    import copy as shallowcopy, deepcopy
 
 def get_singletons_list():
@@ -80,15 +80,20 @@ def find_inits_in_classes(classes):
 
 def get_attribute(elem, attr):
     from typegraph import ClassDefTypeGraphNode, ClassInstanceTypeGraphNode, ModuleTypeGraphNode
-    from typenodes import TypeList
+    from typenodes import TypeList, TypeStr, TypeUnicode
     if isinstance(elem, ModuleTypeGraphNode):
         return find_name_in_module(elem, attr)
     elif isinstance(elem, ClassInstanceTypeGraphNode):
         return find_name_in_class_inst(elem, attr)
     elif isinstance(elem, ClassDefTypeGraphNode):
         return find_name_in_class_def(elem, attr)
-    elif isinstance(elem, TypeList):
-        elem = get_quasi_list()
+    elif isinstance(elem, (TypeList, TypeStr, TypeUnicode)):
+        if isinstance(elem, TypeList):
+            elem = get_quasi_list()
+        elif isinstance(elem, TypeStr):
+            elem = get_quasi_str()
+        elif isinstance(elem, TypeUnicode):
+            elem = get_quasi_unicode()
         return find_name_in_class_def(elem, attr)
     else:
         return None

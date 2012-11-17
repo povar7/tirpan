@@ -53,6 +53,17 @@ def find_previous_key(elem, keys):
             pass
     return None
 
+def find_previous_key_index(elem, keys, index):
+    for key in keys:
+        try:
+            if key[index] == elem[index]:
+                return key
+        except IndexError:
+            pass
+        except RuntimeError:
+            pass
+    return None
+
 def copy_params(params):
     save   = params.parent
     params.parent = None
@@ -153,7 +164,7 @@ def get_elem_set(elem, params_copy):
     for item in product(*params_types):
         yield item
 
-def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, kwarg_elem, attr_call):
+def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, kwarg_elem, attr_call, file_number):
     import __main__
     from tivisitor import TIVisitor
     from typegraph import DependencyType, ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
@@ -168,7 +179,10 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
     elem, star_res, kw_res = func.params.getArgs(arg_elem, stararg_elem, kwarg_elem)
     if elem is None:
         return set()
-    key = find_previous_key(elem, func.templates.keys())
+    if func.name == 'execfile':
+        key = find_previous_key_index(elem, func.templates.keys(), 0)
+    else:
+        key = find_previous_key(elem, func.templates.keys())
     if key is None:
         if func.mustBeExternal() or func.isLoadTooBig():
             return set()
@@ -211,10 +225,15 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
                                     func.defReturn)
                 func.templates[elem_copy].args   = elem
             __main__.current_res = saved_res
+            __main__.current_scope = saved_scope
         elif isinstance(func, ExternFuncDefTypeGraphNode):
-            func.templates[elem_copy].result = func.quasi(__main__.current_scope)
+            args_scope = __main__.current_scope
+            __main__.current_scope = saved_scope
+            try:
+                func.templates[elem_copy].result = func.quasi(args_scope, FILE_NUMBER=file_number)
+            except TypeError:
+                func.templates[elem_copy].result = func.quasi(args_scope)
             func.templates[elem_copy].args   = elem
-        __main__.current_scope = saved_scope
     else:
         params_copy = None
         elem_copy   = key

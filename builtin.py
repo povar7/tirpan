@@ -75,3 +75,17 @@ def get_quasi_list():
     var = __main__.current_scope.find(get_quasi_list_name())
     cls = list(var.nodeType)[0]
     return cls
+
+def get_quasi_str():
+    import __main__
+    from std.builtin_ import get_quasi_str_name
+    var = __main__.current_scope.find(get_quasi_str_name())
+    cls = list(var.nodeType)[0]
+    return cls
+
+def get_quasi_unicode():
+    import __main__
+    from std.builtin_ import get_quasi_unicode_name
+    var = __main__.current_scope.find(get_quasi_unicode_name())
+    cls = list(var.nodeType)[0]
+    return cls

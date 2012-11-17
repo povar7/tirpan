@@ -467,7 +467,7 @@ class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
 
 class FuncDefTypeGraphNode(TypeGraphNode):
     MAX_LOAD           = 64
-    EXTERNAL_FUNCTIONS = ['abspath', 'dirname', 'join', 'unicode', 'walk']
+    EXTERNAL_FUNCTIONS = ['abspath', 'dirname', 'join', 'unicode', 'walk', 'listdir']
 
     def __init__(self, name, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()
@@ -687,7 +687,7 @@ class FuncCallTypeGraphNode(TypeGraphNode):
                             if must_be_skipped(func):
                                 res = set([type_none])
                             else:
-                                res = process_product_elem(elem, args, args_type, self.starargs, starargs_type, self.kwargs, kwargs_type, attr_call)
+                                res = process_product_elem(elem, args, args_type, self.starargs, starargs_type, self.kwargs, kwargs_type, attr_call, self.fno)
                             self.nodeType = smart_union(self.nodeType, res)
         if len(self.nodeType) == 0:
             self.nodeType.add(type_unknown)

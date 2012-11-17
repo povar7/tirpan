@@ -5,8 +5,18 @@ from typenodes import *
 type_str = TypeStr()
 
 def quasi_listdir(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
     res = TypeList()
-    res.add_elem(type_str)
+    try:
+        if type1.value.endswith('webstuff'):
+            filenames = os.listdir(type1.value)
+            for elem in filenames:
+                if elem.endswith('.gpr.py'):
+                     res.add_elem(get_new_string(elem))
+    except:
+        pass
+    if len(res.elem_types()) == 0:
+        res.add_elem(type_str)
     return set([res])
 
 def quasi_walk(scope):

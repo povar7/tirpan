@@ -4,6 +4,10 @@ Created on 01.04.2012
 @author: bronikkk
 '''
 
+import ast
+
+from copy import copy as shallowcopy
+
 from typenodes import *
 
 type_int     = TypeInt()
@@ -18,6 +22,25 @@ def quasi_append(scope):
     if not isinstance(type1, TypeList):
         return set([type_none])
     type1.add_elem(type2)
+    return set([type_none])
+
+def quasi_execfile(scope, **kwargs):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    try:
+        fileno = kwargs['FILE_NUMBER']
+    except KeyError:
+        fileno = None
+    try:
+        from tiparser  import TIParser
+        if type1.value is not None:
+            parser = TIParser(type1.value)
+            imported_tree = parser.ast
+            for node in ast.walk(imported_tree):
+                node.fileno = fileno
+            for stmt in imported_tree.body:
+                parser.visitor.visit(stmt)
+    except:
+        pass
     return set([type_none])
 
 def quasi_len(scope):
@@ -57,17 +80,29 @@ def quasi_unicode(scope):
         res = TypeUnicode(unicode(type1.value))
         return set([res])
 
+def quasi_encode(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    res = shallowcopy(type1)
+    return set([res])
+
 def get_quasi_list_name():
     return '#list#'
 
+def get_quasi_str_name():
+    return '#str#'
+
+def get_quasi_unicode_name():
+    return '#unicode#'
+
 functions = [
-                ['len'    , quasi_len    , 1],                  \
-                ['range'  , quasi_range1 , 1],                  \
-                ['range'  , quasi_range3 , 3 , {3 : type_int}], \
-                ['type'   , quasi_type1  , 1],                  \
-                ['xrange' , quasi_range1 , 1],                  \
-                ['xrange' , quasi_range3 , 3 , {3 : type_int}], \
-                ['unicode', quasi_unicode, 3 , {3 : type_str}]  \
+                ['execfile', quasi_execfile, 3 , {2 : type_none, 3 : type_none}], \
+                ['len'     , quasi_len     , 1],                                  \
+                ['range'   , quasi_range1  , 1],                                  \
+                ['range'   , quasi_range3  , 3 , {3 : type_int}],                 \
+                ['type'    , quasi_type1   , 1],                                  \
+                ['xrange'  , quasi_range1  , 1],                                  \
+                ['xrange'  , quasi_range3  , 3 , {3 : type_int}],                 \
+                ['unicode' , quasi_unicode , 3 , {3 : type_str}]                  \
             ]
 
 stubs     = [                                                \
@@ -106,8 +141,28 @@ quasi_list_object = (                                        \
                         ]
                     )
 
+quasi_str_object  = (                                        \
+                        get_quasi_str_name(),                \
+                        [                                    \
+                            ['encode', quasi_encode, 2]      \
+                        ],                                   \
+                        [                                    \
+                        ]
+                    )
+
+quasi_unicode_object  = (                                    \
+                            get_quasi_unicode_name(),        \
+                            [                                \
+                                ['encode', quasi_encode, 2]  \
+                            ],                               \
+                            [                                \
+                            ]
+                        )
+
 objects   = [                                                \
-                quasi_list_object                            \
+                quasi_list_object   ,                        \
+                quasi_str_object    ,                        \
+                quasi_unicode_object                         \
             ]
 
 def get_all():

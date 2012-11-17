@@ -12,17 +12,14 @@ from tiassert  import generate_asserts
 from tivisitor import TIVisitor
 
 class TIParser(object):
-    def __init__(self, filename):
-        try:
-            with open(filename) as f:
-                try:
-                    self.ast = ast.parse(f.read())
-                except SyntaxError as ex:
+    def __init__(self, filename):        
+        with open(filename) as f:
+            try:
+                self.ast = ast.parse(f.read())
+            except SyntaxError as ex:
+                if __main__.verbose:
                     print ex.offset
-                    raise ex
-        except IOError:
-            print 'Cannot open "' + filename + '" file'
-            exit(1)
+                raise ex
 
         self.visitor = TIVisitor(filename)
     
