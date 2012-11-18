@@ -90,14 +90,16 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_Module(self, node):
         from typenodes import TypeBool
-        type_bool = TypeBool()
-        __main__.current_scope = node.link.getScope()
-        var_true  = ExternVarTypeGraphNode('True' , type_bool)
-        __main__.current_scope.add(var_true)
-        var_false = ExternVarTypeGraphNode('False', type_bool)
-        __main__.current_scope.add(var_false)
+        if not node.link.isInherited():
+            type_bool = TypeBool()
+            __main__.current_scope = node.link.getScope()
+            var_true  = ExternVarTypeGraphNode('True' , type_bool)
+            __main__.current_scope.add(var_true)
+            var_false = ExternVarTypeGraphNode('False', type_bool)
+            __main__.current_scope.add(var_false)
         self.generic_visit(node)
-        __main__.current_scope = __main__.current_scope.getParent()
+        if not node.link.isInherited():
+            __main__.current_scope = __main__.current_scope.getParent()
 
     def visit_arguments(self, node):
         nonDefs = len(node.args) - len(node.defaults)

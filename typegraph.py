@@ -440,11 +440,16 @@ class DictTypeGraphNode(TypeGraphNode):
             valueLink.addDependency(DependencyType.Val, self)
 
 class ModuleTypeGraphNode(TypeGraphNode):
-    def __init__(self, name, parent_scope):
+    def __init__(self, name, parent_scope, inherited_scope):
         super(ModuleTypeGraphNode, self).__init__()
         self.nodeType = set([self])
         self.name     = name
-        self.scope    = Scope(parent_scope)
+        if inherited_scope is None:
+            self.inherited = False
+            self.scope     = Scope(parent_scope)
+        else:
+            self.inherited = True
+            self.scope     = inherited_scope
 
     def __deepcopy__(self, memo):
         return self
@@ -452,17 +457,20 @@ class ModuleTypeGraphNode(TypeGraphNode):
     def getScope(self):
         return self.scope
 
+    def isInherited(self):
+        return self.inherited 
+
     def elem_types(self):
         return set()
 
 class UsualModuleTypeGraphNode(ModuleTypeGraphNode):
-    def __init__(self, ast, name, parent_scope):
-        super(UsualModuleTypeGraphNode, self).__init__(name, parent_scope)
+    def __init__(self, ast, name, parent_scope, inherited_scope = None):
+        super(UsualModuleTypeGraphNode, self).__init__(name, parent_scope, inherited_scope)
         self.ast      = ast
 
 class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
     def __init__(self, name, parent_scope):
-        super(ExternModuleTypeGraphNode, self).__init__(name, parent_scope)
+        super(ExternModuleTypeGraphNode, self).__init__(name, parent_scope, None)
         self.isLoaded = False
 
 class FuncDefTypeGraphNode(TypeGraphNode):

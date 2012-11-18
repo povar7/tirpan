@@ -34,9 +34,11 @@ class Importer(object):
         self.total_idents     = 0
         self.main_path        = None
 
-    def put_ident(self, name):
-        self.ident_table[self.total_idents] = name
+    def put_ident(self, module):
+        self.ident_table[self.total_idents] = module
         res = self.total_idents
+        if __main__.print_imports:
+            print '%d\t%s' % (res, module.name)
         self.total_idents += 1
         return res          
 
@@ -115,7 +117,6 @@ class Importer(object):
                     import_standard_module(module, self, name)
                 imported_tree.link = module
                 fileno = self.put_ident(module)
-                #print '%d\t%s' % (fileno, filename)
                 for node in ast.walk(imported_tree):
                     node.fileno = fileno
                 self.imported_files[searchname] = imported_tree.link

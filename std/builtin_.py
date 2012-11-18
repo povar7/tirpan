@@ -25,20 +25,22 @@ def quasi_append(scope):
     return set([type_none])
 
 def quasi_execfile(scope, **kwargs):
-    type1 = list(scope.findParam(1).nodeType)[0]
+    type1  = list(scope.findParam(1).nodeType)[0]
     try:
-        fileno = kwargs['FILE_NUMBER']
-    except KeyError:
-        fileno = None
-    try:
-        from tiparser  import TIParser
         if type1.value is not None:
-            parser = TIParser(type1.value)
+            from tiparser  import TIParser
+            from typegraph import UsualModuleTypeGraphNode
+            import __main__
+            parser        = TIParser(type1.value)
             imported_tree = parser.ast
+            old_fileno    = kwargs['FILE_NUMBER']
+            old_scope     = __main__.importer.get_ident(old_fileno).scope 
+            module        = UsualModuleTypeGraphNode(imported_tree, type1.value, None, old_scope)
+            new_fileno    = __main__.importer.put_ident(module)
+            imported_tree.link = module
             for node in ast.walk(imported_tree):
-                node.fileno = fileno
-            for stmt in imported_tree.body:
-                parser.visitor.visit(stmt)
+                node.fileno = new_fileno
+            parser.walk(False)
     except:
         pass
     return set([type_none])
