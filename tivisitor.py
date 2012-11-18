@@ -21,7 +21,7 @@ class TIVisitor(ast.NodeVisitor):
         node.link = ConstTypeGraphNode(node.n)
     
     def visit_Str(self, node):
-        node.link = ConstTypeGraphNode(node.s, self.filename.endswith('const.py'))
+        node.link = ConstTypeGraphNode(node.s, self.filename.endswith(('const.py', '.gpr.py')))
         
     def visit_Name(self, node):
         if node.id == 'None':
@@ -139,7 +139,9 @@ class TIVisitor(ast.NodeVisitor):
             self.visit(node.starargs)
         for kwarg in node.keywords:
             self.visit(kwarg.value)
-        
+       
+        if isinstance(node.func, ast.Name) and node.func.id == '_':
+            node.func.id = 'unicode'
         self.visit(node.func)
         node.link = FuncCallTypeGraphNode(node)
         node.link.processCall()

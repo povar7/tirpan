@@ -173,10 +173,13 @@ class TypeDict(TypeStandard):
         return hash((tuple(self.keys), tuple(self.vals)))
 
     def elem_types(self):
-        return self.vals
+        return self.keys
 
     def keys_types(self):
         return self.keys
+
+    def vals_types(self):
+        return self.vals
 
     def __deepcopy__(self, memo):
         res = shallowcopy(self)

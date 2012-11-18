@@ -41,7 +41,6 @@ class TestTirpan(unittest.TestCase):
 
         self.type_int     = TypeInt()
         self.type_float   = TypeFloat()
-        self.type_str     = TypeStr()
 
     def test_walk_var_foo(self):
         node = findNode(self.ast, line=1, kind=ast.FunctionDef)
@@ -52,8 +51,8 @@ class TestTirpan(unittest.TestCase):
                         any([isinstance(elem, FuncDefTypeGraphNode) for elem in nodeType]), \
                         'type is a function definition')
         funcDef  = list(nodeType)[0]
-        self.assertEqual(len(funcDef.templates.keys()), 1,
-                         'there must be 1 template') 
+        self.assertEqual(len(funcDef.templates.keys()), 2,
+                         'there must be 2 templates') 
         self.assertEqual(node.link.name, 'foo', 'name is not "foo"')
 
     def test_walk_var_x(self):
@@ -63,7 +62,8 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
         nodeType = node.link.nodeType
         type1 = TypeDict()
-        type1.add_key(self.type_str)
+        type1.add_key(get_new_string('foo'))
+        type1.add_key(get_new_string('bar'))
         type1.add_val(self.type_int)
         type1.add_val(self.type_float)
         self.assertTrue(len(nodeType) == 1 and                                             \
@@ -78,7 +78,8 @@ class TestTirpan(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
         nodeType = node.link.nodeType
         type1 = TypeDict()
-        type1.add_key(self.type_str)
+        type1.add_key(get_new_string('mama'))
+        type1.add_key(get_new_string('papa'))
         type1.add_val(self.type_int)
         type1.add_val(self.type_float)
         self.assertTrue(len(nodeType) == 1 and                                             \

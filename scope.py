@@ -6,8 +6,6 @@ Created on 03.01.2012
 
 from typenodes import *
 
-type_str = TypeStr()
-
 def get_var_types(variables):
     res = {}
     for key in variables.keys():
@@ -16,8 +14,8 @@ def get_var_types(variables):
 
 def make_dict_for_kwargs(kwargs):
     res = TypeDict()
-    res.add_key(type_str)
     for pair in kwargs.items():
+        res.add_key(get_new_string(pair[0]))
         res.add_pair(pair)
     return res
 
