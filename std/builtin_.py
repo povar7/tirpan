@@ -48,6 +48,19 @@ def quasi_execfile(scope, **kwargs):
 def quasi_len(scope):
     return set([type_int])
 
+def quasi_setattr(scope):
+    type1  = list(scope.findParam(1).nodeType)[0]
+    type2  = list(scope.findParam(2).nodeType)[0]
+    type3  = list(scope.findParam(3).nodeType)[0]
+    try:
+        value = type2.value
+        if value is not None:
+            from classes import set_attributes
+            set_attributes(set([type1]), value, set([type3]))
+    except AttributeError:
+        pass
+    return set([type_none]) 
+
 def quasi_range1(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     if type1 == type_int:
@@ -101,6 +114,7 @@ functions = [
                 ['len'     , quasi_len     , 1],                                  \
                 ['range'   , quasi_range1  , 1],                                  \
                 ['range'   , quasi_range3  , 3 , {3 : type_int}],                 \
+                ['setattr' , quasi_setattr , 3],                                  \
                 ['type'    , quasi_type1   , 1],                                  \
                 ['xrange'  , quasi_range1  , 1],                                  \
                 ['xrange'  , quasi_range3  , 3 , {3 : type_int}],                 \
