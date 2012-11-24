@@ -118,7 +118,7 @@ functions = [
                 ['type'    , quasi_type1   , 1],                                  \
                 ['xrange'  , quasi_range1  , 1],                                  \
                 ['xrange'  , quasi_range3  , 3 , {3 : type_int}],                 \
-                ['unicode' , quasi_unicode , 3 , {3 : type_str}]                  \
+                ['unicode' , quasi_unicode , 3 , {2 : type_str, 3 : type_str}]    \
             ]
 
 stubs     = [                                                \

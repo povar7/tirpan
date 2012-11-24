@@ -262,6 +262,11 @@ class TIVisitor(ast.NodeVisitor):
                test.func.value.id == 'argpars' and \
                test.func.attr == 'need_gui':
                 skip_else = True
+            if isinstance(test.func, ast.Attribute) and \
+               isinstance(test.func.value, ast.Name) and \
+               test.func.value.id == 'constfunc' and \
+               test.func.attr == 'win':
+                skip_if = True
         elif isinstance(test, ast.Compare):
             if isinstance(test.left, ast.Str) and \
                isinstance(test.left.s, str) and \

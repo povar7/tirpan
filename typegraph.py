@@ -503,7 +503,7 @@ class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
 
 class FuncDefTypeGraphNode(TypeGraphNode):
     MAX_LOAD           = 64
-    EXTERNAL_FUNCTIONS = ['abspath', 'dirname', 'join', 'unicode', 'walk', 'listdir']
+    EXTERNAL_FUNCTIONS = ['abspath', 'dirname', 'join', 'setattr', 'unicode', 'walk', 'listdir']
 
     def __init__(self, name, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()
@@ -712,7 +712,7 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             for elem in callables:
                 if hasattr(self, 'kwargsTypes'):
                     _, func = elem
-                    if self.attrCall and isinstance(args_type_orig[0], (ModuleTypeGraphNode, ClassDefTypeGraphNode, FuncDefTypeGraphNode)):
+                    if self.attrCall and isinstance(args_type_orig[0], (ModuleTypeGraphNode, ClassDefTypeGraphNode, FuncDefTypeGraphNode, TypeAtom)) and not isinstance(args_type_orig[0], TypeBaseString):
                         args_type = args_type_orig[1:]
                         args = self.args[1:]
                         attr_call = False
