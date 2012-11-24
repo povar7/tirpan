@@ -23,6 +23,34 @@ from utils        import *
 type_none    = TypeNone()
 type_unknown = TypeUnknown()
 
+def check_args_for_dependence(args):
+    if len(args) < 3:
+        return None
+    var_arg = args[1]
+    sub_arg = args[2]
+    if isinstance(var_arg, VarTypeGraphNode) and \
+       isinstance(sub_arg, SubscriptTypeGraphNode) and \
+       sub_arg.index is not None and \
+       sub_arg.index.link is var_arg and \
+       any([isinstance(elem, TypeDict) and elem._dict is not None for elem in sub_arg.objects]):
+        return (1, 2, sub_arg.objects)
+    else:
+        return None
+
+def need_to_skip(var_arg_type, sub_arg_type, objects):
+    try:
+        var_arg_name = var_arg_type.value
+    except AttributeError:
+        return False
+    for obj in objects:
+        try:
+            dict_type = obj._dict[var_arg_name]
+            if dict_type == sub_arg_type:
+                return False
+        except KeyError:
+            pass
+    return True
+
 def smart_union(set1, set2):
     import __main__
     added_strings = 0
@@ -674,7 +702,13 @@ class FuncCallTypeGraphNode(TypeGraphNode):
                     starargs.append(star_type.elems)
         if len(starargs) == 0:
             starargs.append(())
+        dependent_args = check_args_for_dependence(self.args)
         for args_type_orig in product(*self.argsTypes):
+            if dependent_args:
+                var_number = dependent_args[0]
+                sub_number = dependent_args[1]
+                if need_to_skip(args_type_orig[var_number], args_type_orig[sub_number], dependent_args[2]):
+                    continue
             for elem in callables:
                 if hasattr(self, 'kwargsTypes'):
                     _, func = elem
@@ -800,11 +834,11 @@ class AttributeTypeGraphNode(TypeGraphNode):
 class SubscriptTypeGraphNode(TypeGraphNode):
     def __init__(self, is_index, index):
         super(SubscriptTypeGraphNode, self).__init__()
-        self.objects  = set()
-        self.values   = set()
-        self.nodeType = set()
-        self.is_index = is_index
-        self.index    = index
+        self.objects   = set()
+        self.values    = set()
+        self.nodeType  = set()
+        self.is_index  = is_index
+        self.index     = index
 
     def getKeysTypes(self):
         from typenodes import TypeDict
@@ -815,14 +849,25 @@ class SubscriptTypeGraphNode(TypeGraphNode):
         return res
 
     def process(self):
-        new_objects    = set_subscripts(self.objects, self.values, self.is_index, self.index)
-        self.objects   = smart_union(self.objects, new_objects)
-        self.nodeType  = get_subscripts(self.objects, self.is_index, self.index)
+        index = None
+        if index is None:
+            try:
+                index = self.index.n
+            except AttributeError:
+                pass
+        if index is None:
+            try:
+                index = self.index.s
+            except AttributeError:
+                pass
+        new_objects   = set_subscripts(self.objects, self.values, self.is_index, index)
+        self.objects  = smart_union(self.objects, new_objects)
+        self.nodeType = get_subscripts(self.objects, self.is_index, index)
 
     def processSlice(self, slices_types):
-        new_objects    = set_slices(self.objects, slices_types)
-        old_len        = smart_len(self.objects)
-        self.objects   = smart_union(self.objects, new_objects)
+        new_objects   = set_slices(self.objects, slices_types)
+        old_len       = smart_len(self.objects)
+        self.objects  = smart_union(self.objects, new_objects)
         return smart_len(self.objects) > old_len
 
 class PrintTypeGraphNode(TypeGraphNode):

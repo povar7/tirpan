@@ -218,12 +218,7 @@ class TIVisitor(ast.NodeVisitor):
         self.visit(sub_slice) 
         is_index = isinstance(sub_slice, Index)
         if isinstance(sub_slice, Index):
-            if isinstance(sub_slice.value, Num):
-                index = sub_slice.value.n
-            elif isinstance(sub_slice.value, Str):
-                index = sub_slice.value.s
-            else:
-                index = None
+            index = sub_slice.value
         else:
             index = None
         node.link = SubscriptTypeGraphNode(is_index, index)

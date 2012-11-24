@@ -15,6 +15,10 @@ from typenodes import *
 
 type_none = TypeNone()
 
+class QuasiIndex(object):
+    def __init__(self, n):
+        self.n = n
+
 def must_be_skipped(func):
     try:
         if func.name == 'rmtree':
@@ -118,8 +122,9 @@ def process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res
                     arg = args[arg_index]
                     var.addDependency(DependencyType.Assign, arg)
                 except IndexError:
-                    star_index = arg_index - len(args)
-                    star_link  = SubscriptTypeGraphNode(True, star_index)
+                    star_index  = arg_index - len(args)
+                    quasi_index = QuasiIndex(star_index)
+                    star_link   = SubscriptTypeGraphNode(True, quasi_index)
                     star_link.addDependency(DependencyType.AssignObject, starargs)
                     starargs.addDependency(DependencyType.AttrObject, star_link)
                     var.addDependency(DependencyType.Assign, star_link)
@@ -150,8 +155,9 @@ def process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res
         copy_atom = elem_copy[arg_index]
         if isinstance(copy_atom, (TypeStandard, ClassInstanceTypeGraphNode)):
             var = create_dummy_variable(elem_atom)
-            star_index = arg_index - len(args)
-            star_link  = SubscriptTypeGraphNode(True, star_index)
+            star_index  = arg_index - len(args)
+            quasi_index = QuasiIndex(star_index)
+            star_link   = SubscriptTypeGraphNode(True, quasi_index)
             star_link.addDependency(DependencyType.AssignObject, starargs)
             starargs.addDependency(DependencyType.AttrObject, star_link)
             var.addDependency(DependencyType.Assign, star_link)
