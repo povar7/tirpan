@@ -13,3 +13,5 @@ PATH_FOR_BUILTIN08 = os.path.join(ROOT_DIR, "builtin08.py")
 
 X = 'x'
 Y = 'y'
+
+WEBSTUFF_PLUGIN_ID = 'system webstuff'

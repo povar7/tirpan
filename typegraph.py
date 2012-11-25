@@ -5,7 +5,7 @@ Created on 11.12.2011
 '''
 
 from itertools    import product
-from ast          import AugAssign, BinOp, UnaryOp, BoolOp, Call, Index, Num, Str
+from ast          import AugAssign, BinOp, UnaryOp, BoolOp, Call, Index, List, ListComp, Num, Str
 from copy         import deepcopy
 from types        import NoneType
 
@@ -441,7 +441,11 @@ class ListTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
         super(ListTypeGraphNode, self).__init__()
         self.nodeType  = set([TypeList()])
-        for elt in node.elts:
+        if isinstance(node, List):
+            elts = node.elts
+        else:
+            elts = [node.elt]
+        for elt in elts:
             link = elt.link
             link.addDependency(DependencyType.Elem, self)
     
@@ -503,7 +507,7 @@ class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
 
 class FuncDefTypeGraphNode(TypeGraphNode):
     MAX_LOAD           = 64
-    EXTERNAL_FUNCTIONS = ['abspath', 'dirname', 'join', 'setattr', 'unicode', 'walk', 'listdir']
+    EXTERNAL_FUNCTIONS = ['abspath', 'append', 'dirname', 'encode', 'join', 'listdir', 'set', 'setattr', 'unicode', 'walk']
 
     def __init__(self, name, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()

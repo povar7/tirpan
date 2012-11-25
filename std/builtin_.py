@@ -16,6 +16,8 @@ type_str     = TypeStr()
 type_type    = TypeType()
 type_unicode = TypeUnicode()
 
+type_list    = TypeList()
+
 def quasi_append(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     type2 = list(scope.findParam(2).nodeType)[0]
@@ -25,7 +27,7 @@ def quasi_append(scope):
     return set([type_none])
 
 def quasi_execfile(scope, **kwargs):
-    type1  = list(scope.findParam(1).nodeType)[0]
+    type1 = list(scope.findParam(1).nodeType)[0]
     try:
         if type1.value is not None:
             from tiparser  import TIParser
@@ -48,10 +50,15 @@ def quasi_execfile(scope, **kwargs):
 def quasi_len(scope):
     return set([type_int])
 
+def quasi_set(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    res   = shallowcopy(type1)
+    return set([res])
+
 def quasi_setattr(scope):
-    type1  = list(scope.findParam(1).nodeType)[0]
-    type2  = list(scope.findParam(2).nodeType)[0]
-    type3  = list(scope.findParam(3).nodeType)[0]
+    type1 = list(scope.findParam(1).nodeType)[0]
+    type2 = list(scope.findParam(2).nodeType)[0]
+    type3 = list(scope.findParam(3).nodeType)[0]
     try:
         value = type2.value
         if value is not None:
@@ -97,7 +104,7 @@ def quasi_unicode(scope):
 
 def quasi_encode(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
-    res = shallowcopy(type1)
+    res   = shallowcopy(type1)
     return set([res])
 
 def get_quasi_list_name():
@@ -114,6 +121,7 @@ functions = [
                 ['len'     , quasi_len     , 1],                                  \
                 ['range'   , quasi_range1  , 1],                                  \
                 ['range'   , quasi_range3  , 3 , {3 : type_int}],                 \
+                ['set'     , quasi_set     , 1 , {1 : type_list}],                \
                 ['setattr' , quasi_setattr , 3],                                  \
                 ['type'    , quasi_type1   , 1],                                  \
                 ['xrange'  , quasi_range1  , 1],                                  \

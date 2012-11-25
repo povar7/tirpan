@@ -146,7 +146,7 @@ class TIVisitor(ast.NodeVisitor):
         node.link = FuncCallTypeGraphNode(node)
         node.link.processCall()
 
-    def visit_For(self, node):
+    def common_in(self, node): 
         self.visit(node.iter)
         target = node.target
         save   = self.left_part
@@ -163,6 +163,9 @@ class TIVisitor(ast.NodeVisitor):
             self.visit(target)
             self.left_part = save
             node.iter.link.addDependency(DependencyType.AssignElem, target.link)
+
+    def visit_For(self, node):
+        self.common_in(node)
         for nn in node.body:
             self.visit(nn)
 
@@ -228,7 +231,10 @@ class TIVisitor(ast.NodeVisitor):
             sub_slice.value.link.addDependency(DependencyType.AttrSlice, node.link)
 
     def visit_ListComp(self, node):
-        node.link = UnknownTypeGraphNode(node)
+        for gen in node.generators:
+            self.visit(gen)
+        self.visit(node.elt)
+        node.link = ListTypeGraphNode(node)
 
     def visit_IfExp(self, node):
         node.link = UnknownTypeGraphNode(node)
@@ -325,3 +331,5 @@ class TIVisitor(ast.NodeVisitor):
     def visit_Set(self, node):
         node.link = UnknownTypeGraphNode(node)
 
+    def visit_comprehension(self, node):
+        self.common_in(node)
