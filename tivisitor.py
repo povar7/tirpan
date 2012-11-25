@@ -14,14 +14,15 @@ from utils     import *
 
 class TIVisitor(ast.NodeVisitor):
     def __init__(self, filename):
-        self.filename  = filename
-        self.left_part = False
+        self.filename       = filename
+        self.left_part      = False
+        self.respect_values = False
 
     def visit_Num(self, node):
         node.link = ConstTypeGraphNode(node.n)
     
     def visit_Str(self, node):
-        node.link = ConstTypeGraphNode(node.s, self.filename.endswith(('const.py', '.gpr.py')))
+        node.link = ConstTypeGraphNode(node.s, self.respect_values or self.filename.endswith(('const.py', '.gpr.py')))
         
     def visit_Name(self, node):
         if node.id == 'None':
@@ -133,8 +134,23 @@ class TIVisitor(ast.NodeVisitor):
         funcDefNode.addDependency(DependencyType.Assign, var)
 
     def visit_Call(self, node):
+        if isinstance(node.func, ast.Attribute) and \
+           isinstance(node.func.value, ast.Name) and \
+           node.func.value.id == 're' and \
+           node.func.attr == 'compile':
+            respect_flag = True
+        else:
+            respect_flag = False
+
         for arg in node.args:
-            self.visit(arg)
+            if respect_flag:
+                save = self.respect_values
+                self.respect_values = True
+                self.visit(arg)
+                self.respect_values = save
+            else:
+                self.visit(arg)
+
         if node.starargs is not None:
             self.visit(node.starargs)
         for kwarg in node.keywords:

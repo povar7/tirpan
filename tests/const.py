@@ -15,3 +15,4 @@ X = 'x'
 Y = 'y'
 
 WEBSTUFF_PLUGIN_ID = 'system webstuff'
+WEBSTUFF_PYTHON_FN = 'webstuff.py'

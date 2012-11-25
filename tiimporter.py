@@ -113,7 +113,7 @@ class Importer(object):
                 module = UsualModuleTypeGraphNode(imported_tree, filename, __main__.global_scope)
                 if name == 'glib':
                     self.add_module(module.getScope(), 'glib._glib')
-                elif name in ['os', 'posixpath']:
+                elif name in ['os', 'posixpath', 're']:
                     import_standard_module(module, self, name)
                 imported_tree.link = module
                 fileno = self.put_ident(module)
