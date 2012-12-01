@@ -64,7 +64,7 @@ class Importer(object):
         paths = [os.path.dirname(filename)]
         if self.main_path is not None:
             paths.append(self.main_path)
-        paths.extend(sys.path)
+        paths.extend(sys.path[1:])
         return self.find_module(name, paths)
 
     def import_files_extended(self, mainfile, alias, parts, terminal, from_aliases):

@@ -21,15 +21,22 @@ def quasi_maxint():
     return res
 
 def quasi_path():
+    import __main__
     res = TypeList()
-    res.add_elem(type_str)
+    main_path = __main__.importer.main_path
+    tmp = []  
+    if main_path is not None:
+        tmp.append(get_new_string(main_path))
+    for elem in sys.path[1:]:
+        tmp.append(get_new_string(elem))
+    res.elems = tmp
     return res
 
 def quasi_builtin_module_names():
     res = TypeTuple()
     tmp = []
     for elem in sys.builtin_module_names:
-        tmp.append(TypeStr(elem))
+        tmp.append(get_new_string(elem))
     res.elems = tuple(tmp)
     return res
 

@@ -107,14 +107,30 @@ class TypeListOrTuple(TypeStandard):
 
 class TypeList(TypeListOrTuple):
     def add_elem(self, elem):
+        if isinstance(self.elems, list):
+            self.elems = set(self.elems)
         self.elems.add(elem)
 
     def elem_types(self):
-        return self.elems
+        return set(self.elems)
 
     def __init__(self):
         super(TypeList, self).__init__()
         self._type = list
+
+    def instance_eq_to(self, other):
+        if isinstance(self.elems, list) and isinstance(other.elems, list):
+            return self.elems == other.elems
+        elif isinstance(self.elems, list) or isinstance(other.elems, list):
+            return False
+        else:
+            return self.elem_types() == other.elem_types()
+
+    def instance_hash(self):
+        if isinstance(self.elems, list):
+            return hash(tuple(self.elems))
+        else:
+            return hash(frozenset(self.elems))
 
 class TypeTuple(TypeListOrTuple):
     def add_elem(self, elem):

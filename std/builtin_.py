@@ -107,6 +107,18 @@ def quasi_encode(scope):
     res   = shallowcopy(type1)
     return set([res])
 
+def quasi_insert(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    type3 = list(scope.findParam(3).nodeType)[0]
+    if not isinstance(type1, TypeList):
+        return set([type_none])
+    if isinstance(type1.elems, list):
+        if len(type1.elems) == 0 or type1.elems[0] != type3:
+            type1.elems.insert(0, type3)
+    else:
+        type1.add_elem(type3)
+    return set([type_none])
+
 def get_quasi_list_name():
     return '#list#'
 
@@ -159,7 +171,8 @@ modules   = [                                                \
 quasi_list_object = (                                        \
                         get_quasi_list_name(),               \
                         [                                    \
-                            ['append', quasi_append, 2]      \
+                            ['append', quasi_append, 2],     \
+                            ['insert', quasi_insert, 3]      \
                         ],                                   \
                         [                                    \
                         ]

@@ -693,6 +693,12 @@ class FuncCallTypeGraphNode(TypeGraphNode):
 
     def processCall(self):
         import __main__
+        if (self.fno, self.line) == (233, 251):
+            for tmp_elem in self.argsTypes[0]:
+                try:
+                    print tmp_elem.value
+                except AttributeError:
+                    pass
         funcs = [(None, func) for func in self.funcs]
         inits = find_inits_in_classes(self.classes)
         callables  = []
