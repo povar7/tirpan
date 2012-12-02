@@ -5,7 +5,7 @@ Created on 11.12.2011
 '''
 
 from itertools    import product
-from ast          import AugAssign, BinOp, UnaryOp, BoolOp, Call, Index, List, ListComp, Num, Str
+from ast          import AugAssign, BinOp, UnaryOp, BoolOp, Call, List, Lambda
 from copy         import deepcopy
 from types        import NoneType
 
@@ -560,7 +560,10 @@ class FuncDefTypeGraphNode(TypeGraphNode):
 class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
     def __init__(self, node, name, parent_scope):
         super(UsualFuncDefTypeGraphNode, self).__init__(name, parent_scope)
-        self.ast       = node.body
+        if isinstance(node, Lambda):
+            self.ast   = [node.body]
+        else:
+            self.ast   = node.body
         self.vararg    = node.args.vararg
         if self.vararg:
             var = UsualVarTypeGraphNode(self.vararg)
@@ -571,7 +574,10 @@ class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
             var = UsualVarTypeGraphNode(self.kwarg)
             var.setKWParam()
             self.params.add(var)
-        self.defReturn = not check_returns(self.ast)
+        if self.name:
+            self.defReturn = not check_returns(self.ast)
+        else:
+            self.defReturn = False
 
     def getKWArgs(self, kwargs):
         if self.kwarg is None:

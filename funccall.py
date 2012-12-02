@@ -34,14 +34,16 @@ def process_results(results, def_return):
         types = set()
     for res in results:
         try:
-            res_type = res.value.link.nodeType
             if isinstance(res, ast.Return):
                 types = types.union(res.value.link.nodeType)
             elif isinstance(res, ast.Yield):
+                res_type = res.value.link.nodeType
                 tmp = TypeList()
                 for elem in res_type:
                     tmp.add_elem(elem)
                 types.add(tmp)
+            else:
+                types = types.union(res.link.nodeType)
         except AttributeError:
             types.add(type_none)
         except RuntimeError:
@@ -226,6 +228,8 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
                     func.templates[elem_copy] = TemplateValue()
                     func.increaseLoad(elem_copy)
                 func.templates[elem_copy].ast    = ast_copy
+                if not func.name:
+                    __main__.current_res.add(ast_copy[0])
                 func.templates[elem_copy].result =             \
                     process_results(__main__.current_res,      \
                                     func.defReturn)

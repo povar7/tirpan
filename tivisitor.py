@@ -220,7 +220,11 @@ class TIVisitor(ast.NodeVisitor):
         __main__.current_res.add(node)
 
     def visit_Lambda(self, node):
-        node.link = UnknownTypeGraphNode(node)
+        funcDefNode = UsualFuncDefTypeGraphNode(node, None, __main__.current_scope)
+        node.link = funcDefNode
+        __main__.current_scope = funcDefNode.getParams()
+        self.visit(node.args)
+        __main__.current_scope = __main__.current_scope.parent
 
     def visit_Attribute(self, node):
         save = self.left_part
@@ -235,8 +239,8 @@ class TIVisitor(ast.NodeVisitor):
         self.visit(node.value)
         sub_slice = node.slice
         self.visit(sub_slice) 
-        is_index = isinstance(sub_slice, Index)
-        if isinstance(sub_slice, Index):
+        is_index = isinstance(sub_slice, ast.Index)
+        if isinstance(sub_slice, ast.Index):
             index = sub_slice.value
         else:
             index = None
