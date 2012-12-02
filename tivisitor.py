@@ -19,7 +19,7 @@ class TIVisitor(ast.NodeVisitor):
         self.respect_values = False
 
     def visit_Num(self, node):
-        node.link = ConstTypeGraphNode(node.n)
+        node.link = ConstTypeGraphNode(node.n, self.respect_values or self.filename.endswith('_pluginreg.py'))
     
     def visit_Str(self, node):
         node.link = ConstTypeGraphNode(node.s, self.respect_values or self.filename.endswith(('const.py', '.gpr.py')))

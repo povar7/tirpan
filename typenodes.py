@@ -44,8 +44,15 @@ class TypeNum(TypeNumOrBool):
     pass
     
 class TypeInt(TypeNum):
-    def __init__(self):
+    def __init__(self, value = None):
         self._type = int
+        self.value = value
+
+    def instance_eq_to(self, other):
+        return self.value == other.value
+
+    def instance_hash(self):
+        return hash(self.value)
 
 class TypeLong(TypeNum):
     def __init__(self):

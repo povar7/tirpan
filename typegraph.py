@@ -137,7 +137,7 @@ class TypeGraphNode(object):
 
     def get_atom_type_node(self, atom_type, value = None):
         if atom_type == int:
-            return TypeInt()
+            return TypeInt(value)
         elif atom_type == long:
             return TypeLong()
         elif atom_type == complex:
