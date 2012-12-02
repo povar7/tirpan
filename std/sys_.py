@@ -22,7 +22,7 @@ def quasi_maxint():
 
 def quasi_path():
     import __main__
-    res = TypeList()
+    res = TypeList(True)
     main_path = __main__.importer.main_path
     tmp = []  
     if main_path is not None:

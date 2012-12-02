@@ -21,10 +21,19 @@ from typenodes import *
 def get_init_name(name):
     return os.path.join(name, '__init__')
 
+def get_strings_number(elems):
+    res = 0
+    for elem in elems:
+        if isinstance(elem, TypeBaseString) and elem.value is not None:
+            res += 1
+    return res
+
 class QuasiAlias(object):
-    def __init__(self, name):
+    NONAME = '#NONAME#' 
+
+    def __init__(self, name, asname = None):
         self.name   = name
-        self.asname = None
+        self.asname = asname
 
 class Importer(object):
     def __init__(self):
@@ -33,6 +42,9 @@ class Importer(object):
         self.ident_table      = {}
         self.total_idents     = 0
         self.main_path        = None
+
+    def set_main_path(self, mainfile):
+        self.main_path = os.path.dirname(os.path.abspath(mainfile))
 
     def put_ident(self, module):
         self.ident_table[self.total_idents] = module
@@ -45,10 +57,17 @@ class Importer(object):
     def get_ident(self, num):
         return self.ident_table[num]
 
+    def load_module(self, name):
+        module = self.standard_modules[name]
+        if not module.isLoaded:
+            import_standard_module(module, self)
+        module.isLoaded = True
+        return module
+
     def add_module(self, scope, name):
         if not name in self.standard_modules:
             self.standard_modules[name] = ExternModuleTypeGraphNode(name, scope)
-
+        
     def find_module(self, name, paths):
         for path in paths:
             canonical = os.path.join(path, name)
@@ -60,11 +79,33 @@ class Importer(object):
                 return filename
         return None
 
+    def find_sys_path_type(self):
+        module = self.standard_modules['sys']
+        try:
+            var = module.getScope().find('path')
+            max_len = 0
+            res = None
+            for var_type in var.nodeType:
+                if isinstance(var_type, TypeList):
+                    current_len = get_strings_number(var_type.elems)
+                    if current_len > max_len:
+                        max_len = current_len
+                        res = var_type
+            return res
+        except AttributeError:
+            pass
+        return None
+
     def process_name(self, name, filename):
         paths = [os.path.dirname(filename)]
-        if self.main_path is not None:
-            paths.append(self.main_path)
-        paths.extend(sys.path[1:])
+        sys_path_type = self.find_sys_path_type()
+        if sys_path_type is None:
+            return None
+        for elem in sys_path_type.elems:
+            try:
+                paths.append(elem.value)
+            except AttributeError:
+                pass
         return self.find_module(name, paths)
 
     def import_files_extended(self, mainfile, alias, parts, terminal, from_aliases):
@@ -73,17 +114,13 @@ class Importer(object):
         ospath_name = os.path.join(*parts)
         name = ospath_name
         if python_name in self.standard_modules:
-            module = self.standard_modules[python_name]
-            if not module.isLoaded:
-                import_standard_module(module, self)
-            module.isLoaded = True
+            module = self.load_module(python_name)
         else:
             if name == '__main__':
                 rel_name       = mainfile
                 filename       = os.path.abspath(rel_name)
                 searchname     = name
                 main_module    = True
-                self.main_path = os.path.dirname(filename) 
             else:
                 try: 
                     rel_name = self.process_name(name, mainfile)
@@ -93,7 +130,7 @@ class Importer(object):
                 if filename is None:
                     from errorprinter import ImportStmtError
                     __main__.error_printer.printError(ImportStmtError(name))
-                    return
+                    return None
                 searchname = filename
             if searchname in self.imported_files:
                 imported_tree = self.imported_files[searchname].ast
@@ -106,9 +143,9 @@ class Importer(object):
                         print 'Cannot open "' + filename + '" file'
                         exit(1)
                     else:
-                        return
+                        return None
                 except SyntaxError:
-                    return
+                    return None
                 imported_tree = parser.ast
                 module = UsualModuleTypeGraphNode(imported_tree, filename, __main__.global_scope)
                 if name == 'glib':
@@ -128,8 +165,9 @@ class Importer(object):
                 __main__.current_scope = save
         if from_aliases is None:
             var_name = alias.asname if alias.asname else name
-            alias.link = __main__.current_scope.findOrAdd(var_name)
-            module.addDependency(DependencyType.Assign, alias.link)
+            if var_name != QuasiAlias.NONAME:
+                alias.link = __main__.current_scope.findOrAdd(var_name)
+                module.addDependency(DependencyType.Assign, alias.link)
         elif terminal:
             if len(from_aliases) == 1 and from_aliases[0].name == '*':
                 from_aliases = [QuasiAlias(key) for key in module.scope.variables.keys() if key != '__all__']
@@ -144,8 +182,10 @@ class Importer(object):
                 except AttributeError:
                     from errorprinter import ImportFromStmtError
                     __main__.error_printer.printError(ImportFromStmtError(old_var_name, module.name))
+        return module
 
     def import_files(self, mainfile, aliases, from_aliases = None):
+        res = None
         for alias in aliases:
             name = alias.name
             if name is None:
@@ -154,4 +194,5 @@ class Importer(object):
             size  = len(parts)
             for last in range(0, size):
                 terminal = (last == size - 1)
-                self.import_files_extended(mainfile, alias, parts[0:last + 1], terminal, from_aliases)
+                res = self.import_files_extended(mainfile, alias, parts[0:last + 1], terminal, from_aliases)
+        return res

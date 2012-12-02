@@ -92,7 +92,8 @@ class TypeStandard(TypeNode):
 
 class TypeListOrTuple(TypeStandard):
     def __init__(self):
-        self.elems = set()
+        self.elems  = set()
+        self.unique = False
 
     def instance_eq_to(self, other):
         return self.elem_types() == other.elem_types()
@@ -101,9 +102,12 @@ class TypeListOrTuple(TypeStandard):
         return hash(frozenset(self.elems))
 
     def __deepcopy__(self, memo):
-        res = shallowcopy(self)
-        res.elems = shallowcopy(self.elems)
-        return res
+        if self.unique:
+            return self
+        else:
+            res = shallowcopy(self)
+            res.elems = shallowcopy(self.elems)
+            return res
 
 class TypeList(TypeListOrTuple):
     def add_elem(self, elem):
@@ -114,12 +118,15 @@ class TypeList(TypeListOrTuple):
     def elem_types(self):
         return set(self.elems)
 
-    def __init__(self):
+    def __init__(self, unique = False):
         super(TypeList, self).__init__()
-        self._type = list
+        self._type  = list
+        self.unique = unique
 
     def instance_eq_to(self, other):
-        if isinstance(self.elems, list) and isinstance(other.elems, list):
+        if self.unique or other.unique:
+            return self is other 
+        elif isinstance(self.elems, list) and isinstance(other.elems, list):
             return self.elems == other.elems
         elif isinstance(self.elems, list) or isinstance(other.elems, list):
             return False
@@ -127,6 +134,8 @@ class TypeList(TypeListOrTuple):
             return self.elem_types() == other.elem_types()
 
     def instance_hash(self):
+        if self.unique:
+            return hash(id(self))
         if isinstance(self.elems, list):
             return hash(tuple(self.elems))
         else:

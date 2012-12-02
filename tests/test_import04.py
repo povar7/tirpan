@@ -48,7 +48,7 @@ class TestTirpan(unittest.TestCase):
         common_init(global_scope, importer)
         tirpan.run(test_file_name_1)
         self.nodes      = (importer.imported_files['__main__'].ast,                         \
-                           importer.imported_files[os.path.abspath(test_file_name_2)].ast)
+                           importer.imported_files[test_file_name_2].ast)
         
         self.type_int  = TypeInt()
         self.type_none = TypeNone()

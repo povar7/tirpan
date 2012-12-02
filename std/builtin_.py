@@ -47,6 +47,20 @@ def quasi_execfile(scope, **kwargs):
         pass
     return set([type_none])
 
+def quasi_import(scope, **kwargs):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    try:
+        if type1.value is not None:
+            import __main__
+            from tiimporter import QuasiAlias
+            fileno   = kwargs['FILE_NUMBER']
+            filename = __main__.importer.get_ident(fileno).name
+            res = __main__.importer.import_files(filename, [QuasiAlias(type1.value, QuasiAlias.NONAME)])
+            return set([res])
+    except:
+        pass
+    return set()
+
 def quasi_len(scope):
     return set([type_int])
 
@@ -113,7 +127,7 @@ def quasi_insert(scope):
     if not isinstance(type1, TypeList):
         return set([type_none])
     if isinstance(type1.elems, list):
-        if len(type1.elems) == 0 or type1.elems[0] != type3:
+        if type3 not in type1.elems:
             type1.elems.insert(0, type3)
     else:
         type1.add_elem(type3)
@@ -129,16 +143,17 @@ def get_quasi_unicode_name():
     return '#unicode#'
 
 functions = [
-                ['execfile', quasi_execfile, 3 , {2 : type_none, 3 : type_none}], \
-                ['len'     , quasi_len     , 1],                                  \
-                ['range'   , quasi_range1  , 1],                                  \
-                ['range'   , quasi_range3  , 3 , {3 : type_int}],                 \
-                ['set'     , quasi_set     , 1 , {1 : type_list}],                \
-                ['setattr' , quasi_setattr , 3],                                  \
-                ['type'    , quasi_type1   , 1],                                  \
-                ['xrange'  , quasi_range1  , 1],                                  \
-                ['xrange'  , quasi_range3  , 3 , {3 : type_int}],                 \
-                ['unicode' , quasi_unicode , 3 , {2 : type_str, 3 : type_str}]    \
+                ['execfile'  , quasi_execfile, 3 , {2 : type_none, 3 : type_none}], \
+                ['__import__', quasi_import  , 1],                                  \
+                ['len'       , quasi_len     , 1],                                  \
+                ['range'     , quasi_range1  , 1],                                  \
+                ['range'     , quasi_range3  , 3 , {3 : type_int}],                 \
+                ['set'       , quasi_set     , 1 , {1 : type_list}],                \
+                ['setattr'   , quasi_setattr , 3],                                  \
+                ['type'      , quasi_type1   , 1],                                  \
+                ['xrange'    , quasi_range1  , 1],                                  \
+                ['xrange'    , quasi_range3  , 3 , {3 : type_int}],                 \
+                ['unicode'   , quasi_unicode , 3 , {2 : type_str, 3 : type_str}]    \
             ]
 
 stubs     = [                                                \

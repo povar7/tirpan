@@ -60,7 +60,8 @@ def smart_union(set1, set2):
             return set1
         try:
             set1.add(elem)
-            if isinstance(elem, TypeBaseString):
+            if isinstance(elem, TypeBaseString) or \
+               isinstance(elem, TypeList) and all([isinstance(atom, (TypeBaseString, TypeUnknown)) for atom in elem.elems]):
                 added_strings += 1
         except RuntimeError:
             pass
@@ -80,7 +81,8 @@ def smart_deepcopy_union(set1, set2):
             return set1
         try:
             set1.add(elem)
-            if isinstance(elem, TypeBaseString):
+            if isinstance(elem, TypeBaseString) or \
+               isinstance(elem, TypeList) and all([isinstance(atom, (TypeBaseString, TypeUnknown)) for atom in elem.elems]):
                 added_strings += 1
         except RuntimeError:
             pass
@@ -507,7 +509,7 @@ class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
 
 class FuncDefTypeGraphNode(TypeGraphNode):
     MAX_LOAD           = 64
-    EXTERNAL_FUNCTIONS = ['abspath', 'append', 'compile', 'dirname', 'encode', 'join', 'listdir', 'match', 'set', 'setattr', 'unicode', 'walk']
+    EXTERNAL_FUNCTIONS = ['abspath', 'append', 'compile', 'dirname', 'encode', 'insert', 'join', 'listdir', 'match', 'set', 'setattr', 'unicode', 'walk']
 
     def __init__(self, name, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()
@@ -693,12 +695,6 @@ class FuncCallTypeGraphNode(TypeGraphNode):
 
     def processCall(self):
         import __main__
-        if (self.fno, self.line) == (233, 251):
-            for tmp_elem in self.argsTypes[0]:
-                try:
-                    print tmp_elem.value
-                except AttributeError:
-                    pass
         funcs = [(None, func) for func in self.funcs]
         inits = find_inits_in_classes(self.classes)
         callables  = []

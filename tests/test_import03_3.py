@@ -48,7 +48,7 @@ class TestTirpan(unittest.TestCase):
         common_init(global_scope, importer)
         tirpan.run(test_file_name_1)
         self.nodes      = (importer.imported_files['__main__'].ast,                         \
-                           importer.imported_files[os.path.abspath(test_file_name_2)].ast)
+                           importer.imported_files[test_file_name_2].ast)
         
         self.type_int     = TypeInt()
         self.type_float   = TypeFloat()
@@ -63,13 +63,13 @@ class TestTirpan(unittest.TestCase):
     def test_basic_module_1(self):
         module = self.nodes[0].link
         self.assertTrue(isinstance(module, ModuleTypeGraphNode), 'module 1 has no link to type info')
-        self.assertEquals(module.name, os.path.abspath(test_file_name_1), 'module 1 has a wrong name')
+        self.assertEquals(module.name, test_file_name_1, 'module 1 has a wrong name')
         self.assertEquals(module.ast, self.nodes[0], 'module 1 has a wrong link to ast')
 
     def test_basic_module_2(self):
         module = self.nodes[1].link
         self.assertTrue(isinstance(module, ModuleTypeGraphNode), 'module 2 has no link to type info')
-        self.assertEquals(module.name, os.path.abspath(test_file_name_2), 'module 2 has a wrong name')
+        self.assertEquals(module.name, test_file_name_2, 'module 2 has a wrong name')
         self.assertEquals(module.ast, self.nodes[1], 'module 2 has a wrong link to ast')
 
     def test_walk_var_x(self):

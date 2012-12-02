@@ -54,7 +54,7 @@ class TestTirpan(unittest.TestCase):
     def test_basic_module(self):
         module = self.ast.link
         self.assertTrue(isinstance(module, ModuleTypeGraphNode), 'module has no link to type info')
-        self.assertEquals(module.name, os.path.abspath(test_file_name), 'module has a wrong name')
+        self.assertEquals(module.name, test_file_name, 'module has a wrong name')
         self.assertEquals(module.ast, self.ast, 'module has a wrong link to ast')
 
     def test_walk_var_x(self):
@@ -81,6 +81,10 @@ class TestTirpan(unittest.TestCase):
         for elem in sys.path:
             tmp.append(get_new_string(elem))
         type1.elems = tmp
+        try:
+            list(nodeType)[0].unique = 0
+        except:
+            pass
         self.assertTrue(len(nodeType) == 1 and                                              \
                         any([type1 == elem for elem in nodeType]),                          \
                         'wrong types calculated')

@@ -12,6 +12,6 @@ import sys
 sys.path.insert(0, const.WEBSTUFF_PYTHON_DR)
 y = sys.path
 print y
-module = __import__(x)
+z = __import__(x)
 sys.path.pop(0)
-print module
+print z

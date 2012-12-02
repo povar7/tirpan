@@ -24,6 +24,8 @@ def import_from_file(mainfile, module, aliases):
 def run(filename):
     import __main__
     alias = QuasiAlias('__main__')
+    __main__.importer.set_main_path(filename)
+    __main__.importer.load_module('sys')
     __main__.importer.import_files(filename, [alias])
 
 if __name__ == '__main__':
