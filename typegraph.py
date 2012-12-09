@@ -226,8 +226,13 @@ class TypeGraphNode(object):
         while len(dep.nodeType) > 0:
             tt1 = dep.nodeType.pop()
             if len(tt1.elems) >= __main__.types_number:
-                continue 
-            for tt2 in self.nodeType:
+                continue
+            elems_types = self.nodeType.copy()
+            if len(elems_types) == 0 and \
+               index is not None and \
+               isinstance(tt1.elems, tuple):
+                elems_types.add(type_unknown)
+            for tt2 in elems_types:
                 if len(res) >= __main__.types_number:
                     break
                 tmp = deepcopy(tt1)
@@ -437,7 +442,10 @@ class UsualVarTypeGraphNode(VarTypeGraphNode):
 class ExternVarTypeGraphNode(VarTypeGraphNode):
     def __init__(self, name, var_type):
         super(ExternVarTypeGraphNode, self).__init__(name)
-        self.nodeType = set([var_type])
+        if isinstance(var_type, set):
+            self.nodeType = var_type
+        else:
+            self.nodeType = set([var_type])
                         
 class ListTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
@@ -509,7 +517,7 @@ class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
 
 class FuncDefTypeGraphNode(TypeGraphNode):
     MAX_LOAD           = 64
-    EXTERNAL_FUNCTIONS = ['abspath', 'append', 'compile', 'dirname', 'encode', 'insert', 'join', 'listdir', 'match', 'set', 'setattr', 'unicode', 'walk']
+    EXTERNAL_FUNCTIONS = ['abspath', 'add_actions', 'append', 'compile', 'dirname', 'encode', 'insert', 'join', 'listdir', 'match', 'set', 'setattr', 'unicode', 'walk']
 
     def __init__(self, name, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()
@@ -544,9 +552,11 @@ class FuncDefTypeGraphNode(TypeGraphNode):
     def elem_types(self):
         return set()
 
-    def isLoadTooBig(self):
+    def isLoadTooBig(self, cls):
         if self.name in FuncDefTypeGraphNode.EXTERNAL_FUNCTIONS:
-            return False 
+            return False
+        if cls and cls.name in ClassDefTypeGraphNode.EXTERNAL_CLASSES:
+            return False
         return self.load > FuncDefTypeGraphNode.MAX_LOAD
 
     def increaseLoad(self, types_tuple):
@@ -747,6 +757,8 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             self.nodeType.add(type_unknown)
 
 class ClassDefTypeGraphNode(TypeGraphNode):
+    EXTERNAL_CLASSES = ['ActionGroup']
+ 
     def __init__(self, name, parent_scope):
         super(ClassDefTypeGraphNode, self).__init__()
         self.nodeType   = set([self])
@@ -778,6 +790,9 @@ class ClassDefTypeGraphNode(TypeGraphNode):
 
     def addInstance(self, inst):
         self.instances.append(inst)
+
+    def getInstances(self):
+        return self.instances
 
 class UsualClassDefTypeGraphNode(ClassDefTypeGraphNode):
     def __init__(self, node, parent_scope):

@@ -136,8 +136,8 @@ class TIVisitor(ast.NodeVisitor):
     def visit_Call(self, node):
         if isinstance(node.func, ast.Attribute) and \
            isinstance(node.func.value, ast.Name) and \
-           node.func.value.id == 're' and \
-           node.func.attr == 'compile':
+           (node.func.value.id == 're' and node.func.attr == 'compile' or \
+            node.func.value.id == 'gtk' and node.func.attr == 'ActionGroup'):
             respect_flag = True
         else:
             respect_flag = False

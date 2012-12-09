@@ -17,3 +17,6 @@ Y = 'y'
 WEBSTUFF_PLUGIN_ID = 'system webstuff'
 WEBSTUFF_PYTHON_FN = 'webstuff.py'
 WEBSTUFF_PYTHON_DR = os.path.join(PLUGINS_DIR, 'webstuff')
+
+REPORT_KEY = 'FamilySheet'
+REPORT_MENU_NAME = 'Family Sheet...'
