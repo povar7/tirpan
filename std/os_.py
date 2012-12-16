@@ -8,7 +8,7 @@ def quasi_listdir(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     res = TypeList()
     try:
-        if type1.value.endswith('webstuff'):
+        if type1.value.endswith(('webstuff', 'FamilySheet')):
             filenames = os.listdir(type1.value)
             for elem in filenames:
                 if elem.endswith('.gpr.py'):
@@ -40,6 +40,14 @@ def quasi_walk(scope):
         pass
     return set([res])
 
+def quasi_environ():
+    res = TypeDict()
+    for pair in os.environ.items():
+        new_pair = (pair[0], get_new_string(pair[1]))
+        res.add_key(get_new_string(new_pair[0]))
+        res.add_pair(new_pair)
+    return res
+
 functions = [                                       \
                 ['listdir', quasi_listdir, 1],      \
                 ['walk'   , quasi_walk   , 1]       \
@@ -49,6 +57,7 @@ stubs     = [                                       \
             ]
 
 variables = [                                       \
+                ['environ', quasi_environ]          \
             ]
 
 modules   = [                                       \

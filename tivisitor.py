@@ -19,7 +19,7 @@ class TIVisitor(ast.NodeVisitor):
         self.respect_values = False
 
     def visit_Num(self, node):
-        node.link = ConstTypeGraphNode(node.n, self.respect_values or self.filename.endswith('_pluginreg.py'))
+        node.link = ConstTypeGraphNode(node.n, self.respect_values or self.filename.endswith(('const.py', '_pluginreg.py')))
     
     def visit_Str(self, node):
         node.link = ConstTypeGraphNode(node.s, self.respect_values or self.filename.endswith(('const.py', '.gpr.py')))
@@ -293,6 +293,24 @@ class TIVisitor(ast.NodeVisitor):
                test.func.value.id == 'constfunc' and \
                test.func.attr == 'win':
                 skip_if = True
+            if isinstance(test.func, ast.Attribute) and \
+               isinstance(test.func.value, ast.Attribute) and \
+               isinstance(test.func.value.value, ast.Name) and \
+               test.func.value.value.id == 'os' and \
+               test.func.value.attr == 'environ' and \
+               test.func.attr == 'has_key' and \
+               len(test.args) == 1 and \
+               isinstance(test.args[0], ast.Str):
+                save = self.left_part
+                self.left_part = False
+                self.visit(test.func.value)
+                self.left_part = save
+                nodeType = test.func.value.link.nodeType
+                for elem in nodeType:
+                    if isinstance(elem, TypeDict) and isinstance(elem._dict, dict):
+                        if not elem._dict.has_key(test.args[0].s):
+                            skip_if = True
+                            break
         elif isinstance(test, ast.Compare):
             if isinstance(test.left, ast.Str) and \
                isinstance(test.left.s, str) and \

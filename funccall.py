@@ -207,6 +207,14 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
         func_scope    = Scope(params_copy)
         __main__.current_scope = func_scope
         if isinstance(func, UsualFuncDefTypeGraphNode):
+            if func.name == 'scan_dir' and \
+               len(elem_copy) > 1 and \
+               isinstance(elem_copy[1], TypeBaseString):
+                if elem_copy[1].value is None or \
+                   not elem_copy[1].value.endswith(('webstuff', 'FamilySheet')):
+                    del func.templates[elem_copy]
+                    func.decreaseLoad()
+                    return set()
             ast_copy  = deepcopy(func.ast)
             saved_res = __main__.current_res
             __main__.current_res = set()

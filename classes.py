@@ -233,7 +233,7 @@ def get_subscript(collection, index):
             try:
                 return set([collection._dict[index]])
             except KeyError:
-                pass        
+                return set()
         return collection.vals
     else:
         return set()

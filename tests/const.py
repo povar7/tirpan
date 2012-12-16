@@ -20,3 +20,9 @@ WEBSTUFF_PYTHON_DR = os.path.join(PLUGINS_DIR, 'webstuff')
 
 REPORT_KEY = 'FamilySheet'
 REPORT_MENU_NAME = 'Family Sheet...'
+
+VERSION_TUPLE = (3, 3, 0)
+USER_HOME     = os.environ['HOME']
+HOME_DIR      = os.path.join(USER_HOME, '.gramps')
+VERSION_DIR   = os.path.join(HOME_DIR, "gramps%s%s" % (VERSION_TUPLE[0], VERSION_TUPLE[1]))
+USER_PLUGINS  = os.path.join(VERSION_DIR, "plugins")

@@ -136,6 +136,19 @@ def quasi_lshift(scope):
 
 def quasi_mod(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
+    type2 = list(scope.findParam(2).nodeType)[0]
+    try:
+        tmp_list = []
+        if isinstance(type2, TypeTuple) and isinstance(type2.elems, tuple):
+            for atom in type2.elems:
+                tmp_list.append(atom.value)
+        else:
+            tmp_list.append(type2.value)
+        tmp = tuple(tmp_list)
+        res = get_new_string(type1.value % tmp)
+        return set([res])
+    except:
+        pass
     if isinstance(type1, TypeStr):
         return set([type_str])
     if isinstance(type1, TypeUnicode):
