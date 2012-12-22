@@ -13,16 +13,18 @@ from typegraph import *
 from utils     import *
 
 class TIVisitor(ast.NodeVisitor):
+    CONST_FILES = ('const.py', '.gpr.py', '_pluginreg.py')
+
     def __init__(self, filename):
         self.filename       = filename
         self.left_part      = False
         self.respect_values = False
 
     def visit_Num(self, node):
-        node.link = ConstTypeGraphNode(node.n, self.respect_values or self.filename.endswith(('const.py', '_pluginreg.py')))
+        node.link = ConstTypeGraphNode(node.n, self.respect_values or self.filename.endswith(TIVisitor.CONST_FILES))
     
     def visit_Str(self, node):
-        node.link = ConstTypeGraphNode(node.s, self.respect_values or self.filename.endswith(('const.py', '.gpr.py')))
+        node.link = ConstTypeGraphNode(node.s, self.respect_values or self.filename.endswith(TIVisitor.CONST_FILES))
         
     def visit_Name(self, node):
         if node.id == 'None':
@@ -178,7 +180,21 @@ class TIVisitor(ast.NodeVisitor):
         else:
             self.visit(target)
             self.left_part = save
-            node.iter.link.addDependency(DependencyType.AssignElem, target.link)
+            cond = None
+            try:
+                first_if = node.ifs[0]
+                if isinstance(target, ast.Name) and \
+                   isinstance(first_if, ast.Compare) and \
+                   isinstance(first_if.left, ast.Attribute) and \
+                   isinstance(first_if.left.value, ast.Name) and \
+                   first_if.left.value.id == target.id and \
+                   len(first_if.ops) == 1 and \
+                   isinstance(first_if.ops[0], ast.Eq) and \
+                   len(first_if.comparators) == 1:
+                    cond = first_if
+            except:
+                pass
+            node.iter.link.addDependency(DependencyType.AssignElem, target.link, None, cond)
 
     def visit_For(self, node):
         self.common_in(node)

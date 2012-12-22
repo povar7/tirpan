@@ -51,14 +51,27 @@ def need_to_skip(var_arg_type, sub_arg_type, objects):
             pass
     return True
 
-def smart_union(set1, set2):
+def smart_union(set1, set2, cond = None):
     import __main__
+    from tivisitor import TIVisitor
     added_strings = 0
+    if cond is not None:
+        visitor = TIVisitor(None)
     for elem in set2:
         if len(set1) - added_strings >= __main__.types_number:
 	    set1.discard(type_unknown)
             return set1
         try:
+            if cond is not None:
+                try:
+                    left_type  = get_attributes([elem], cond.left.attr)
+                    ast_copy   = deepcopy(cond.comparators[0])
+                    visitor.visit(ast_copy)
+                    right_type = ast_copy.link.nodeType 
+                    if not left_type.issuperset(right_type):
+                        continue
+                except:
+                    pass
             set1.add(elem)
             if isinstance(elem, TypeBaseString) or \
                isinstance(elem, TypeList) and all([isinstance(atom, (TypeBaseString, TypeUnknown)) for atom in elem.elems]):
@@ -196,13 +209,17 @@ class TypeGraphNode(object):
                 pass
     
     def assign_elem_dep(self, dep, *args):
+        index = args[0]
         try:
-            index = args[0]
-            new_types = self.elem_types_index(index)
+            cond = args[1]
         except IndexError:
+            cond = None
+        if index is not None:
+            new_types = self.elem_types_index(index)
+        else:
             new_types = self.elem_types()
         if len(new_types - dep.nodeType) > 0:
-            dep.nodeType = smart_union(dep.nodeType, new_types)
+            dep.nodeType = smart_union(dep.nodeType, new_types, cond)
             dep.generic_dependency()
 
     def assign_double_dep(self, dep, *args):
@@ -226,6 +243,7 @@ class TypeGraphNode(object):
         while len(dep.nodeType) > 0:
             tt1 = dep.nodeType.pop()
             if len(tt1.elems) >= __main__.types_number:
+                res.add(tt1)
                 continue
             elems_types = self.nodeType.copy()
             if len(elems_types) == 0 and \
@@ -257,6 +275,7 @@ class TypeGraphNode(object):
         while len(dep.nodeType) > 0:
             tt1 = dep.nodeType.pop()
             if len(tt1.keys) >= __main__.types_number:
+                res.add(tt1)
                 continue 
             for tt2 in self.nodeType:
                 if len(res) >= __main__.types_number:
@@ -273,6 +292,7 @@ class TypeGraphNode(object):
         while len(dep.nodeType) > 0:
             tt1 = dep.nodeType.pop()
             if len(tt1.vals) >= __main__.types_number:
+                res.add(tt1)
                 continue 
             for tt2 in self.nodeType:
                 if len(res) >= __main__.types_number:

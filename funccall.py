@@ -266,6 +266,10 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
             for new_elem in get_elem_set(elem, params_copy):
                 process_out_params(args, starargs, kwargs, new_elem, elem_copy, star_res, kw_res, attr_call)
     try:
-        return func.templates[elem_copy].result
+        result = func.templates[elem_copy].result
+        if func.name == 'newplugin':
+            del func.templates[elem_copy]
+            func.decreaseLoad()
+        return result
     except KeyError:
         return set()
