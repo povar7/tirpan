@@ -47,6 +47,18 @@ def quasi_execfile(scope, **kwargs):
         pass
     return set([type_none])
 
+def quasi_getattr(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    type2 = list(scope.findParam(2).nodeType)[0]
+    try:
+        value = type2.value
+        if value is not None:
+            from classes import get_attributes
+            return get_attributes(set([type1]), value)
+    except AttributeError:
+        pass
+    return set() 
+
 def quasi_import(scope, **kwargs):
     type1 = list(scope.findParam(1).nodeType)[0]
     try:
@@ -144,6 +156,7 @@ def get_quasi_unicode_name():
 
 functions = [
                 ['execfile'  , quasi_execfile, 3 , {2 : type_none, 3 : type_none}], \
+                ['getattr'   , quasi_getattr , 2],                                  \
                 ['__import__', quasi_import  , 1],                                  \
                 ['len'       , quasi_len     , 1],                                  \
                 ['range'     , quasi_range1  , 1],                                  \

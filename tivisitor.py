@@ -8,12 +8,13 @@ import ast
 
 import __main__
 
+from classes   import get_quasi_getattr_instance_name 
 from init      import get_operator_name 
 from typegraph import *
 from utils     import *
 
 class TIVisitor(ast.NodeVisitor):
-    CONST_FILES = ('const.py', '.gpr.py', '_pluginreg.py')
+    CONST_FILES = ('const.py', '.gpr.py', '_pluginreg.py', '_docreportdialog.py')
 
     def __init__(self, filename):
         self.filename       = filename
@@ -21,17 +22,20 @@ class TIVisitor(ast.NodeVisitor):
         self.respect_values = False
 
     def visit_Num(self, node):
-        node.link = ConstTypeGraphNode(node.n, self.respect_values or self.filename.endswith(TIVisitor.CONST_FILES))
+        node.link = ConstTypeGraphNode(node.n, self.respect_values or (self.filename and self.filename.endswith(TIVisitor.CONST_FILES)))
     
     def visit_Str(self, node):
-        node.link = ConstTypeGraphNode(node.s, self.respect_values or self.filename.endswith(TIVisitor.CONST_FILES))
+        node.link = ConstTypeGraphNode(node.s, self.respect_values or (self.filename and self.filename.endswith(TIVisitor.CONST_FILES)))
         
     def visit_Name(self, node):
         if node.id == 'None':
             node.link = ConstTypeGraphNode(None)
         else:
             if self.left_part:
-                file_scope = __main__.importer.get_ident(node.fileno).scope 
+                try:
+                    file_scope = __main__.importer.get_ident(node.fileno).scope
+                except AttributeError:
+                    file_scope = None
                 link       = __main__.current_scope.findOrAdd(node.id, True, file_scope)
             else:
                 link       = __main__.current_scope.findOrAdd(node.id)
@@ -139,7 +143,8 @@ class TIVisitor(ast.NodeVisitor):
         if isinstance(node.func, ast.Attribute) and \
            isinstance(node.func.value, ast.Name) and \
            (node.func.value.id == 're' and node.func.attr == 'compile' or \
-            node.func.value.id == 'gtk' and node.func.attr == 'ActionGroup'):
+            node.func.value.id == 'gtk' and node.func.attr == 'ActionGroup' or \
+            node.func.value.id == get_quasi_getattr_instance_name() and node.func.attr == '__getattr__'):
             respect_flag = True
         else:
             respect_flag = False
