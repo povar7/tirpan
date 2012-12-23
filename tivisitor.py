@@ -14,12 +14,13 @@ from typegraph import *
 from utils     import *
 
 class TIVisitor(ast.NodeVisitor):
-    CONST_FILES = ('const.py', '.gpr.py', '_pluginreg.py', '_docreportdialog.py')
+    CONST_FILES = ('const.py', '.gpr.py', '_pluginreg.py', '_docreportdialog.py', 'webstuff.py')
 
     def __init__(self, filename):
-        self.filename       = filename
-        self.left_part      = False
-        self.respect_values = False
+        self.filename            = filename
+        self.left_part           = False
+        self.respect_values      = False
+        self.treat_list_as_tuple = [False]
 
     def visit_Num(self, node):
         node.link = ConstTypeGraphNode(node.n, self.respect_values or (self.filename and self.filename.endswith(TIVisitor.CONST_FILES)))
@@ -78,8 +79,19 @@ class TIVisitor(ast.NodeVisitor):
         node.link.addDependency(DependencyType.Assign, target.link)
 
     def visit_List(self, node):
+        treat_flag = self.treat_list_as_tuple[-1]
+        if len(node.elts) > 1 and \
+           all([isinstance(elt, ast.List) and len(elt.elts) > 1 for elt in node.elts]) and \
+           checkEqual([len(elt.elts) for elt in node.elts]):
+            self.treat_list_as_tuple.append(True)
+        else:
+            self.treat_list_as_tuple.append(False)
         self.generic_visit(node)
-        node.link = ListTypeGraphNode(node)
+        self.treat_list_as_tuple.pop()
+        if not treat_flag:
+            node.link = ListTypeGraphNode(node)
+        else:
+            node.link = TupleTypeGraphNode(node)
         
     def visit_Dict(self, node):
         self.generic_visit(node)
