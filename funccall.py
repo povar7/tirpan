@@ -175,7 +175,7 @@ def get_elem_set(elem, params_copy):
 def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, kwarg_elem, attr_call, file_number):
     import __main__
     from tivisitor import TIVisitor
-    from typegraph import DependencyType, ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
+    from typegraph import DependencyType, AttributeTypeGraphNode, ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
     cls, func = pair
     cls_instance = make_new_instance(cls)
     if cls_instance:
@@ -248,10 +248,15 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
             args_scope = __main__.current_scope
             __main__.current_scope = saved_scope
             try:
-                func.templates[elem_copy].result = func.quasi(args_scope, FILE_NUMBER=file_number)
+                if func.name == 'connect' and \
+                   len(args) == 3 and \
+                   isinstance(args[2], AttributeTypeGraphNode):
+                    func.templates[elem_copy].result = func.quasi(args_scope, OBJECTS=args[2].objects)
+                else:
+                    func.templates[elem_copy].result = func.quasi(args_scope, FILE_NUMBER=file_number)
             except TypeError:
                 func.templates[elem_copy].result = func.quasi(args_scope)
-            func.templates[elem_copy].args   = elem
+            func.templates[elem_copy].args = elem
     else:
         params_copy = None
         elem_copy   = key

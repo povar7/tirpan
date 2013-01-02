@@ -483,7 +483,7 @@ class TupleTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
         super(TupleTypeGraphNode, self).__init__()
         tuple_type       = TypeTuple()
-        tuple_type.elems = (None,) * len(node.elts)
+        tuple_type.elems = (type_none,) * len(node.elts)
         self.nodeType    = set([tuple_type])
         index = 0
         for elt in node.elts:

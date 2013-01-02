@@ -61,7 +61,7 @@ def find_name_in_class_def(class_def, name):
     for baseType in class_def.basesTypes:
         base_class_defs = set([elem for elem in baseType if isinstance(elem, ClassDefTypeGraphNode)])
         for elem in base_class_defs:
-            res = elem.scope.findInScope(name)
+            res = find_name_in_class_def(elem, name)
             if res is not None:
                 return res
     return None

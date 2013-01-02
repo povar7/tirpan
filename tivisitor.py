@@ -156,6 +156,7 @@ class TIVisitor(ast.NodeVisitor):
            isinstance(node.func.value, ast.Name) and \
            (node.func.value.id == 're' and node.func.attr == 'compile' or \
             node.func.value.id == 'gtk' and node.func.attr == 'ActionGroup' or \
+            node.func.value.id == 'gtk' and node.func.attr == 'Dialog' or \
             node.func.value.id == get_quasi_getattr_instance_name() and node.func.attr == '__getattr__'):
             respect_flag = True
         else:
