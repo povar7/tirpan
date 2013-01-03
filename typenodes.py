@@ -202,7 +202,7 @@ class TypeDict(TypeStandard):
         return (self.keys == other.keys) and (self.vals == other.vals) 
 
     def instance_hash(self):
-        return hash((tuple(self.keys), tuple(self.vals)))
+        return hash((frozenset(self.keys), frozenset(self.vals)))
 
     def elem_types(self):
         return self.keys
@@ -215,8 +215,9 @@ class TypeDict(TypeStandard):
 
     def __deepcopy__(self, memo):
         res = shallowcopy(self)
-        res.keys = shallowcopy(self.keys)
-        res.vals = shallowcopy(self.vals)
+        res.keys  = shallowcopy(self.keys)
+        res.vals  = shallowcopy(self.vals)
+        res._dict = shallowcopy(self._dict)
         return res
 
 class TypeUnknown(TypeNode):

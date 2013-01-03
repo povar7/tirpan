@@ -62,8 +62,10 @@ def find_previous_key(elem, keys):
 def find_previous_key_index(elem, keys, index):
     for key in keys:
         try:
-            if key[index] == elem[index]:
+            if unicode(key[index].value) == unicode(elem[index].value):
                 return key
+        except AttributeError:
+            pass
         except IndexError:
             pass
         except RuntimeError:

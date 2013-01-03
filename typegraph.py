@@ -403,7 +403,8 @@ class TypeGraphNode(object):
         try:
             if len(self.objects - dep.nodeType) > 0:
                 old_len = smart_len(dep.nodeType)
-                dep.nodeType = smart_deepcopy_union(dep.nodeType, self.objects)
+                #dep.nodeType = smart_deepcopy_union(dep.nodeType, self.objects)
+                dep.nodeType = smart_union(dep.nodeType, self.objects)
                 if isinstance(dep, (AttributeTypeGraphNode, SubscriptTypeGraphNode)): 
                     if len(dep.nodeType - dep.values) > 0:
                         dep.values = smart_union(dep.values, dep.nodeType)
@@ -515,6 +516,18 @@ class DictTypeGraphNode(TypeGraphNode):
             valueLink = node.values[i].link
             keyLink  .addDependency(DependencyType.Key, self)
             valueLink.addDependency(DependencyType.Val, self)
+            index = None
+            if isinstance(node.keys[i], ast.Num):
+                index = node.keys[i].n
+            elif isinstance(node.keys[i], ast.Str):
+                index = node.keys[i].s
+            if index is not None and len(valueLink.nodeType) == 1:
+                for dict_type in self.nodeType:
+                    if not isinstance(dict_type, TypeDict):
+                        continue
+                    if dict_type._dict is None:
+                        dict_type._dict = {}
+                    dict_type._dict[index] = list(valueLink.nodeType)[0]
 
 class ModuleTypeGraphNode(TypeGraphNode):
     def __init__(self, name, parent_scope, inherited_scope):
@@ -920,6 +933,16 @@ class SubscriptTypeGraphNode(TypeGraphNode):
         if index is None:
             try:
                 index = self.index.s
+            except AttributeError:
+                pass
+        if index is None and isinstance(self.index, ast.Subscript):
+            try:
+                var = self.index.link
+                if len(var.objects) == 1 and \
+                   isinstance(list(var.objects)[0], TypeTuple) and \
+                   isinstance(var.index, ast.Num) and \
+                   len(var.nodeType) == 1:
+                    index = list(var.nodeType)[0].value 
             except AttributeError:
                 pass
         new_objects   = set_subscripts(self.objects, self.values, self.is_index, index)

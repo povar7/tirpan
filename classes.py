@@ -224,8 +224,13 @@ def set_subscript(collection, values, is_index, index):
                    collection._dict is None and \
                    len(collection.vals) == 0:
                     collection_copy = collection
+                elif isinstance(collection, TypeDict) and \
+                     index is not None and \
+                     (collection._dict is None or not index in collection._dict or collection._dict[index] == value):
+                    collection_copy = collection
                 else:
                     collection_copy = deepcopy(collection)
+                    res.add(collection_copy)
                 if index is not None and \
                    isinstance(collection_copy, TypeTuple) and \
                    isinstance(collection_copy.elems, tuple):
@@ -236,8 +241,11 @@ def set_subscript(collection, values, is_index, index):
                     except IndexError:
                         collection_copy.add_elem(value)
                 else:
+                    if index is not None and isinstance(collection_copy, TypeDict):
+                        if collection_copy._dict is None:
+                            collection_copy._dict = {}
+                        collection_copy._dict[index] = value
                     collection_copy.add_elem(value)
-                res.add(collection_copy)
         else:
             if not isinstance(value, (TypeList, TypeTuple)):
                 continue
@@ -294,9 +302,10 @@ def set_slice(dictionary, slices_types):
             if isinstance(slice_type, ClassInstanceTypeGraphNode) and \
                any([isinstance(key, ClassInstanceTypeGraphNode) and key.cls == slice_type.cls for key in keys]):
                 continue
-            dictionary_copy = deepcopy(dictionary)
+            #dictionary_copy = deepcopy(dictionary)
+            dictionary_copy = dictionary
             dictionary_copy.add_key(slice_type)
-            res.add(dictionary_copy)
+            #res.add(dictionary_copy)
     return res
 
 def set_slices(objects, slices_types):

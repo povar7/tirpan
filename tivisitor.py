@@ -6,6 +6,8 @@ Created on 03.01.2012
 
 import ast
 
+from copy import deepcopy
+
 import __main__
 
 from classes   import get_quasi_getattr_instance_name 
@@ -217,8 +219,27 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_For(self, node):
         self.common_in(node)
-        for nn in node.body:
-            self.visit(nn)
+        if isinstance(node.target, ast.Name) and node.target.id == 'css':
+            var = node.target.link
+            nodeType  = var.nodeType
+            type_copy = nodeType.copy()
+            for elem in type_copy:
+                save = var.parent
+                var.parent   = None
+                var.nodeType = None
+                var_copy = deepcopy(var)
+                var.nodeType = nodeType 
+                var.parent = save
+                __main__.current_scope.add(var_copy)
+                var_copy.parent = var.parent
+                var_copy.nodeType = set([elem])
+                ast_copy = deepcopy(node.body)
+                for nn in ast_copy:
+                    self.visit(nn)
+            __main__.current_scope.add(var)
+        else:
+            for nn in node.body:
+                self.visit(nn)
 
     def visit_BinOp(self, node):
         self.visit(node.left)
