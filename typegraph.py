@@ -109,6 +109,21 @@ def smart_len(a_set):
     else:
         return len(a_set)
 
+def filter_true_types(var):
+    false_types = set()
+    true_types  = set()
+    for elem in var.nodeType:
+        if not isinstance(elem, TypeNone):
+            true_types.add(elem)
+        else:
+            false_types.add(elem)
+    var.nodeType = true_types
+    return false_types 
+
+def unfilter_true_types(var, false_types):
+    var.nodeType = smart_union(var.nodeType, false_types) 
+
+
 class DependencyType(object):
     Assign       = 'assign'
     AssignElem   = 'assign_elem'
@@ -537,7 +552,7 @@ class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
 
 class FuncDefTypeGraphNode(TypeGraphNode):
     MAX_LOAD           = 64
-    EXTERNAL_FUNCTIONS = ['abspath', 'add_actions', 'append', 'compile', 'dirname', 'encode', 'getattr', 'insert', 'join', 'listdir', 'match', 'set', 'setattr', 'unicode', 'walk']
+    EXTERNAL_FUNCTIONS = ['abspath', 'add_actions', 'append', 'compile', 'dirname', 'encode', 'extend', 'getattr', 'insert', 'iter', 'join', 'listdir', 'match', 'set', 'setattr', 'unicode', 'walk']
 
     def __init__(self, name, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()

@@ -26,6 +26,17 @@ def quasi_append(scope):
     type1.add_elem(type2)
     return set([type_none])
 
+def quasi_extend(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    type2 = list(scope.findParam(2).nodeType)[0]
+    if not isinstance(type1, TypeList):
+        return set([type_none])
+    if not isinstance(type2, TypeListOrTuple):
+        return set([type_none])
+    for elem in type2.elems:
+        type1.add_elem(elem)
+    return set([type_none])
+
 def quasi_execfile(scope, **kwargs):
     type1 = list(scope.findParam(1).nodeType)[0]
     try:
@@ -72,6 +83,13 @@ def quasi_import(scope, **kwargs):
     except:
         pass
     return set()
+
+def quasi_iter(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    if not isinstance(type1, TypeListOrTuple):
+        return set([type_none])
+    res = shallowcopy(type1)
+    return set([res])
 
 def quasi_len(scope):
     return set([type_int])
@@ -158,6 +176,7 @@ functions = [
                 ['execfile'  , quasi_execfile, 3 , {2 : type_none, 3 : type_none}], \
                 ['getattr'   , quasi_getattr , 2],                                  \
                 ['__import__', quasi_import  , 1],                                  \
+                ['iter'      , quasi_iter    , 1],                                  \
                 ['len'       , quasi_len     , 1],                                  \
                 ['range'     , quasi_range1  , 1],                                  \
                 ['range'     , quasi_range3  , 3 , {3 : type_int}],                 \
@@ -200,6 +219,7 @@ quasi_list_object = (                                        \
                         get_quasi_list_name(),               \
                         [                                    \
                             ['append', quasi_append, 2],     \
+                            ['extend', quasi_extend, 2],     \
                             ['insert', quasi_insert, 3]      \
                         ],                                   \
                         [                                    \

@@ -10,6 +10,7 @@ import __main__
 
 from classes   import get_quasi_getattr_instance_name 
 from init      import get_operator_name 
+from tiexcepts import check_exceptions
 from typegraph import *
 from utils     import *
 
@@ -364,8 +365,13 @@ class TIVisitor(ast.NodeVisitor):
                             skip_else = True
                 self.left_part = save 
         if not skip_if:
+            if isinstance(test, ast.Name):
+                self.visit(test)
+                false_types = filter_true_types(test.link)
             for stmt in node.body:
                 self.visit(stmt)
+            if isinstance(test, ast.Name):
+                unfilter_true_types(test.link, false_types)
         if not skip_else:
             for stmt in node.orelse:
                 self.visit(stmt)
@@ -405,3 +411,20 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_comprehension(self, node):
         self.common_in(node)
+
+    def visit_TryExcept(self, node):
+        if len(node.handlers) == 1 and \
+           isinstance(node.handlers[0], ast.ExceptHandler) and \
+           node.handlers[0].type is None:
+            skip_handlers = True
+        else:
+            skip_handlers = False
+        for stmt in node.body:
+            self.visit(stmt)
+            if skip_handlers:
+                skip_handlers = check_exceptions(stmt)
+        if not skip_handlers:
+            for handler in node.handlers:
+                self.visit(handler)
+        for stmt in node.orelse:
+            self.visit(stmt)
