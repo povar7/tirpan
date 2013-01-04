@@ -8,7 +8,7 @@ def quasi_listdir(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     res = TypeList()
     try:
-        if type1.value.endswith(('webstuff', 'FamilySheet')):
+        if type1.value.endswith(('docgen', 'webstuff', 'FamilySheet')):
             filenames = os.listdir(type1.value)
             for elem in filenames:
                 if elem.endswith('.gpr.py'):

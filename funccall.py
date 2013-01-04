@@ -213,7 +213,7 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
                len(elem_copy) > 1 and \
                isinstance(elem_copy[1], TypeBaseString):
                 if elem_copy[1].value is None or \
-                   not elem_copy[1].value.endswith(('webstuff', 'FamilySheet')):
+                   not elem_copy[1].value.endswith(('docgen', 'webstuff', 'FamilySheet')):
                     del func.templates[elem_copy]
                     func.decreaseLoad()
                     return set()

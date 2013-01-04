@@ -58,7 +58,8 @@ def smart_union(set1, set2, cond = None):
     if cond is not None:
         visitor = TIVisitor(None)
     for elem in set2:
-        if len(set1) - added_good_elements >= __main__.types_number:
+        if len(set1) - added_good_elements >= __main__.types_number and \
+           not isinstance(elem, (ModuleTypeGraphNode, TypeNone)):
 	    set1.discard(type_unknown)
             return set1
         try:
@@ -75,7 +76,8 @@ def smart_union(set1, set2, cond = None):
             set1.add(elem)
             if isinstance(elem, TypeBaseString) or \
                isinstance(elem, TypeList) and all([isinstance(atom, (TypeBaseString, TypeUnknown)) for atom in elem.elems]) or \
-               isinstance(elem, TypeDict) and elem._dict:
+               isinstance(elem, TypeDict) and elem._dict or \
+               isinstance(elem, ModuleTypeGraphNode):
                 added_good_elements += 1
         except RuntimeError:
             pass
@@ -101,14 +103,16 @@ def smart_deepcopy_union(set1, set2):
     added_good_elements = 0
     set2_copy = deepcopy(set2)
     for elem in set2_copy:
-        if len(set1) - added_good_elements >= __main__.types_number:
+        if len(set1) - added_good_elements >= __main__.types_number and \
+           not isinstance(elem, (ModuleTypeGraphNode, TypeNone)):
             set1.discard(type_unknown)
             return set1
         try:
             set1.add(elem)
             if isinstance(elem, TypeBaseString) or \
                isinstance(elem, TypeList) and all([isinstance(atom, (TypeBaseString, TypeUnknown)) for atom in elem.elems]) or \
-               isinstance(elem, TypeDict) and elem._dict:
+               isinstance(elem, TypeDict) and elem._dict or \
+               isinstance(elem, ModuleTypeGraphNode):
                 added_good_elements += 1
         except RuntimeError:
             pass
@@ -703,7 +707,10 @@ class FuncCallTypeGraphNode(TypeGraphNode):
         self.col       = getCol(node)
         self.fno       = getFileNumber(node)
         if var is None:
-            var = node.func.link
+            try:
+                var = node.func.link
+            except AttributeError:
+                var = None
         try:
             self.args  = None
             var.addDependency(DependencyType.Func, self)

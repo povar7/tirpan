@@ -10,8 +10,10 @@ from copy import copy as shallowcopy, deepcopy
 from builtin   import get_quasi_list, get_quasi_str, get_quasi_unicode
 from typenodes import *
 
+type_list = TypeList()
+
 def get_singletons_list():
-    return ['GuiPluginManager', 'BasePluginManager', 'PluginRegister']
+    return ['DocGenPlugin', 'GuiPluginManager', 'BasePluginManager', 'PluginRegister']
 
 def get_quasi_getattr_instance_name():
     return '#GETATTR_INSTANCE#'
@@ -67,7 +69,15 @@ def find_name_in_class_def(class_def, name):
     return None
 
 def find_name_in_module(module, name):
-    return module.scope.findInScope(name)
+    import __main__
+    from tiimporter import QuasiAlias
+    res = module.scope.findInScope(name)
+    if res is None and module.name.endswith('__init__.py'):
+        save = __main__.current_scope
+        __main__.current_scope = module.scope 
+        res = __main__.importer.import_files(module.name, [QuasiAlias(name)])
+        __main__.current_scope = save
+    return res
 
 def find_name_in_class_inst(class_inst, name):
     import __main__
@@ -149,6 +159,12 @@ def make_new_instance(cls):
     if cls is None:
         return None
     else:
+        if cls.name in get_singletons_list():
+            instances = cls.getInstances()
+            try:
+                return instances[0]
+            except IndexError:
+                pass
         return ClassInstanceTypeGraphNode(cls)
 
 def avoid_loop(obj, attr, value):
@@ -190,7 +206,10 @@ def set_attribute(obj, attr, value, var, init_flag):
             var = None
     if var:
         try:
-            var.nodeType.add(value)
+            if var.name == '__plugindata' and value == type_list:
+                var.nodeType.add(TypeList(True))
+            else:
+                var.nodeType.add(value)
         except RuntimeError:
             pass
 

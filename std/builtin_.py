@@ -73,15 +73,16 @@ def quasi_getattr(scope):
 def quasi_import(scope, **kwargs):
     type1 = list(scope.findParam(1).nodeType)[0]
     try:
-        if type1.value is not None:
-            import __main__
-            from tiimporter import QuasiAlias
-            fileno   = kwargs['FILE_NUMBER']
-            filename = __main__.importer.get_ident(fileno).name
-            res = __main__.importer.import_files(filename, [QuasiAlias(type1.value, QuasiAlias.NONAME)])
-            return set([res])
-    except:
-        pass
+        value = type1.value
+    except AttributeError:
+        return set()
+    if value is not None:
+        import __main__
+        from tiimporter import QuasiAlias
+        fileno   = kwargs['FILE_NUMBER']
+        filename = __main__.importer.get_ident(fileno).name
+        res = __main__.importer.import_files(filename, [QuasiAlias(type1.value, QuasiAlias.NONAME)])
+        return set([res])
     return set()
 
 def quasi_iter(scope):
