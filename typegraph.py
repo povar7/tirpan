@@ -54,11 +54,11 @@ def need_to_skip(var_arg_type, sub_arg_type, objects):
 def smart_union(set1, set2, cond = None):
     import __main__
     from tivisitor import TIVisitor
-    added_strings = 0
+    added_good_elements = 0
     if cond is not None:
         visitor = TIVisitor(None)
     for elem in set2:
-        if len(set1) - added_strings >= __main__.types_number:
+        if len(set1) - added_good_elements >= __main__.types_number:
 	    set1.discard(type_unknown)
             return set1
         try:
@@ -74,8 +74,20 @@ def smart_union(set1, set2, cond = None):
                     pass
             set1.add(elem)
             if isinstance(elem, TypeBaseString) or \
-               isinstance(elem, TypeList) and all([isinstance(atom, (TypeBaseString, TypeUnknown)) for atom in elem.elems]):
-                added_strings += 1
+               isinstance(elem, TypeList) and all([isinstance(atom, (TypeBaseString, TypeUnknown)) for atom in elem.elems]) or \
+               isinstance(elem, TypeDict) and elem._dict:
+                added_good_elements += 1
+        except RuntimeError:
+            pass
+    if len(set1) > 1:
+        set1.discard(type_unknown)
+    return set1
+
+def smart_union_dicts(set1, set2):
+    for elem in set2:
+        try:
+            if isinstance(elem, TypeDict) and elem._dict:
+                set1.add(elem)
         except RuntimeError:
             pass
     if len(set1) > 1:
@@ -86,17 +98,18 @@ def smart_deepcopy_union(set1, set2):
     import __main__
     if len(set1) >= __main__.types_number:
         return set1
-    added_strings = 0
+    added_good_elements = 0
     set2_copy = deepcopy(set2)
     for elem in set2_copy:
-        if len(set1) - added_strings >= __main__.types_number:
+        if len(set1) - added_good_elements >= __main__.types_number:
             set1.discard(type_unknown)
             return set1
         try:
             set1.add(elem)
             if isinstance(elem, TypeBaseString) or \
-               isinstance(elem, TypeList) and all([isinstance(atom, (TypeBaseString, TypeUnknown)) for atom in elem.elems]):
-                added_strings += 1
+               isinstance(elem, TypeList) and all([isinstance(atom, (TypeBaseString, TypeUnknown)) for atom in elem.elems]) or \
+               isinstance(elem, TypeDict) and elem._dict:
+                added_good_elements += 1
         except RuntimeError:
             pass
     if len(set1) > 1:
@@ -388,11 +401,18 @@ class TypeGraphNode(object):
     def base_dep(self, dep):
         pass
 
-    def attrobject_dep(self, dep):
+    def attrobject_dep(self, dep, *args):
+        try:
+            is_string = args[0]
+        except IndexError:
+            is_string = False
         try:
             if len(self.nodeType - dep.objects) > 0:
                 old_len = smart_len(dep.objects)
-                dep.objects = smart_union(dep.objects, self.nodeType)
+                if is_string:
+                    dep.objects = smart_union_dicts(dep.objects, self.nodeType)
+                else:
+                    dep.objects = smart_union(dep.objects, self.nodeType)
                 if smart_len(dep.objects) > old_len:
                     dep.process()
                     dep.generic_dependency()

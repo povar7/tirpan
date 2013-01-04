@@ -269,9 +269,9 @@ def get_subscript(collection, index):
             try:
                 return set([collection.elems[index]])
             except IndexError:
-                pass
+                return set()
             except TypeError:
-                pass
+                return set()
         return collection.elem_types()
     elif isinstance(collection, TypeDict):
         if index is not None and isinstance(collection._dict, dict):
