@@ -1,7 +1,8 @@
 a = 1
 b = []
 b = 3.14
-if b:
+c = 'abc'
+if b and c:
     a = b
 b = ()
 print a
