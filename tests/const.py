@@ -26,3 +26,5 @@ USER_HOME     = os.environ['HOME']
 HOME_DIR      = os.path.join(USER_HOME, '.gramps')
 VERSION_DIR   = os.path.join(HOME_DIR, "gramps%s%s" % (VERSION_TUPLE[0], VERSION_TUPLE[1]))
 USER_PLUGINS  = os.path.join(VERSION_DIR, "plugins")
+
+CONST_PYTHON_FN = os.path.basename('../tests/const.py')

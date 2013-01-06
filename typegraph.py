@@ -587,7 +587,7 @@ class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
 
 class FuncDefTypeGraphNode(TypeGraphNode):
     MAX_LOAD           = 64
-    EXTERNAL_FUNCTIONS = ['abspath', 'add_actions', 'append', 'compile', 'dirname', 'encode', 'extend', 'getattr', 'insert', 'iter', 'join', 'listdir', 'match', 'set', 'setattr', 'unicode', 'walk']
+    EXTERNAL_FUNCTIONS = ['abspath', 'add_actions', 'append', 'basename', 'compile', 'dirname', 'encode', 'extend', 'getattr', 'insert', 'iter', 'join', 'listdir', 'match', 'set', 'setattr', 'unicode', 'walk']
 
     def __init__(self, name, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()

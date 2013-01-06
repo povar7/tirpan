@@ -1,3 +1,9 @@
+'''
+Created on 10.11.2012
+
+@author: bronikkk
+'''
+
 import os
 
 from typenodes import *
@@ -9,6 +15,16 @@ def quasi_abspath(scope):
     type1 = list(scope.findParam(1).nodeType)[0]
     try:
         res_str = os.path.abspath(type1.value)
+        res     = get_new_string(res_str)
+        return set([res])
+    except:
+        pass
+    return set([type_str])
+
+def quasi_basename(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    try:
+        res_str = os.path.basename(type1.value)
         res     = get_new_string(res_str)
         return set([res])
     except:
@@ -37,9 +53,10 @@ def quasi_join(scope):
     return set([type_str])
 
 functions = [                                       \
-                ['abspath', quasi_abspath, 1],      \
-                ['dirname', quasi_dirname, 1],      \
-                ['join',    quasi_join   , 2]       \
+                ['abspath' , quasi_abspath , 1],    \
+                ['basename', quasi_basename, 1],    \
+                ['dirname' , quasi_dirname , 1],    \
+                ['join'    , quasi_join    , 2]     \
             ]
 
 stubs     = [                                       \
