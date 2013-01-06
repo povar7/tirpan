@@ -127,19 +127,16 @@ def smart_len(a_set):
     else:
         return len(a_set)
 
-def filter_true_types(var):
+def filter_types(nodeType):
     false_types = set()
     true_types  = set()
-    for elem in var.nodeType:
-        if not isinstance(elem, TypeNone):
-            true_types.add(elem)
-        else:
+    for elem in nodeType:
+        if isinstance(elem, TypeNone) or \
+           isinstance(elem, TypeListOrTuple) and len(elem.elems) == 0:
             false_types.add(elem)
-    var.nodeType = true_types
-    return false_types 
-
-def unfilter_true_types(var, false_types):
-    var.nodeType = smart_union(var.nodeType, false_types) 
+        else:
+            true_types.add(elem)
+    return (true_types, false_types)
 
 
 class DependencyType(object):

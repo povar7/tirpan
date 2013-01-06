@@ -396,11 +396,24 @@ class TIVisitor(ast.NodeVisitor):
         if not skip_if:
             if isinstance(test, ast.Name):
                 self.visit(test)
-                false_types = filter_true_types(test.link)
+                if isinstance(test.link, VarTypeGraphNode):
+                    try:
+                        true_types, false_types = filter_types(test.link.nodeType)
+                        var = ExternVarTypeGraphNode(test.link.name, true_types)
+                        var.addDependency(DependencyType.Assign, test.link)
+                        __main__.current_scope.add(var)
+                    except AttributeError:
+                        pass
             for stmt in node.body:
                 self.visit(stmt)
             if isinstance(test, ast.Name):
-                unfilter_true_types(test.link, false_types)
+                if isinstance(test.link, VarTypeGraphNode):
+                    __main__.current_scope.delete(var)
+                    try:
+                        if test.link.parent is __main__.current_scope:
+                            __main__.current_scope.add(test.link)
+                    except AttributeError:
+                        pass
         if not skip_else:
             for stmt in node.orelse:
                 self.visit(stmt)

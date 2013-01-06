@@ -50,6 +50,9 @@ class Scope(object):
         var.setParent(self)
         self.variables[var.name] = var
 
+    def delete(self, var):
+        del self.variables[var.name]
+
     def find(self, name, consider_globals = False, wrap_file_scope = None):
         if name in self.variables:
             return self.variables[name]
