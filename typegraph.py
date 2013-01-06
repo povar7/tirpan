@@ -10,7 +10,7 @@ from copy         import deepcopy
 from types        import NoneType
 
 from classes      import copy_class_inst, find_inits_in_classes
-from classes      import find_name_in_class_def, find_name_in_class_inst_direct
+from classes      import find_name_in_class_def, find_name_in_class_inst, find_name_in_class_inst_direct
 from classes      import get_attributes, set_attributes
 from classes      import get_subscripts, set_subscripts
 from classes      import set_slices
@@ -701,6 +701,7 @@ class ExternFuncDefTypeGraphNode(FuncDefTypeGraphNode):
 class FuncCallTypeGraphNode(TypeGraphNode):
     def __init__(self, node, var = None):
         super(FuncCallTypeGraphNode, self).__init__()
+        self.name      = None
         self.nodeType  = set()
         self.funcs     = set()
         self.classes   = set()
@@ -724,7 +725,8 @@ class FuncCallTypeGraphNode(TypeGraphNode):
         self.starargs      = None
         self.starargsTypes = None
         if isinstance(var, AttributeTypeGraphNode):
-            nodeArgs = [node.func]
+            self.name     = var.attr
+            nodeArgs      = [node.func]
             self.attrCall = True
         else:
             nodeArgs = []
@@ -830,6 +832,10 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             kwarg_index += 1
 
     def processCall(self):
+        if not hasattr(self, 'kwargsTypes'):
+            if len(self.nodeType) == 0:
+                self.nodeType.add(type_unknown)
+            return
         import __main__
         funcs = [(None, func) for func in self.funcs]
         inits = find_inits_in_classes(self.classes)
@@ -851,28 +857,43 @@ class FuncCallTypeGraphNode(TypeGraphNode):
                 sub_number = dependent_args[1]
                 if need_to_skip(args_type_orig[var_number], args_type_orig[sub_number], dependent_args[2]):
                     continue
+
+            if self.attrCall and \
+               isinstance(args_type_orig[0], (ModuleTypeGraphNode, ClassDefTypeGraphNode, FuncDefTypeGraphNode, TypeAtom)) and not isinstance(args_type_orig[0], TypeBaseString):
+                args_type = args_type_orig[1:]
+                args = self.args[1:]
+                attr_call = False
+            else:
+                args_type = args_type_orig
+                args = self.args
+                attr_call = self.attrCall
+
+            if attr_call and isinstance(args_type[0], ClassInstanceTypeGraphNode) and \
+               self.name and not find_name_in_class_inst(args_type[0], self.name):
+                skip_flag = True
+            else:
+                skip_flag = False                 
+
             for elem in callables:
-                if hasattr(self, 'kwargsTypes'):
-                    _, func = elem
-                    if self.attrCall and isinstance(args_type_orig[0], (ModuleTypeGraphNode, ClassDefTypeGraphNode, FuncDefTypeGraphNode, TypeAtom)) and not isinstance(args_type_orig[0], TypeBaseString):
-                        args_type = args_type_orig[1:]
-                        args = self.args[1:]
-                        attr_call = False
-                    else:
-                        args_type = args_type_orig
-                        args = self.args
-                        attr_call = self.attrCall
-                    try:
-                        kwargs = func.getKWArgs(self.kwargs)
-                    except AttributeError:
-                        kwargs = [None]
-                    for starargs_type in starargs:
-                        for kwargs_type in kwargs:
-                            if must_be_skipped(func):
-                                res = set([type_none])
-                            else:
-                                res = process_product_elem(elem, args, args_type, self.starargs, starargs_type, self.kwargs, kwargs_type, attr_call, self.fno)
-                            self.nodeType = smart_union(self.nodeType, res)
+                _, func = elem
+                if skip_flag and func.name == self.name:
+                    continue
+                try:
+                    kwargs = func.getKWArgs(self.kwargs)
+                except AttributeError:
+                    kwargs = [None]
+                for starargs_type in starargs:
+                    for kwargs_type in kwargs:
+                        if must_be_skipped(func):
+                            res = set([type_none])
+                        else:
+                            res = process_product_elem(elem, \
+                                                       args, args_type, \
+                                                       self.starargs, starargs_type, \
+                                                       self.kwargs, kwargs_type, \
+                                                       attr_call, self.fno)
+                        self.nodeType = smart_union(self.nodeType, res)
+
         if len(self.nodeType) == 0:
             self.nodeType.add(type_unknown)
 
