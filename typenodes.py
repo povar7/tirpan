@@ -254,3 +254,8 @@ def get_new_string(value):
         return TypeUnicode(value)
     else:
         return TypeUnknown()
+
+type_unknown = TypeUnknown()
+
+def get_unknown():
+    return type_unknown

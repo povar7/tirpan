@@ -170,6 +170,14 @@ class Scope(object):
                 var_index += 1
             else:
                 if arg_index >= args_num:
+                    try:
+                        res.append(kwargs[var.name])
+                        var_index += 1
+                        continue
+                    except KeyError:
+                        pass
+                    except TypeError:
+                        pass
                     return None, star_res, kw_res
                 res.append(args[arg_index])
                 var_index += 1

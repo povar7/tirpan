@@ -13,7 +13,7 @@ from typenodes import *
 type_list = TypeList()
 
 def get_singletons_list():
-    return ['DocGenPlugin', 'GuiPluginManager', 'BasePluginManager', 'PluginRegister']
+    return ['DocGenPlugin', 'GuiPluginManager', 'BasePluginManager', 'PluginRegister', 'PaperStyle']
 
 def get_quasi_getattr_instance_name():
     return '#GETATTR_INSTANCE#'
@@ -79,38 +79,43 @@ def find_name_in_module(module, name):
         __main__.current_scope = save
     return res
 
-def find_name_in_class_inst(class_inst, name):
-    import __main__
-    from scope import Scope
-    from tivisitor import TIVisitor
-    from typegraph import ExternVarTypeGraphNode
+def find_name_in_class_inst_direct(class_inst, name):
     res = class_inst.scope.findInScope(name)
     if res:
         return res
-    res = find_name_in_class_def(class_inst.cls, name)
+    else:
+        return find_name_in_class_def(class_inst.cls, name)
+
+def find_name_in_class_inst(class_inst, name):
+    res = find_name_in_class_inst_direct(class_inst, name)
     if res:
         return res
-    get_attr_call = find_name_in_class_def(class_inst.cls, '__getattr__')
-    if get_attr_call is None:
-        return None
-    save = __main__.current_scope
-    __main__.current_scope = Scope(__main__.current_scope)
-    var_instance = ExternVarTypeGraphNode(get_quasi_getattr_instance_name(), set([class_inst]))
-    var_result   = ExternVarTypeGraphNode(get_quasi_getattr_result_name(), set())
-    __main__.current_scope.add(var_instance)
-    __main__.current_scope.add(var_result)
-    module  = ast.parse('__getattr_result__ = __getattr_instance__.__getattr__(\'%s\')' % name)
-    stmt    = module.body[0]
-    stmt.targets[0].id = get_quasi_getattr_result_name()
-    stmt.value.func.value.id = get_quasi_getattr_instance_name()
-    visitor = TIVisitor(None)
-    visitor.visit(stmt)
-    __main__.current_scope = save
-    if all([isinstance(atom, TypeUnknown) for atom in var_result.nodeType]):
-        return None
-    else: 
-        var_result.name = name
-        return var_result
+    else:
+        import __main__
+        from scope import Scope
+        from tivisitor import TIVisitor
+        from typegraph import ExternVarTypeGraphNode
+        get_attr_call = find_name_in_class_def(class_inst.cls, '__getattr__')
+        if get_attr_call is None:
+            return None
+        save = __main__.current_scope
+        __main__.current_scope = Scope(__main__.current_scope)
+        var_instance = ExternVarTypeGraphNode(get_quasi_getattr_instance_name(), set([class_inst]))
+        var_result   = ExternVarTypeGraphNode(get_quasi_getattr_result_name(), set())
+        __main__.current_scope.add(var_instance)
+        __main__.current_scope.add(var_result)
+        module  = ast.parse('__getattr_result__ = __getattr_instance__.__getattr__(\'%s\')' % name)
+        stmt    = module.body[0]
+        stmt.targets[0].id = get_quasi_getattr_result_name()
+        stmt.value.func.value.id = get_quasi_getattr_instance_name()
+        visitor = TIVisitor(None)
+        visitor.visit(stmt)
+        __main__.current_scope = save
+        if all([isinstance(atom, TypeUnknown) for atom in var_result.nodeType]):
+            return None
+        else: 
+            var_result.name = name
+            return var_result
 
 def find_inits_in_classes(classes):
     from typegraph import FuncDefTypeGraphNode

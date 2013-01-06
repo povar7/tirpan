@@ -5,11 +5,12 @@ Created on 11.12.2011
 '''
 
 from itertools    import product
-from ast          import AugAssign, BinOp, UnaryOp, BoolOp, Call, List, Lambda
+from ast          import AugAssign, BinOp, UnaryOp, BoolOp, Call, List, Lambda, Name, Return
 from copy         import deepcopy
 from types        import NoneType
 
 from classes      import copy_class_inst, find_inits_in_classes
+from classes      import find_name_in_class_def, find_name_in_class_inst_direct
 from classes      import get_attributes, set_attributes
 from classes      import get_subscripts, set_subscripts
 from classes      import set_slices
@@ -662,7 +663,7 @@ class UsualFuncDefTypeGraphNode(FuncDefTypeGraphNode):
             self.defReturn = False
 
     def getKWArgs(self, kwargs):
-        if self.kwarg is None:
+        if self.kwarg is None and kwargs == {}:
             return [None] 
         else:
             res = []
@@ -738,9 +739,53 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             nodeArgs += node.values
         elif isinstance(node, Call):
             nodeArgs += node.args
+        try:
+            func_flag = any([isinstance(atom, FuncDefTypeGraphNode) for atom in var.nodeType])
+        except AttributeError:
+            func_flag = False
         for arg in nodeArgs:
             link = arg.link
-            if link is var and isinstance(link, AttributeTypeGraphNode):
+            if func_flag and (link is var) and isinstance(link, AttributeTypeGraphNode):
+
+                correct_objects = True
+                for obj in link.objects:
+                    if isinstance(obj, (TypeInt, TypeNone)):
+                        continue
+                    if not isinstance(obj, ClassInstanceTypeGraphNode) or \
+                       find_name_in_class_inst_direct(obj, var.attr):
+                        correct_objects = True
+                        break
+                    correct_objects = False
+
+                if not correct_objects:
+                    new_objects     = set()
+                    attr_string     = get_new_string(var.attr)
+                    class_instances = [obj for obj in link.objects if isinstance(obj, ClassInstanceTypeGraphNode)]
+                    for obj in class_instances:
+                        get_attr_call = find_name_in_class_def(obj.cls, '__getattr__')
+                        if get_attr_call:
+                            template_elem  = (obj, attr_string) 
+                            for get_attr_func in get_attr_call.nodeType:
+                                try:
+                                    template_ast = get_attr_func.templates[template_elem].ast
+                                    if isinstance(template_ast, list) and \
+                                       len(template_ast) == 1:
+                                        return_stmt = template_ast[0]
+                                        if isinstance(return_stmt, Return) and \
+                                           isinstance(return_stmt.value, Call) and \
+                                           isinstance(return_stmt.value.func, Name) and \
+                                           return_stmt.value.func.id == 'getattr' and \
+                                           len(return_stmt.value.args) == 2:
+                                            get_attr_objects = return_stmt.value.args[0].link.nodeType 
+                                            new_objects = new_objects.union(get_attr_objects)
+                                except AttributeError:
+                                    continue
+                                except KeyError:
+                                    continue
+                    if len(new_objects) > 0 and \
+                       all([isinstance(obj, (ClassInstanceTypeGraphNode, TypeInt, TypeNone)) for obj in new_objects]):
+                        link.objects = new_objects
+
                 nodeType = link.objects
                 dep      = DependencyType.AttrArg
             else:

@@ -174,6 +174,12 @@ class TIVisitor(ast.NodeVisitor):
             else:
                 self.visit(arg)
 
+        if len(node.args) == 2 and \
+           len(node.args[0].link.nodeType) == 0 and \
+           len(node.args[1].link.nodeType) != 0:
+            from typenodes import get_unknown
+            node.args[0].link.nodeType.add(get_unknown())
+
         if node.starargs is not None:
             self.visit(node.starargs)
         for kwarg in node.keywords:
