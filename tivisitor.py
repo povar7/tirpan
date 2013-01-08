@@ -16,36 +16,6 @@ from tiexcepts import check_exceptions
 from typegraph import *
 from utils     import *
 
-def filter_types_in_name(visitor, test, res):
-    if isinstance(test, ast.Name):
-        visitor.visit(test)
-        if isinstance(test.link, VarTypeGraphNode):
-            true_types, false_types = filter_types(test.link.nodeType)
-            var = ExternVarTypeGraphNode(test.link.name, true_types)
-            var.addDependency(DependencyType.Assign, test.link)
-            __main__.current_scope.add(var)
-            res.add((test.link, var))
-
-def filter_types_in_condition(visitor, test):
-    res = set()
-    if isinstance(test, ast.Name):
-        filter_types_in_name(visitor, test, res)
-    elif isinstance(test, ast.BoolOp) and isinstance(test.op, ast.And):
-        for value in test.values:
-            filter_types_in_name(visitor, value, res)
-    return res
-
-def unfilter_types_in_condition(var_pairs):
-    for pair in var_pairs:
-        link, var = pair
-        __main__.current_scope.delete(var)
-        try:
-            if link.parent is __main__.current_scope:
-                __main__.current_scope.add(link)
-        except AttributeError:
-            pass
-
-
 class TIVisitor(ast.NodeVisitor):
     CONST_FILES = ('const.py', '.gpr.py', '_pluginreg.py', '_docreportdialog.py', 'webstuff.py')
 

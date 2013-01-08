@@ -6,12 +6,13 @@ Created on 09.03.2012
 
 import ast
 
-from copy      import deepcopy
-from itertools import product
+from copy        import deepcopy
+from itertools   import product
 
-from classes   import make_new_instance
-from scope     import Scope
-from typenodes import *
+from classes     import find_name_in_class_inst, make_new_instance
+from scope       import Scope
+from tibacktrace import get_backtrace
+from typenodes   import *
 
 type_none = TypeNone()
 
@@ -177,7 +178,7 @@ def get_elem_set(elem, params_copy):
 def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, kwarg_elem, attr_call, file_number):
     import __main__
     from tivisitor import TIVisitor
-    from typegraph import DependencyType, AttributeTypeGraphNode, ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode
+    from typegraph import DependencyType, AttributeTypeGraphNode, ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode, ClassInstanceTypeGraphNode
     cls, func = pair
     cls_instance = make_new_instance(cls)
     if cls_instance:
@@ -198,6 +199,18 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
             return set()
         params_copy   = copy_params(func.params)
         elem_copy     = deepcopy(elem)
+        if cls is None and \
+           not attr_call and \
+           len(elem_copy) > 0 and \
+           isinstance(elem_copy[0], ClassInstanceTypeGraphNode) and \
+           getattr(func, 'params', None) and \
+           func.params.parent and \
+           func.params.parent.isClassScope() and \
+           func.name and \
+           find_name_in_class_inst(elem_copy[0], func.name):
+            attr_call_for_trace = True
+        else:
+            attr_call_for_trace = attr_call
         params_copy.linkParamsAndArgs(elem)
         load_increase = False
         try:
@@ -216,6 +229,7 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
                    not elem_copy[1].value.endswith(('docgen', 'webstuff', 'FamilySheet')):
                     del func.templates[elem_copy]
                     func.decreaseLoad()
+                    __main__.current_scope = saved_scope
                     return set()
             ast_copy  = deepcopy(func.ast)
             saved_res = __main__.current_res
@@ -224,9 +238,12 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
                 filename = __main__.importer.get_ident(ast_copy[0].fileno).name
             except AttributeError:
                 filename = None
+            bt = get_backtrace()
+            bt.add_frame(attr_call_for_trace, func, elem_copy) 
             visitor = TIVisitor(filename)
             for stmt in ast_copy:
                 visitor.visit(stmt)
+            bt.delete_frame()
             if cls_instance:
                 __main__.current_scope = saved_scope
                 del func.templates[elem_copy]
@@ -249,6 +266,8 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
         elif isinstance(func, ExternFuncDefTypeGraphNode):
             args_scope = __main__.current_scope
             __main__.current_scope = saved_scope
+            bt = get_backtrace()
+            bt.add_frame(attr_call_for_trace, func, elem_copy) 
             try:
                 if func.name == 'connect' and \
                    len(args) == 3 and \
@@ -258,6 +277,7 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
                     func.templates[elem_copy].result = func.quasi(args_scope, FILE_NUMBER=file_number)
             except TypeError:
                 func.templates[elem_copy].result = func.quasi(args_scope)
+            bt.delete_frame()
             func.templates[elem_copy].args = elem
     else:
         params_copy = None

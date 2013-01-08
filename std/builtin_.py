@@ -13,6 +13,7 @@ from typenodes import *
 type_int     = TypeInt()
 type_none    = TypeNone()
 type_str     = TypeStr()
+type_str0    = TypeStr('')
 type_type    = TypeType()
 type_unicode = TypeUnicode()
 
@@ -133,6 +134,14 @@ def quasi_range3(scope):
     else:
         return set()
 
+def quasi_str(scope):
+    type1 = list(scope.findParam(1).nodeType)[0]
+    try:
+        res = TypeStr(str(type1.value))
+        return set([res])
+    except:
+        return set([type_str])
+
 def quasi_type1(scope):
     return set([type_type])
 
@@ -182,6 +191,7 @@ functions = [
                 ['range'     , quasi_range1  , 1],                                  \
                 ['range'     , quasi_range3  , 3 , {3 : type_int}],                 \
                 ['set'       , quasi_set     , 1 , {1 : type_list}],                \
+                ['str'       , quasi_str     , 1 , {1 : type_str0}],                \
                 ['setattr'   , quasi_setattr , 3],                                  \
                 ['type'      , quasi_type1   , 1],                                  \
                 ['xrange'    , quasi_range1  , 1],                                  \

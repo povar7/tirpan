@@ -11,6 +11,7 @@ import argparse
 from errorprinter import ErrorPrinter
 from init         import common_init
 from scope        import Scope
+from ticheckers   import DefectPrinter
 from tiimporter   import Importer, QuasiAlias
 from tiparser     import TIParser
 
@@ -46,6 +47,7 @@ if __name__ == '__main__':
     current_scope  = global_scope
     current_res    = None
     importer       = Importer()
+    defect_printer = DefectPrinter()
     error_printer  = ErrorPrinter()
     verbose        = args.verbose
     test_results   = args.test
@@ -56,3 +58,4 @@ if __name__ == '__main__':
     common_init(global_scope, importer)
 
     run(args.filename)
+    defect_printer.printDefects()

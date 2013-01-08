@@ -18,6 +18,7 @@ from classes      import get_singletons_list
 from funccall     import *
 from returns      import check_returns
 from scope        import Scope
+from ticheckers   import *
 from typenodes    import *
 from utils        import *
 
@@ -127,6 +128,7 @@ def smart_len(a_set):
     else:
         return len(a_set)
 
+
 def filter_types(nodeType):
     false_types = set()
     true_types  = set()
@@ -137,6 +139,40 @@ def filter_types(nodeType):
         else:
             true_types.add(elem)
     return (true_types, false_types)
+
+def filter_types_in_name(visitor, test, res):
+    import __main__
+    if isinstance(test, ast.Name):
+        visitor.visit(test)
+        if isinstance(test.link, VarTypeGraphNode):
+            true_types, false_types = filter_types(test.link.nodeType)
+            var = ExternVarTypeGraphNode(test.link.name, true_types)
+            var.addDependency(DependencyType.Assign, test.link)
+            __main__.current_scope.add(var)
+            res.add((test.link, var))
+
+def filter_types_in_condition(visitor, test):
+    res = set()
+    if isinstance(test, ast.BoolOp):
+        if isinstance(test.op, ast.And):
+            for value in test.values:
+                check_basename_call(visitor, value)
+                filter_types_in_name(visitor, value, res)
+    else:
+        check_basename_call(visitor, test)
+        filter_types_in_name(visitor, test, res)
+    return res
+
+def unfilter_types_in_condition(var_pairs):
+    import __main__
+    for pair in var_pairs:
+        link, var = pair
+        __main__.current_scope.delete(var)
+        try:
+            if link.parent is __main__.current_scope:
+                __main__.current_scope.add(link)
+        except AttributeError:
+            pass
 
 
 class DependencyType(object):
@@ -453,6 +489,9 @@ class TypeGraphNode(object):
 
     def elem_types_index(self, index):
         return common_elem_types_index(self.nodeType, index)
+
+    def __repr__(self):
+        return '?'
    
 class ConstTypeGraphNode(TypeGraphNode):
     def __init__(self, value, save = False):
@@ -587,7 +626,7 @@ class ExternModuleTypeGraphNode(ModuleTypeGraphNode):
 
 class FuncDefTypeGraphNode(TypeGraphNode):
     MAX_LOAD           = 64
-    EXTERNAL_FUNCTIONS = ['abspath', 'add_actions', 'append', 'basename', 'compile', 'dirname', 'encode', 'extend', 'getattr', 'insert', 'iter', 'join', 'listdir', 'match', 'set', 'setattr', 'unicode', 'walk']
+    EXTERNAL_FUNCTIONS = ['abspath', 'add_actions', 'append', 'basename', 'compile', 'dirname', 'encode', 'extend', 'getattr', 'insert', 'iter', 'join', 'listdir', 'match', 'set', 'setattr', 'str', 'unicode', 'walk']
 
     def __init__(self, name, parent_scope):
         super(FuncDefTypeGraphNode, self).__init__()
@@ -932,6 +971,9 @@ class ClassDefTypeGraphNode(TypeGraphNode):
     def getInstances(self):
         return self.instances
 
+    def __repr__(self):
+        return '<class \'' + self.name + '\'>' 
+
 class UsualClassDefTypeGraphNode(ClassDefTypeGraphNode):
     def __init__(self, node, parent_scope):
         super(UsualClassDefTypeGraphNode, self).__init__(node.name, parent_scope)
@@ -983,6 +1025,12 @@ class ClassInstanceTypeGraphNode(TypeGraphNode):
 
     def elem_types(self):
         return set()
+
+    def __repr__(self):
+        try:
+            return '<%s object>' % self.cls.name
+        except AttributeError:
+            return '<? object>' 
 
 class AttributeTypeGraphNode(TypeGraphNode):
     def __init__(self, node):

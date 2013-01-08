@@ -30,6 +30,9 @@ class TypeNode(object):
     def has_type(self, some_type):
         return self._type == some_type
 
+    def __repr__(self):
+        return '?'
+
 class TypeAtom(TypeNode):
     pass
 
@@ -53,6 +56,12 @@ class TypeInt(TypeNum):
 
     def instance_hash(self):
         return hash(self.value)
+
+    def __repr__(self):
+        if self.value:
+            return str(self.value)
+        else:
+            return '<int value>'
 
 class TypeLong(TypeNum):
     def __init__(self):
@@ -81,18 +90,36 @@ class TypeStr(TypeBaseString):
         super(TypeStr, self).__init__(value)
         self._type = str
 
+    def __repr__(self):
+        if self.value:
+            return '\'' + str(self.value) + '\''
+        else:
+            return '<str value>'
+
 class TypeUnicode(TypeBaseString):
     def __init__(self, value = None):
         super(TypeUnicode, self).__init__(value)
         self._type = unicode
 
+    def __repr__(self):
+        if self.value:
+            return '\'' + str(self.value) + '\''
+        else:
+            return '<unicode value>'
+
 class TypeBool(TypeNumOrBool):
     def __init__(self):
         self._type = bool
 
+    def __repr__(self):
+        return '<bool value>'
+
 class TypeNone(TypeAtom):
     def __init__(self):
         self._type = NoneType
+
+    def __repr__(self):
+        return 'None'
 
 class TypeStandard(TypeNode):
     pass
@@ -115,6 +142,25 @@ class TypeListOrTuple(TypeStandard):
             res = shallowcopy(self)
             res.elems = shallowcopy(self.elems)
             return res
+
+    def __repr__(self):
+        res = ''
+        if isinstance(self, TypeList):
+            res += '['
+        elif isinstance(self, TypeTuple):
+            res += '('
+        first = True
+        for elem in self.elems:
+            if not first:
+                res += ', '
+            else:
+                first = False
+            res += str(elem)
+        if isinstance(self, TypeList):
+            res += ']'
+        elif isinstance(self, TypeTuple):
+            res += ')'
+        return res
 
 class TypeList(TypeListOrTuple):
     def add_elem(self, elem):
@@ -240,9 +286,6 @@ class TypeUnknown(TypeNode):
 
     def elem_types(self):
         return self.vals
-
-    def __str__(self):
-        return 'unknown'
 
     def __deepcopy__(self, memo):
         return self
