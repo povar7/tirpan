@@ -7,9 +7,8 @@ Created on 29.01.2012
 import ast
 
 import os
-from os import sys
+import sys
 
-import __main__
 
 from builtin   import import_standard_module
 from tiparser  import TIParser
@@ -17,9 +16,8 @@ from typegraph import DependencyType
 from typegraph import UsualModuleTypeGraphNode, ExternModuleTypeGraphNode
 from typegraph import UsualVarTypeGraphNode, ExternVarTypeGraphNode
 from typenodes import *
+from timodule import Timodule
 
-def get_init_name(name):
-    return os.path.join(name, '__init__')
 
 def get_strings_number(elems):
     res = 0
@@ -64,10 +62,13 @@ class Importer(object):
         module.isLoaded = True
         return module
 
-    def add_module(self, scope, name):
-        if not name in self.standard_modules:
-            self.standard_modules[name] = ExternModuleTypeGraphNode(name, scope)
-        
+    def parse_module(self, name, scope, path):
+        if name == '__main__':
+            sys.path.insert(os.path.dirname(path))
+        new_module = Timodule(name, scope, path)
+        self.modules.append(new_module)
+
+
     def find_module(self, name, paths):
         for path in paths:
             canonical = os.path.join(path, name)
@@ -196,3 +197,6 @@ class Importer(object):
                 terminal = (last == size - 1)
                 res = self.import_files_extended(mainfile, alias, parts[0:last + 1], terminal, from_aliases)
         return res
+
+
+importer = Importer()
