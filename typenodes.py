@@ -303,4 +303,6 @@ type_unknown = TypeUnknown()
 def get_unknown():
     return type_unknown
 
-bool_type = TypeBool()
+bool_type    = TypeBool()
+none_type    = TypeNone()
+unknown_type = TypeUnknown()

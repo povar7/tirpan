@@ -22,6 +22,7 @@ class TIVisitor(ast.NodeVisitor):
         self.respect_values      = False
         self.treat_list_as_tuple = [False]
         self.importer            = importer
+        self.scope               = None
 
     def visit_Num(self, node):
         node.link = ConstTypeGraphNode(node.n, self.respect_values or (self.filename and self.filename.endswith(TIVisitor.CONST_FILES)))
@@ -31,21 +32,21 @@ class TIVisitor(ast.NodeVisitor):
         
     def visit_Name(self, node):
         if node.id == 'None':
-            node.link = ConstTypeGraphNode(None)
+            node.link = none_type_node
         else:
-            if self.left_part:
-                try:
-                    file_scope = __main__.importer.get_ident(node.fileno).scope
-                except AttributeError:
-                    file_scope = None
-                link       = __main__.current_scope.findOrAdd(node.id, True, file_scope)
-            else:
-                link       = __main__.current_scope.findOrAdd(node.id)
-            node.link = link
-            try:
-                node.link.setPos(node)
-            except AttributeError:
-                pass
+#            if self.left_part:
+#                try:
+#                    file_scope = __main__.importer.get_ident(node.fileno).scope
+#                except AttributeError:
+#                    file_scope = None
+#                link       = __main__.current_scope.findOrAdd(node.id, True, file_scope)
+#            else:
+#                link       = __main__.current_scope.findOrAdd(node.id)
+            node.link = self.scope.findOrAdd(node.id)
+#            try:
+#                node.link.setPos(node)
+#            except AttributeError:
+#                pass
         
     def visit_Assign(self, node):
         self.visit(node.value)
@@ -106,23 +107,32 @@ class TIVisitor(ast.NodeVisitor):
         __main__.import_files(self.filename, node.names)
 
     def visit_ImportFrom(self, node):
-        print node._fields
-        print node.module
-        print node.names
         module = self.importer.parse_module(node.module, None)
+        aliases = map(lambda x: {'name' : x.name, 'as' : x.asname if x.asname else x.name}, node.names)
+        if len(aliases) == 1 and aliases[0]['name'] == '*': aliases = map(lambda x: {'name': x, 'as': x}, module.scope.variables.keys())
+        for alias in aliases:
+            old_var      = module.scope.find(alias["name"])
+            new_var      = UsualVarTypeGraphNode(alias["as"])
+            self.scope.add(new_var)
+            try:
+                old_var.addDependency(DependencyType.Assign, new_var)
+            except AttributeError:
+                if module.is_buildin():
+                    #Importing Buildin Module
+                    pass
+                else:
+                    print "Try to import nonexisting name: ", alias["name"]
 
-        __main__.import_from_file(self.filename, node.module, node.names)
 
     def visit_Module(self, node):
-        if not node.link.isInherited():
-            var_true  = ExternVarTypeGraphNode('True' , bool_type)
-            node.link.scope.add(var_true)
-            var_false = ExternVarTypeGraphNode('False', bool_type)
-            node.link.scope.add(var_false)
+        self.scope = node.link.scope
+#        if not node.link.isInherited():
+        self.scope.add(true_bool_node)
+        self.scope.add(false_bool_node)
 
         self.generic_visit(node)
-        if not node.link.isInherited():
-            __main__.current_scope = __main__.current_scope.getParent()
+#        if not node.link.isInherited():
+#            __main__.current_scope = __main__.current_scope.getParent()
 
     def visit_arguments(self, node):
         nonDefs = len(node.args) - len(node.defaults)
@@ -135,10 +145,10 @@ class TIVisitor(ast.NodeVisitor):
             arg    = node.args[i]
             defPos = i - nonDefs
             defVal = node.defaults[defPos] if defPos >= 0 else None
-            save   = __main__.current_scope.parent
-            __main__.current_scope.parent = None 
+            save   = self.scope.parent
+            self.scope.parent = None
             self.visit(arg)
-            __main__.current_scope.parent = save
+            self.scope.parent = save
             arg.link.setParamNumber(i + 1)
             if defVal:
                 defVal.link.addDependency(DependencyType.Assign, arg.link)
@@ -146,14 +156,13 @@ class TIVisitor(ast.NodeVisitor):
             
     def visit_FunctionDef(self, node):
         name = node.name
-        funcDefNode = UsualFuncDefTypeGraphNode(node, name, __main__.current_scope)
-        var  = __main__.current_scope.findOrAdd(name)
-        var.setPos(node)
-        node.link = funcDefNode
-        __main__.current_scope = funcDefNode.getParams()
+        node.link = UsualFuncDefTypeGraphNode(node, name, self.scope)
+        var  = self.scope.findOrAdd(name)
+        #var.setPos(node)
+        self.scope = node.link.getParams()
         self.visit(node.args)
-        __main__.current_scope = __main__.current_scope.getParent()
-        funcDefNode.addDependency(DependencyType.Assign, var)
+        self.scope = self.scope.parent
+        node.link.addDependency(DependencyType.Assign, var)
 
     def visit_Call(self, node):
         if isinstance(node.func, ast.Attribute) and \
@@ -412,15 +421,14 @@ class TIVisitor(ast.NodeVisitor):
     def visit_ClassDef(self, node):
         for base in node.bases:
             self.visit(base)
-        classDefNode = UsualClassDefTypeGraphNode(node, __main__.current_scope)
-        var  = __main__.current_scope.findOrAdd(node.name)
-        var.setPos(node)
-        node.link = classDefNode
-        __main__.current_scope = classDefNode.getScope()
+        node.link = UsualClassDefTypeGraphNode(node, self.scope)
+        var  = self.scope.findOrAdd(node.name)
+        #var.setPos(node)
+        self.scope = node.link.scope
         for stmt in node.body:
             self.visit(stmt)
-        __main__.current_scope = __main__.current_scope.getParent()
-        classDefNode.addDependency(DependencyType.Assign, var)
+        self.scope = self.scope.parent
+        node.link.addDependency(DependencyType.Assign, var)
 
     def visit_Print(self, node):
         for value in node.values:

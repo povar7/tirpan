@@ -43,8 +43,9 @@ class Scope(object):
         self.parent      = parent
         self.variables   = {}
         self.has_globals = has_globals
-        if self.has_globals:
-            self.global_names = set() 
+        self.children    = []
+        if parent is not None: parent.children.append(self)
+        if self.has_globals: self.global_names = set()
 
     def add(self, var):
         var.setParent(self)

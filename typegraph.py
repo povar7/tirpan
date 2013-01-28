@@ -21,9 +21,8 @@ from scope        import Scope
 from ticheckers   import *
 from typenodes    import *
 from utils        import *
+from configuration import config
 
-type_none    = TypeNone()
-type_unknown = TypeUnknown()
 
 def check_args_for_dependence(args):
     if len(args) < 3:
@@ -54,27 +53,26 @@ def need_to_skip(var_arg_type, sub_arg_type, objects):
     return True
 
 def smart_union(set1, set2, cond = None):
-    import __main__
-    from tivisitor import TIVisitor
+#    from tivisitor import TIVisitor
     added_good_elements = 0
     if cond is not None:
-        visitor = TIVisitor(None)
+        raise "fsdfsdf"
+#        visitor = TIVisitor(None)
     for elem in set2:
-        if len(set1) - added_good_elements >= __main__.types_number and \
-           not isinstance(elem, (ModuleTypeGraphNode, TypeNone)):
-	    set1.discard(type_unknown)
+        if  len(set1) - added_good_elements >= config.types_number and not isinstance(elem, (ModuleTypeGraphNode, TypeNone)):
+            set1.discard(unknown_type)
             return set1
         try:
-            if cond is not None:
-                try:
-                    left_type  = get_attributes([elem], cond.left.attr)
-                    ast_copy   = deepcopy(cond.comparators[0])
-                    visitor.visit(ast_copy)
-                    right_type = ast_copy.link.nodeType 
-                    if not left_type.issuperset(right_type):
-                        continue
-                except:
-                    pass
+#            if cond is not None:
+#                try:
+#                    left_type  = get_attributes([elem], cond.left.attr)
+#                    ast_copy   = deepcopy(cond.comparators[0])
+#                    visitor.visit(ast_copy)
+#                    right_type = ast_copy.link.nodeType
+#                    if not left_type.issuperset(right_type):
+#                        continue
+#                except:
+#                    pass
             set1.add(elem)
             if isinstance(elem, TypeBaseString) or \
                isinstance(elem, TypeList) and all([isinstance(atom, (TypeBaseString, TypeUnknown)) for atom in elem.elems]) or \
@@ -83,8 +81,7 @@ def smart_union(set1, set2, cond = None):
                 added_good_elements += 1
         except RuntimeError:
             pass
-    if len(set1) > 1:
-        set1.discard(type_unknown)
+    if len(set1) > 1: set1.discard(unknown_type)
     return set1
 
 def smart_union_dicts(set1, set2):
@@ -1102,4 +1099,9 @@ class PrintTypeGraphNode(TypeGraphNode):
 class UnknownTypeGraphNode(TypeGraphNode):
     def __init__(self, node):
         super(UnknownTypeGraphNode, self).__init__()
-        self.nodeType  = set([type_unknown]) 
+        self.nodeType  = set([type_unknown])
+
+
+none_type_node = ConstTypeGraphNode(None)
+true_bool_node = ExternVarTypeGraphNode('True' , bool_type)
+false_bool_node = ExternVarTypeGraphNode('False' , bool_type)

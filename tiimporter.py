@@ -212,3 +212,4 @@ class Importer(object):
 
 importer = Importer()
 importer.parse_module('ast')
+importer.parse_module('os')
