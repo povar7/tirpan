@@ -210,9 +210,10 @@ def common_elem_types_index(nodeType, index):
     return el_types
 
 class TypeGraphNode(object):
-    def __init__(self):
+    def __init__(self, scope = None):
         self.deps = {}
         self.nodeType  = set()
+        self.scope = scope
 
     def get_atom_type_node(self, atom_type, value = None):
         if atom_type == int:

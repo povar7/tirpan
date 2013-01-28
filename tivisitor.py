@@ -11,15 +11,17 @@ from init      import get_operator_name
 from tiexcepts import check_exceptions
 from typegraph import *
 from configuration import config
+from typenodes import bool_type
 
 class TIVisitor(ast.NodeVisitor):
     CONST_FILES = ('const.py', '.gpr.py', '_pluginreg.py', '_docreportdialog.py', 'webstuff.py')
 
-    def __init__(self, filename):
+    def __init__(self, filename, importer):
         self.filename            = filename
         self.left_part           = False
         self.respect_values      = False
         self.treat_list_as_tuple = [False]
+        self.importer            = importer
 
     def visit_Num(self, node):
         node.link = ConstTypeGraphNode(node.n, self.respect_values or (self.filename and self.filename.endswith(TIVisitor.CONST_FILES)))
@@ -105,17 +107,19 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_ImportFrom(self, node):
         print node._fields
+        print node.module
+        print node.names
+        module = self.importer.parse_module(node.module, None)
+
         __main__.import_from_file(self.filename, node.module, node.names)
 
     def visit_Module(self, node):
-        from typenodes import TypeBool
         if not node.link.isInherited():
-            type_bool = TypeBool()
-            __main__.current_scope = node.link.getScope()
-            var_true  = ExternVarTypeGraphNode('True' , type_bool)
-            __main__.current_scope.add(var_true)
-            var_false = ExternVarTypeGraphNode('False', type_bool)
-            __main__.current_scope.add(var_false)
+            var_true  = ExternVarTypeGraphNode('True' , bool_type)
+            node.link.scope.add(var_true)
+            var_false = ExternVarTypeGraphNode('False', bool_type)
+            node.link.scope.add(var_false)
+
         self.generic_visit(node)
         if not node.link.isInherited():
             __main__.current_scope = __main__.current_scope.getParent()

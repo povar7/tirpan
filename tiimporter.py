@@ -17,7 +17,7 @@ from typegraph import UsualModuleTypeGraphNode, ExternModuleTypeGraphNode
 from typegraph import UsualVarTypeGraphNode, ExternVarTypeGraphNode
 from typenodes import *
 from timodule import Timodule
-from tiparser import TIParser
+from tivisitor import TIVisitor
 
 
 def get_strings_number(elems):
@@ -64,19 +64,20 @@ class Importer(object):
         module.isLoaded = True
         return module
 
-    def parse_module(self, name, scope, path):
+    def parse_module(self, name, path = None):
         if name == '__main__':
             sys.path.insert(os.path.dirname(path))
-        new_module = Timodule(name, scope, path)
+        new_module = Timodule(name, path)
         self.modules.append(new_module)
         if not new_module.is_buildin():
             print "Parsing " + new_module.path
-            parser = TIParser(new_module.path)
-            parser.ast.link = UsualModuleTypeGraphNode(parser.ast, new_module.name, new_module.scope)
-            new_module.ast = parser.ast
-            parser.walk()
-            print new_module.ast
+            new_module.load_ast()
+            new_module.ast.link = UsualModuleTypeGraphNode(new_module.ast, new_module.name, new_module.scope)
+            visitor = TIVisitor(new_module.path, self)
+            visitor.visit(new_module.ast)
 
+            print new_module.ast
+        return new_module
 
 
     def find_module(self, name, paths):
@@ -210,4 +211,4 @@ class Importer(object):
 
 
 importer = Importer()
-importer.parse_module('ast', None, None)
+importer.parse_module('ast')
