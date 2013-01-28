@@ -5,16 +5,12 @@ Created on 03.01.2012
 '''
 
 import ast
-
 from copy import deepcopy
-
-import __main__
-
 from classes   import get_quasi_getattr_instance_name 
 from init      import get_operator_name 
 from tiexcepts import check_exceptions
 from typegraph import *
-from utils     import *
+from configuration import config
 
 class TIVisitor(ast.NodeVisitor):
     CONST_FILES = ('const.py', '.gpr.py', '_pluginreg.py', '_docreportdialog.py', 'webstuff.py')
@@ -108,6 +104,7 @@ class TIVisitor(ast.NodeVisitor):
         __main__.import_files(self.filename, node.names)
 
     def visit_ImportFrom(self, node):
+        print node._fields
         __main__.import_from_file(self.filename, node.module, node.names)
 
     def visit_Module(self, node):

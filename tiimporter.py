@@ -11,12 +11,13 @@ import sys
 
 
 from builtin   import import_standard_module
-from tiparser  import TIParser
+
 from typegraph import DependencyType
 from typegraph import UsualModuleTypeGraphNode, ExternModuleTypeGraphNode
 from typegraph import UsualVarTypeGraphNode, ExternVarTypeGraphNode
 from typenodes import *
 from timodule import Timodule
+from tiparser import TIParser
 
 
 def get_strings_number(elems):
@@ -35,6 +36,7 @@ class QuasiAlias(object):
 
 class Importer(object):
     def __init__(self):
+        self.modules = []
         self.imported_files   = {}
         self.standard_modules = {}
         self.ident_table      = {}
@@ -67,6 +69,14 @@ class Importer(object):
             sys.path.insert(os.path.dirname(path))
         new_module = Timodule(name, scope, path)
         self.modules.append(new_module)
+        if not new_module.is_buildin():
+            print "Parsing " + new_module.path
+            parser = TIParser(new_module.path)
+            parser.ast.link = UsualModuleTypeGraphNode(parser.ast, new_module.name, new_module.scope)
+            new_module.ast = parser.ast
+            parser.walk()
+            print new_module.ast
+
 
 
     def find_module(self, name, paths):
@@ -200,3 +210,4 @@ class Importer(object):
 
 
 importer = Importer()
+importer.parse_module('ast', None, None)
