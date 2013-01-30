@@ -1,5 +1,10 @@
+.idea
 .project
 .pydevproject
 *.pyc
 .*.swp
 tags
+tests/test_binop01.py
+tests/test_unop01.py
+tests/binop01.py
+tests/unop01.py

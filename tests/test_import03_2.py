@@ -12,48 +12,15 @@ test_file_name_2 = get_test_file_name('import03/__init__.py')
 
 import ast
 
-from init         import common_init
-from errorprinter import ErrorPrinter
-from scope        import Scope
-from tiimporter   import Importer, QuasiAlias
-from tiparser     import TIParser
 from typegraph    import *
 from utils        import findNode
 
-import tirpan
-
-def import_files(mainfile, aliases):
-    global importer
-    importer.import_files(mainfile, aliases)
-
-def import_from_file(mainfile, module, aliases):
-    global importer
-    alias = QuasiAlias(module)
-    importer.import_files(mainfile, [alias], aliases)
-
-class TestTirpan(unittest.TestCase):
+class TestTirpan(TirpanTestCase):
     def setUp(self):
-        global global_scope, current_scope, current_res, error_printer, importer, verbose, test_results, test_precision, print_imports, types_number
-        global_scope   = Scope(None)
-        current_scope  = global_scope
-        current_res    = None
-        error_printer  = ErrorPrinter()
-        importer       = Importer()
-        verbose        = False
-        test_results   = False
-        test_precision = False
-        print_imports  = False
-        types_number   = 10
+        self.setUpFor(test_file_name_1)
+        self.nodes      = (config.importer.imported_files['__main__'].ast,                         \
+                           config.importer.imported_files[test_file_name_2].ast)
 
-        common_init(global_scope, importer)
-        tirpan.run(test_file_name_1)
-        self.nodes      = (importer.imported_files['__main__'].ast,                         \
-                           importer.imported_files[test_file_name_2].ast)
-        
-        self.type_int     = TypeInt()
-        self.type_float   = TypeFloat()
-        self.type_bool    = TypeBool()
-        self.type_complex = TypeComplex()
 
     def test_different_modules(self):
         self.assertTrue(isinstance(self.nodes[0], ast.Module), 'module 1 is not a module')

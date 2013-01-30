@@ -5,6 +5,7 @@ Created on 25.03.2012
 '''
 
 import ast
+from configure import config
 
 def init_builtin_function(scope, name, quasi, num, def_vals = {}):
     from typegraph import ExternFuncDefTypeGraphNode, DependencyType
@@ -70,22 +71,19 @@ def init_builtins(global_scope, importer):
     builtin_module.isLoaded = True
 
 def get_quasi_list():
-    import __main__
     from std.builtin_ import get_quasi_list_name
-    var = __main__.current_scope.find(get_quasi_list_name())
+    var = config.current_scope.find(get_quasi_list_name())
     cls = list(var.nodeType)[0]
     return cls
 
 def get_quasi_str():
-    import __main__
     from std.builtin_ import get_quasi_str_name
-    var = __main__.current_scope.find(get_quasi_str_name())
+    var = config.current_scope.find(get_quasi_str_name())
     cls = list(var.nodeType)[0]
     return cls
 
 def get_quasi_unicode():
-    import __main__
     from std.builtin_ import get_quasi_unicode_name
-    var = __main__.current_scope.find(get_quasi_unicode_name())
+    var = config.current_scope.find(get_quasi_unicode_name())
     cls = list(var.nodeType)[0]
     return cls

@@ -13,7 +13,7 @@ from classes     import find_name_in_class_inst, make_new_instance
 from scope       import Scope
 from tibacktrace import get_backtrace
 from typenodes   import *
-
+from configure   import config
 type_none = TypeNone()
 
 class QuasiIndex(object):
@@ -176,7 +176,6 @@ def get_elem_set(elem, params_copy):
         yield item
 
 def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, kwarg_elem, attr_call, file_number):
-    import __main__
     from tivisitor import TIVisitor
     from typegraph import DependencyType, AttributeTypeGraphNode, ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode, ClassInstanceTypeGraphNode
     cls, func = pair
@@ -218,9 +217,9 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
             load_increase = func.increaseLoad(elem_copy)
         except RuntimeError:
             return set()
-        saved_scope   = __main__.current_scope
+        saved_scope   = config.current_scope
         func_scope    = Scope(params_copy)
-        __main__.current_scope = func_scope
+        config.current_scope = func_scope
         if isinstance(func, UsualFuncDefTypeGraphNode):
             if func.name == 'scan_dir' and \
                len(elem_copy) > 1 and \
@@ -229,13 +228,13 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
                    not elem_copy[1].value.endswith(('docgen', 'webstuff', 'FamilySheet')):
                     del func.templates[elem_copy]
                     func.decreaseLoad()
-                    __main__.current_scope = saved_scope
+                    config.current_scope = saved_scope
                     return set()
             ast_copy  = deepcopy(func.ast)
-            saved_res = __main__.current_res
-            __main__.current_res = set()
+            saved_res = config.current_res
+            config.current_res = set()
             try:
-                filename = __main__.importer.get_ident(ast_copy[0].fileno).name
+                filename = config.importer.get_ident(ast_copy[0].fileno).name
             except AttributeError:
                 filename = None
             bt = get_backtrace()
@@ -245,7 +244,7 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
                 visitor.visit(stmt)
             bt.delete_frame()
             if cls_instance:
-                __main__.current_scope = saved_scope
+                config.current_scope = saved_scope
                 del func.templates[elem_copy]
                 if load_increase:
                     func.decreaseLoad()
@@ -256,16 +255,16 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
                     func.increaseLoad(elem_copy)
                 func.templates[elem_copy].ast    = ast_copy
                 if not func.name:
-                    __main__.current_res.add(ast_copy[0])
+                    config.current_res.add(ast_copy[0])
                 func.templates[elem_copy].result =             \
-                    process_results(__main__.current_res,      \
+                    process_results(config.current_res,      \
                                     func.defReturn)
                 func.templates[elem_copy].args   = elem
-            __main__.current_res = saved_res
-            __main__.current_scope = saved_scope
+            config.current_res = saved_res
+            config.current_scope = saved_scope
         elif isinstance(func, ExternFuncDefTypeGraphNode):
-            args_scope = __main__.current_scope
-            __main__.current_scope = saved_scope
+            args_scope = config.current_scope
+            config.current_scope = saved_scope
             bt = get_backtrace()
             bt.add_frame(attr_call_for_trace, func, elem_copy) 
             try:

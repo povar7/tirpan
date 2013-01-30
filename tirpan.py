@@ -14,20 +14,20 @@ from scope        import Scope
 from ticheckers   import DefectPrinter
 from tiimporter   import Importer, QuasiAlias
 from tiparser     import TIParser
+from configure import config
 
 def import_files(mainfile, aliases):
-    importer.import_files(mainfile, aliases)
+    config.importer.import_files(mainfile, aliases)
 
 def import_from_file(mainfile, module, aliases):
     alias = QuasiAlias(module)
-    importer.import_files(mainfile, [alias], aliases)
+    config.importer.import_files(mainfile, [alias], aliases)
 
 def run(filename):
-    import __main__
     alias = QuasiAlias('__main__')
-    __main__.importer.set_main_path(filename)
-    __main__.importer.load_module('sys')
-    __main__.importer.import_files(filename, [alias])
+    config.importer.set_main_path(filename)
+    config.importer.load_module('sys')
+    config.importer.import_files(filename, [alias])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python Type Inference Project.')
@@ -43,19 +43,19 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    global_scope   = Scope(None)
-    current_scope  = global_scope
-    current_res    = None
-    importer       = Importer()
-    defect_printer = DefectPrinter()
-    error_printer  = ErrorPrinter()
-    verbose        = args.verbose
-    test_results   = args.test
-    test_precision = args.precision
-    print_imports  = args.imports
-    types_number   = args.limit
+    config.global_scope   = Scope(None)
+    config.current_scope  = config.global_scope
+    config.current_res    = None
+    config.importer       = Importer()
+    config.defect_printer = DefectPrinter()
+    config.error_printer  = ErrorPrinter()
+    config.verbose        = args.verbose
+    config.test_results   = args.test
+    config.test_precision = args.precision
+    config.print_imports  = args.imports
+    config.types_number   = args.limit
 
-    common_init(global_scope, importer)
+    common_init(config.global_scope, config.importer)
 
     run(args.filename)
-    defect_printer.printDefects()
+    config.defect_printer.printDefects()

@@ -10,40 +10,12 @@ test_file_name = get_test_file_name('func05.py')
 
 import ast
 
-from init         import common_init
-from errorprinter import ErrorPrinter
-from scope        import Scope
-from tiimporter   import Importer, QuasiAlias
-from tiparser     import TIParser
 from typegraph    import *
-from typenodes    import *
 from utils        import findNode
 
-import tirpan
-
-class TestTirpan(unittest.TestCase):
+class TestTirpan(TirpanTestCase):
     def setUp(self):
-        global global_scope, current_scope, current_res, error_printer, importer, verbose, test_results, test_precision, print_imports, types_number
-        global_scope   = Scope(None)
-        current_scope  = global_scope
-        current_res    = None
-        error_printer  = ErrorPrinter()
-        importer       = Importer()
-        verbose        = False
-        test_results   = False
-        test_precision = False
-        print_imports  = False
-        types_number   = 15
-
-        common_init(global_scope, importer)
-        tirpan.run(test_file_name)
-        self.ast = importer.imported_files['__main__'].ast
-
-        self.type_int     = TypeInt()
-        self.type_float   = TypeFloat()
-        self.type_str     = TypeStr()
-        self.type_unicode = TypeUnicode()
-        self.type_complex = TypeComplex()
+        self.setUpFor(test_file_name)
 
     def test_walk_var_z(self):
         node = findNode(self.ast, line=12, col=1, kind=ast.Name)

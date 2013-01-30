@@ -9,13 +9,13 @@ import ast
 import os
 from os import sys
 
-import __main__
 
 from builtin   import import_standard_module
 from tiparser  import TIParser
 from typegraph import DependencyType
 from typegraph import UsualModuleTypeGraphNode, ExternModuleTypeGraphNode
 from typegraph import UsualVarTypeGraphNode, ExternVarTypeGraphNode
+from configure import config
 from typenodes import *
 
 def get_init_name(name):
@@ -49,7 +49,7 @@ class Importer(object):
     def put_ident(self, module):
         self.ident_table[self.total_idents] = module
         res = self.total_idents
-        if __main__.print_imports:
+        if config.print_imports:
             print '%d\t%s' % (res, module.name)
         self.total_idents += 1
         return res          
@@ -129,7 +129,7 @@ class Importer(object):
                     filename = None
                 if filename is None:
                     from errorprinter import ImportStmtError
-                    __main__.error_printer.printError(ImportStmtError(name))
+                    config.error_printer.printError(ImportStmtError(name))
                     return None
                 searchname = filename
             if searchname in self.imported_files:
@@ -147,7 +147,7 @@ class Importer(object):
                 except SyntaxError:
                     return None
                 imported_tree = parser.ast
-                module = UsualModuleTypeGraphNode(imported_tree, filename, __main__.global_scope)
+                module = UsualModuleTypeGraphNode(imported_tree, filename, config.global_scope)
                 if name == 'glib':
                     self.add_module(module.getScope(), 'glib._glib')
                 elif name in ['os', 'posixpath', 're', 'gtk']:
@@ -157,16 +157,16 @@ class Importer(object):
                 for node in ast.walk(imported_tree):
                     node.fileno = fileno
                 self.imported_files[searchname] = imported_tree.link
-                save = __main__.current_scope
-                __main__.current_scope = module.getScope()
+                save = config.current_scope
+                config.current_scope = module.getScope()
                 var_file = ExternVarTypeGraphNode('__file__', TypeStr(rel_name))
-                __main__.current_scope.add(var_file)
+                config.current_scope.add(var_file)
                 parser.walk(main_module)
-                __main__.current_scope = save
+                config.current_scope = save
         if from_aliases is None:
             var_name = alias.asname if alias.asname else name
             if var_name != QuasiAlias.NONAME:
-                alias.link = __main__.current_scope.findOrAdd(var_name)
+                alias.link = config.current_scope.findOrAdd(var_name)
                 module.addDependency(DependencyType.Assign, alias.link)
         elif terminal:
             if len(from_aliases) == 1 and from_aliases[0].name == '*':
@@ -177,11 +177,11 @@ class Importer(object):
                 old_var      = module.scope.find(old_var_name)
                 try:
                     new_var = UsualVarTypeGraphNode(new_var_name)
-                    __main__.current_scope.add(new_var)
+                    config.current_scope.add(new_var)
                     old_var.addDependency(DependencyType.Assign, new_var)
                 except AttributeError:
                     from errorprinter import ImportFromStmtError
-                    __main__.error_printer.printError(ImportFromStmtError(old_var_name, module.name))
+                    config.error_printer.printError(ImportFromStmtError(old_var_name, module.name))
         return module
 
     def import_files(self, mainfile, aliases, from_aliases = None):

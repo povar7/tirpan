@@ -8,9 +8,8 @@ import ast
 
 from copy import deepcopy
 
-import __main__
-
-from classes   import get_quasi_getattr_instance_name 
+from configure import config
+from classes   import get_quasi_getattr_instance_name
 from init      import get_operator_name 
 from tiexcepts import check_exceptions
 from typegraph import *
@@ -37,12 +36,12 @@ class TIVisitor(ast.NodeVisitor):
         else:
             if self.left_part:
                 try:
-                    file_scope = __main__.importer.get_ident(node.fileno).scope
+                    file_scope = config.importer.get_ident(node.fileno).scope
                 except AttributeError:
                     file_scope = None
-                link       = __main__.current_scope.findOrAdd(node.id, True, file_scope)
+                link       = config.current_scope.findOrAdd(node.id, True, file_scope)
             else:
-                link       = __main__.current_scope.findOrAdd(node.id)
+                link       = config.current_scope.findOrAdd(node.id)
             node.link = link
             try:
                 node.link.setPos(node)
@@ -76,7 +75,7 @@ class TIVisitor(ast.NodeVisitor):
         self.visit(target)
         self.left_part = save
         name = get_operator_name(node.op.__class__)
-        var = __main__.current_scope.find(name)
+        var = config.current_scope.find(name)
         node.link = FuncCallTypeGraphNode(node, var)
         node.link.processCall()
         node.link.addDependency(DependencyType.Assign, target.link)
@@ -105,23 +104,23 @@ class TIVisitor(ast.NodeVisitor):
         node.link = TupleTypeGraphNode(node)
 
     def visit_Import(self, node):
-        __main__.import_files(self.filename, node.names)
+        config.import_files(self.filename, node.names)
 
     def visit_ImportFrom(self, node):
-        __main__.import_from_file(self.filename, node.module, node.names)
+        config.import_from_file(self.filename, node.module, node.names)
 
     def visit_Module(self, node):
         from typenodes import TypeBool
         if not node.link.isInherited():
             type_bool = TypeBool()
-            __main__.current_scope = node.link.getScope()
+            config.current_scope = node.link.getScope()
             var_true  = ExternVarTypeGraphNode('True' , type_bool)
-            __main__.current_scope.add(var_true)
+            config.current_scope.add(var_true)
             var_false = ExternVarTypeGraphNode('False', type_bool)
-            __main__.current_scope.add(var_false)
+            config.current_scope.add(var_false)
         self.generic_visit(node)
         if not node.link.isInherited():
-            __main__.current_scope = __main__.current_scope.getParent()
+            config.current_scope = config.current_scope.getParent()
 
     def visit_arguments(self, node):
         nonDefs = len(node.args) - len(node.defaults)
@@ -134,10 +133,10 @@ class TIVisitor(ast.NodeVisitor):
             arg    = node.args[i]
             defPos = i - nonDefs
             defVal = node.defaults[defPos] if defPos >= 0 else None
-            save   = __main__.current_scope.parent
-            __main__.current_scope.parent = None 
+            save   = config.current_scope.parent
+            config.current_scope.parent = None
             self.visit(arg)
-            __main__.current_scope.parent = save
+            config.current_scope.parent = save
             arg.link.setParamNumber(i + 1)
             if defVal:
                 defVal.link.addDependency(DependencyType.Assign, arg.link)
@@ -145,13 +144,13 @@ class TIVisitor(ast.NodeVisitor):
             
     def visit_FunctionDef(self, node):
         name = node.name
-        funcDefNode = UsualFuncDefTypeGraphNode(node, name, __main__.current_scope)
-        var  = __main__.current_scope.findOrAdd(name)
+        funcDefNode = UsualFuncDefTypeGraphNode(node, name, config.current_scope)
+        var  = config.current_scope.findOrAdd(name)
         var.setPos(node)
         node.link = funcDefNode
-        __main__.current_scope = funcDefNode.getParams()
+        config.current_scope = funcDefNode.getParams()
         self.visit(node.args)
-        __main__.current_scope = __main__.current_scope.getParent()
+        config.current_scope = config.current_scope.getParent()
         funcDefNode.addDependency(DependencyType.Assign, var)
 
     def visit_Call(self, node):
@@ -236,13 +235,13 @@ class TIVisitor(ast.NodeVisitor):
                 var_copy = deepcopy(var)
                 var.nodeType = nodeType 
                 var.parent = save
-                __main__.current_scope.add(var_copy)
+                config.current_scope.add(var_copy)
                 var_copy.parent = var.parent
                 var_copy.nodeType = set([elem])
                 ast_copy = deepcopy(node.body)
                 for nn in ast_copy:
                     self.visit(nn)
-            __main__.current_scope.add(var)
+            config.current_scope.add(var)
         else:
             for nn in node.body:
                 self.visit(nn)
@@ -251,14 +250,14 @@ class TIVisitor(ast.NodeVisitor):
         self.visit(node.left)
         self.visit(node.right)
         name = get_operator_name(node.op.__class__)
-        var = __main__.current_scope.find(name)
+        var = config.current_scope.find(name)
         node.link = FuncCallTypeGraphNode(node, var)
         node.link.processCall()
 
     def visit_UnaryOp(self, node):
         self.visit(node.operand)
         name = get_operator_name(node.op.__class__)
-        var = __main__.current_scope.find(name)
+        var = config.current_scope.find(name)
         node.link = FuncCallTypeGraphNode(node, var)
         node.link.processCall()
         
@@ -266,7 +265,7 @@ class TIVisitor(ast.NodeVisitor):
         for value in node.values:
             self.visit(value)
         name = get_operator_name(node.op.__class__)
-        var = __main__.current_scope.find(name)
+        var = config.current_scope.find(name)
         node.link = FuncCallTypeGraphNode(node, var)
         node.link.processCall()
 
@@ -275,18 +274,18 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_Return(self, node):
         self.generic_visit(node)
-        __main__.current_res.add(node)
+        config.current_res.add(node)
 
     def visit_Yield(self, node):
         self.generic_visit(node)
-        __main__.current_res.add(node)
+        config.current_res.add(node)
 
     def visit_Lambda(self, node):
-        funcDefNode = UsualFuncDefTypeGraphNode(node, None, __main__.current_scope)
+        funcDefNode = UsualFuncDefTypeGraphNode(node, None, config.current_scope)
         node.link = funcDefNode
-        __main__.current_scope = funcDefNode.getParams()
+        config.current_scope = funcDefNode.getParams()
         self.visit(node.args)
-        __main__.current_scope = __main__.current_scope.parent
+        config.current_scope = config.current_scope.parent
 
     def visit_Attribute(self, node):
         save = self.left_part
@@ -406,19 +405,19 @@ class TIVisitor(ast.NodeVisitor):
         node.link = UnknownTypeGraphNode(node)
 
     def visit_Global(self, node):
-        __main__.current_scope.addGlobalNames(node.names)
+        config.current_scope.addGlobalNames(node.names)
 
     def visit_ClassDef(self, node):
         for base in node.bases:
             self.visit(base)
-        classDefNode = UsualClassDefTypeGraphNode(node, __main__.current_scope)
-        var  = __main__.current_scope.findOrAdd(node.name)
+        classDefNode = UsualClassDefTypeGraphNode(node, config.current_scope)
+        var  = config.current_scope.findOrAdd(node.name)
         var.setPos(node)
         node.link = classDefNode
-        __main__.current_scope = classDefNode.getScope()
+        config.current_scope = classDefNode.getScope()
         for stmt in node.body:
             self.visit(stmt)
-        __main__.current_scope = __main__.current_scope.getParent()
+        config.current_scope = config.current_scope.getParent()
         classDefNode.addDependency(DependencyType.Assign, var)
 
     def visit_Print(self, node):

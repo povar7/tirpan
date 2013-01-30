@@ -6,8 +6,7 @@ Created on 27.11.2011
 
 import ast
 
-import __main__
-
+from configure import config
 from tiassert  import generate_asserts
 from tivisitor import TIVisitor
 
@@ -17,7 +16,7 @@ class TIParser(object):
             try:
                 self.ast = ast.parse(f.read())
             except SyntaxError as ex:
-                if __main__.verbose:
+                if config.verbose:
                     print ex.offset
                 raise ex
 
@@ -26,12 +25,12 @@ class TIParser(object):
     def walk(self, main_module = False):
         self.visitor.visit(self.ast)
         if isinstance(self.ast, ast.Module):
-            if __main__.verbose:
+            if config.verbose:
                 print 'File "' + self.visitor.filename + '":'
                 self.ast.link.getScope().printVariables()
-            if __main__.test_results and main_module:
+            if config.test_results and main_module:
                 generate_asserts(self.ast)
-            if __main__.test_precision:
+            if config.test_precision:
                 from tiprecision import TIPrecision
                 print 'File "' + self.visitor.filename + '":'
                 precision = TIPrecision(self.ast)

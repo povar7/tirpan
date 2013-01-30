@@ -9,6 +9,7 @@ from copy import copy as shallowcopy, deepcopy
 
 from builtin   import get_quasi_list, get_quasi_str, get_quasi_unicode
 from typenodes import *
+from configure import config
 
 type_list = TypeList()
 
@@ -69,14 +70,13 @@ def find_name_in_class_def(class_def, name):
     return None
 
 def find_name_in_module(module, name):
-    import __main__
     from tiimporter import QuasiAlias
     res = module.scope.findInScope(name)
     if res is None and module.name.endswith('__init__.py'):
-        save = __main__.current_scope
-        __main__.current_scope = module.scope 
-        res = __main__.importer.import_files(module.name, [QuasiAlias(name)])
-        __main__.current_scope = save
+        save = config.current_scope
+        config.current_scope = module.scope
+        res = config.importer.import_files(module.name, [QuasiAlias(name)])
+        config.current_scope = save
     return res
 
 def find_name_in_class_inst_direct(class_inst, name):
@@ -91,26 +91,25 @@ def find_name_in_class_inst(class_inst, name):
     if res:
         return res
     else:
-        import __main__
         from scope import Scope
         from tivisitor import TIVisitor
         from typegraph import ExternVarTypeGraphNode
         get_attr_call = find_name_in_class_def(class_inst.cls, '__getattr__')
         if get_attr_call is None:
             return None
-        save = __main__.current_scope
-        __main__.current_scope = Scope(__main__.current_scope)
+        save = config.current_scope
+        config.current_scope = Scope(config.current_scope)
         var_instance = ExternVarTypeGraphNode(get_quasi_getattr_instance_name(), set([class_inst]))
         var_result   = ExternVarTypeGraphNode(get_quasi_getattr_result_name(), set())
-        __main__.current_scope.add(var_instance)
-        __main__.current_scope.add(var_result)
+        config.current_scope.add(var_instance)
+        config.current_scope.add(var_result)
         module  = ast.parse('__getattr_result__ = __getattr_instance__.__getattr__(\'%s\')' % name)
         stmt    = module.body[0]
         stmt.targets[0].id = get_quasi_getattr_result_name()
         stmt.value.func.value.id = get_quasi_getattr_instance_name()
         visitor = TIVisitor(None)
         visitor.visit(stmt)
-        __main__.current_scope = save
+        config.current_scope = save
         if all([isinstance(atom, TypeUnknown) for atom in var_result.nodeType]):
             return None
         else: 
@@ -219,10 +218,9 @@ def set_attribute(obj, attr, value, var, init_flag):
             pass
 
 def set_attributes(objects, attr, values):
-    import __main__
     from typegraph import FuncDefTypeGraphNode
     try:
-        init_flag = __main__.current_scope.parent.isInitScope()
+        init_flag = config.current_scope.parent.isInitScope()
     except AttributeError:
         init_flag = False 
     for obj in objects:

@@ -21,6 +21,7 @@ from scope        import Scope
 from ticheckers   import *
 from typenodes    import *
 from utils        import *
+from configure    import config
 
 type_none    = TypeNone()
 type_unknown = TypeUnknown()
@@ -54,13 +55,12 @@ def need_to_skip(var_arg_type, sub_arg_type, objects):
     return True
 
 def smart_union(set1, set2, cond = None):
-    import __main__
     from tivisitor import TIVisitor
     added_good_elements = 0
     if cond is not None:
         visitor = TIVisitor(None)
     for elem in set2:
-        if len(set1) - added_good_elements >= __main__.types_number and \
+        if len(set1) - added_good_elements >= config.types_number and \
            not isinstance(elem, (ModuleTypeGraphNode, TypeNone)):
 	    set1.discard(type_unknown)
             return set1
@@ -99,13 +99,12 @@ def smart_union_dicts(set1, set2):
     return set1
 
 def smart_deepcopy_union(set1, set2):
-    import __main__
-    if len(set1) >= __main__.types_number:
+    if len(set1) >= config.types_number:
         return set1
     added_good_elements = 0
     set2_copy = deepcopy(set2)
     for elem in set2_copy:
-        if len(set1) - added_good_elements >= __main__.types_number and \
+        if len(set1) - added_good_elements >= config.types_number and \
            not isinstance(elem, (ModuleTypeGraphNode, TypeNone)):
             set1.discard(type_unknown)
             return set1
@@ -141,14 +140,13 @@ def filter_types(nodeType):
     return (true_types, false_types)
 
 def filter_types_in_name(visitor, test, res):
-    import __main__
     if isinstance(test, ast.Name):
         visitor.visit(test)
         if isinstance(test.link, VarTypeGraphNode):
             true_types, false_types = filter_types(test.link.nodeType)
             var = ExternVarTypeGraphNode(test.link.name, true_types)
             var.addDependency(DependencyType.Assign, test.link)
-            __main__.current_scope.add(var)
+            config.current_scope.add(var)
             res.add((test.link, var))
 
 def filter_types_in_condition(visitor, test):
@@ -164,13 +162,12 @@ def filter_types_in_condition(visitor, test):
     return res
 
 def unfilter_types_in_condition(var_pairs):
-    import __main__
     for pair in var_pairs:
         link, var = pair
-        __main__.current_scope.delete(var)
+        config.current_scope.delete(var)
         try:
-            if link.parent is __main__.current_scope:
-                __main__.current_scope.add(link)
+            if link.parent is config.current_scope:
+                config.current_scope.add(link)
         except AttributeError:
             pass
 
@@ -300,7 +297,6 @@ class TypeGraphNode(object):
             dep.generic_dependency()
     
     def elem_dep(self, dep, *args):
-        import __main__
         res = set()
         try:
             index = args[0]
@@ -308,7 +304,7 @@ class TypeGraphNode(object):
             index = None 
         while len(dep.nodeType) > 0:
             tt1 = dep.nodeType.pop()
-            if len(tt1.elems) >= __main__.types_number:
+            if len(tt1.elems) >= config.types_number:
                 res.add(tt1)
                 continue
             elems_types = self.nodeType.copy()
@@ -317,7 +313,7 @@ class TypeGraphNode(object):
                isinstance(tt1.elems, tuple):
                 elems_types.add(type_unknown)
             for tt2 in elems_types:
-                if len(res) >= __main__.types_number:
+                if len(res) >= config.types_number:
                     break
                 tmp = deepcopy(tt1)
                 if index is None or not isinstance(tmp.elems, tuple):
@@ -336,15 +332,14 @@ class TypeGraphNode(object):
         dep.generic_dependency()
 
     def key_dep(self, dep):
-        import __main__
         res = set()
         while len(dep.nodeType) > 0:
             tt1 = dep.nodeType.pop()
-            if len(tt1.keys) >= __main__.types_number:
+            if len(tt1.keys) >= config.types_number:
                 res.add(tt1)
                 continue 
             for tt2 in self.nodeType:
-                if len(res) >= __main__.types_number:
+                if len(res) >= config.types_number:
                     break
                 tmp = deepcopy(tt1)
                 tmp.add_key(tt2)
@@ -353,15 +348,14 @@ class TypeGraphNode(object):
         dep.generic_dependency()
 
     def val_dep(self, dep):
-        import __main__
         res = set()
         while len(dep.nodeType) > 0:
             tt1 = dep.nodeType.pop()
-            if len(tt1.vals) >= __main__.types_number:
+            if len(tt1.vals) >= config.types_number:
                 res.add(tt1)
                 continue 
             for tt2 in self.nodeType:
-                if len(res) >= __main__.types_number:
+                if len(res) >= config.types_number:
                     break
                 tmp = deepcopy(tt1)
                 tmp.add_val(tt2)
@@ -753,9 +747,8 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             self.args  = None
             var.addDependency(DependencyType.Func, self)
         except AttributeError:
-            import __main__
             from errorprinter import CallNotResolvedError
-            __main__.error_printer.printError(CallNotResolvedError(node))
+            config.error_printer.printError(CallNotResolvedError(node))
         self.args      = []
         self.argsTypes = []
         self.starargs      = None
@@ -872,7 +865,6 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             if len(self.nodeType) == 0:
                 self.nodeType.add(type_unknown)
             return
-        import __main__
         funcs = [(None, func) for func in self.funcs]
         inits = find_inits_in_classes(self.classes)
         callables  = []

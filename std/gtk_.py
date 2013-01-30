@@ -7,13 +7,13 @@ Created on 09.12.2012
 import ast
 
 from typenodes import *
+from configure import config
 
 type_none = TypeNone()
 
 def find_gtk_module():
     from typegraph import ModuleTypeGraphNode
-    import __main__
-    var = __main__.current_scope.find('gtk')
+    var = config.current_scope.find('gtk')
     try:
         for elem in var.nodeType:
             if isinstance(elem, ModuleTypeGraphNode):
@@ -119,15 +119,14 @@ def quasi_add_button(scope):
         return set([type_none]) 
 
 def quasi_gtk_main(scope):
-    import __main__
     from scope import Scope
     from tivisitor import TIVisitor
     from typegraph import ExternVarTypeGraphNode
     quasi_cls = find_gtk_class(get_quasi_actiongroup_name())
     if not quasi_cls:
         return set([type_none])
-    save = __main__.current_scope
-    __main__.current_scope = Scope(__main__.current_scope)
+    save = config.current_scope
+    config.current_scope = Scope(config.current_scope)
     callbacks = set()
     for inst in quasi_cls.getInstances():
         for action_tuple in inst._actions.elems:
@@ -136,28 +135,27 @@ def quasi_gtk_main(scope):
                len(action_tuple.elems) == 6:
                 callbacks.add(action_tuple.elems[5])
     var = ExternVarTypeGraphNode(get_quasi_callback_name(), callbacks)
-    __main__.current_scope.add(var)
+    config.current_scope.add(var)
     module  = ast.parse('__callback__(None)')
     stmt    = module.body[0]
     stmt.value.func.id = get_quasi_callback_name()
     visitor = TIVisitor(None)
     visitor.visit(stmt)
-    __main__.current_scope = save
+    config.current_scope = save
     return set([type_none])
 
 def quasi_run(scope):
-    import __main__
     from scope import Scope
     from tivisitor import TIVisitor
     from typegraph import ExternVarTypeGraphNode
     type1 = list(scope.findParam(1).nodeType)[0]
     buttons = type1._buttons
-    save = __main__.current_scope
-    __main__.current_scope = Scope(__main__.current_scope)
+    save = config.current_scope
+    config.current_scope = Scope(config.current_scope)
     var_callback = ExternVarTypeGraphNode(get_quasi_callback_name(), set())
-    __main__.current_scope.add(var_callback)
+    config.current_scope.add(var_callback)
     var_parent   = ExternVarTypeGraphNode(get_quasi_handler_parent_name(), set())
-    __main__.current_scope.add(var_parent)
+    config.current_scope.add(var_parent)
     for button in buttons.elems:
         handlers = button._handlers
         for handler in handlers.elems:
@@ -173,7 +171,7 @@ def quasi_run(scope):
                 stmt.value.args[0].id = get_quasi_handler_parent_name()
             visitor = TIVisitor(None)
             visitor.visit(stmt)
-    __main__.current_scope = save
+    config.current_scope = save
     return set([type_none])
 
 def quasi_response_ok():

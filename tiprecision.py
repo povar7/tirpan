@@ -6,8 +6,7 @@ Created on 03.01.2012
 
 import ast
 
-import __main__
-
+from configure import  config
 from tistat    import HitsCounter
 from typegraph import *
 from typenodes import TypeUnknown

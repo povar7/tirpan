@@ -1,13 +1,12 @@
 import re
 
 from typenodes import *
-
+from configure import config
 type_unknown = TypeUnknown()
 
 def find_re_module():
     from typegraph import ModuleTypeGraphNode
-    import __main__
-    var = __main__.current_scope.find('re')
+    var = config.current_scope.find('re')
     try:
         for elem in var.nodeType:
             if isinstance(elem, ModuleTypeGraphNode):

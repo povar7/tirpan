@@ -4,15 +4,15 @@ Created on 05.02.2012
 @author: bronikkk
 '''
 
-import __main__
 
 from ast   import BinOp, UnaryOp, Call
 from init  import get_operator_name
 from utils import getLine, getCol, getFile
+from configure import config
 
 class ErrorPrinter(object):
     def printError(self, error):
-        if __main__.verbose:
+        if config.verbose:
             print error
 
 class TirpanError(object):

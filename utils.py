@@ -5,6 +5,7 @@ Created on 07.01.2012
 '''
 
 import ast
+from configure import config
 
 def checkEqual(collection):
     try:
@@ -37,10 +38,9 @@ def getCol (node):
         return offset + 1
 
 def getFile(node):
-    import __main__
     fileno = getattr(node, 'fileno', None)
     try:
-        name = __main__.importer.get_ident(fileno).name 
+        name = config.importer.get_ident(fileno).name
     except KeyError:
         name = None
     return name

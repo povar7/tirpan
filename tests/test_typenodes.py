@@ -9,7 +9,7 @@ from tests_common import *
 
 from typenodes import *
 
-class TestTypeNodes(unittest.TestCase):
+class TestTypeNodes(TirpanTestCase):
     def test_eq_atoms(self):
         t1 = TypeInt()
         t2 = TypeInt()

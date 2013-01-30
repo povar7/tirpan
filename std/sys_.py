@@ -1,6 +1,7 @@
 import sys
 
 from typenodes import *
+from configure import  config
 
 type_str = TypeStr()
 type_int = TypeInt()
@@ -21,9 +22,8 @@ def quasi_maxint():
     return res
 
 def quasi_path():
-    import __main__
     res = TypeList(True)
-    main_path = __main__.importer.main_path
+    main_path = config.importer.main_path
     tmp = []  
     if main_path is not None:
         tmp.append(get_new_string(main_path))

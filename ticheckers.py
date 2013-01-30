@@ -8,6 +8,7 @@ import ast
 
 from tibacktrace import get_backtrace
 from typenodes   import *
+from configure import config
 
 class DefectPrinter(object):
     def __init__(self):
@@ -44,7 +45,6 @@ class TirpanWrongFuncArgDefect(TirpanDefect):
         self._descr = header_str + '\n' + bt.get()
 
 def check_basename_call(visitor, test):
-    import __main__
     from typegraph import ExternFuncDefTypeGraphNode
     if isinstance(test, ast.Call):
         visitor.visit(test.func)
@@ -58,6 +58,6 @@ def check_basename_call(visitor, test):
                 for elem in nodeType:
                     if not isinstance(elem, (TypeBaseString, TypeUnknown)):
                         try:
-                            __main__.defect_printer.addDefect(TirpanWrongFuncArgDefect(elem))
+                            config.defect_printer.addDefect(TirpanWrongFuncArgDefect(elem))
                         except AttributeError:
                             pass

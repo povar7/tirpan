@@ -9,6 +9,7 @@ import ast
 from copy import copy as shallowcopy
 
 from typenodes import *
+from configure import config
 
 type_int     = TypeInt()
 type_none    = TypeNone()
@@ -44,13 +45,12 @@ def quasi_execfile(scope, **kwargs):
         if type1.value is not None:
             from tiparser  import TIParser
             from typegraph import UsualModuleTypeGraphNode
-            import __main__
             parser        = TIParser(type1.value)
             imported_tree = parser.ast
             old_fileno    = kwargs['FILE_NUMBER']
-            old_scope     = __main__.importer.get_ident(old_fileno).scope 
+            old_scope     = config.importer.get_ident(old_fileno).scope
             module        = UsualModuleTypeGraphNode(imported_tree, type1.value, None, old_scope)
-            new_fileno    = __main__.importer.put_ident(module)
+            new_fileno    = config.importer.put_ident(module)
             imported_tree.link = module
             for node in ast.walk(imported_tree):
                 node.fileno = new_fileno
@@ -78,11 +78,10 @@ def quasi_import(scope, **kwargs):
     except AttributeError:
         return set()
     if value is not None:
-        import __main__
         from tiimporter import QuasiAlias
         fileno   = kwargs['FILE_NUMBER']
-        filename = __main__.importer.get_ident(fileno).name
-        res = __main__.importer.import_files(filename, [QuasiAlias(type1.value, QuasiAlias.NONAME)])
+        filename = config.importer.get_ident(fileno).name
+        res = config.importer.import_files(filename, [QuasiAlias(type1.value, QuasiAlias.NONAME)])
         return set([res])
     return set()
 
