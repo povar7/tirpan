@@ -48,4 +48,5 @@ class TirpanTestCase(unittest.TestCase):
         self.type_complex = TypeComplex()
         self.type_str     = TypeStr()
         self.type_unicode = TypeUnicode()
+        self.type_none    = TypeNone()
 
