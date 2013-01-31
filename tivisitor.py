@@ -104,10 +104,10 @@ class TIVisitor(ast.NodeVisitor):
         node.link = TupleTypeGraphNode(node)
 
     def visit_Import(self, node):
-        config.import_files(self.filename, node.names)
+        config.importer.import_files(self.filename, node.names)
 
     def visit_ImportFrom(self, node):
-        config.import_from_file(self.filename, node.module, node.names)
+        config.importer.import_from_file(self.filename, node.module, node.names)
 
     def visit_Module(self, node):
         from typenodes import TypeBool

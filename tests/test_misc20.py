@@ -12,7 +12,7 @@ test_file_name = get_test_file_name('misc20.py')
 class TestTirpan(TirpanTestCase):
     def setUp(self):
         self.setUpFor(test_file_name)
-        self.defects = defect_printer.getDefects()
+        self.defects = config.defect_printer.getDefects()
 
     def test_check_defect(self):
         self.assertEqual(len(self.defects), 0, 'there must be no defect')

@@ -14,6 +14,7 @@ sys.path.append(os.path.join(tests_dir, '..'))
 from configure import config
 from init import common_init
 from errorprinter import ErrorPrinter
+from ticheckers   import DefectPrinter
 from tiimporter import Importer
 from typenodes    import *
 from datetime import datetime
@@ -23,19 +24,12 @@ import tirpan
 def get_test_file_name(file_name):
     return os.path.abspath(os.path.join(tests_dir, file_name))
 
-def import_files(mainfile, aliases):
-    config.importer.import_files(mainfile, aliases)
-
-def import_from_file(mainfile, module, aliases):
-    alias = QuasiAlias(module)
-    config.importer.import_files(mainfile, [alias], aliases)
-
-
 class TirpanTestCase(unittest.TestCase):
     def setUpFor(self, filename):
         config.load_defaults()
         config.error_printer  = ErrorPrinter()
         config.importer       = Importer()
+        config.defect_printer = DefectPrinter()
         common_init(config.global_scope, config.importer)
         start_time = datetime.now()
         tirpan.run(filename)
@@ -49,4 +43,4 @@ class TirpanTestCase(unittest.TestCase):
         self.type_str     = TypeStr()
         self.type_unicode = TypeUnicode()
         self.type_none    = TypeNone()
-
+        self.type_type    = TypeType()

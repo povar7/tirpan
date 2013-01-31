@@ -43,6 +43,10 @@ class Importer(object):
         self.total_idents     = 0
         self.main_path        = None
 
+    def import_from_file(self, mainfile, module, aliases):
+        alias = QuasiAlias(module)
+        self.import_files(mainfile, [alias], aliases)
+
     def set_main_path(self, mainfile):
         self.main_path = os.path.dirname(os.path.abspath(mainfile))
 

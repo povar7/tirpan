@@ -16,13 +16,6 @@ from tiimporter   import Importer, QuasiAlias
 from tiparser     import TIParser
 from configure import config
 
-def import_files(mainfile, aliases):
-    config.importer.import_files(mainfile, aliases)
-
-def import_from_file(mainfile, module, aliases):
-    alias = QuasiAlias(module)
-    config.importer.import_files(mainfile, [alias], aliases)
-
 def run(filename):
     alias = QuasiAlias('__main__')
     config.importer.set_main_path(filename)

@@ -6,9 +6,9 @@ Created on 03.01.2013
 
 import unittest
 from tests_common import *
+
 test_file_name = get_test_file_name('misc15.py')
 
-import ast
 from typegraph    import *
 from utils        import findNode
 
@@ -39,8 +39,8 @@ class TestTirpan(TirpanTestCase):
         self.assertTrue(isinstance(node.link, VarTypeGraphNode), 'type is not a var')
         nodeType = node.link.nodeType
         type1 = TypeList()
-	type2 = TypeList()
-	type2.add_elem(self.type_int)
+        type2 = TypeList()
+        type2.add_elem(self.type_int)
         self.assertTrue(len(nodeType) == 2 and                                       \
                         any([type1 == elem for elem in nodeType]) and                \
                         any([type2 == elem for elem in nodeType]),                   \
