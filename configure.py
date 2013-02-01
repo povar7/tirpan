@@ -15,6 +15,6 @@ class Configure():
         self.test_precision = False
         self.print_imports  = False
         self.defect_printer = None
-        self.types_number   = 10
+        self.types_number   = 15
 
 config = Configure()

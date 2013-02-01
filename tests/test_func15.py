@@ -6,6 +6,7 @@ Created on 16.09.2012
 
 import unittest
 from tests_common import *
+from utils import findNode
 test_file_name = get_test_file_name('func15.py')
 
 import ast

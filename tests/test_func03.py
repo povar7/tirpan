@@ -16,6 +16,7 @@ from utils        import findNode
 class TestTirpan(TirpanTestCase):
     def setUp(self):
         self.setUpFor(test_file_name)
+#        config.types_number = 15
 
     def test_walk_var_z(self):
         node = findNode(self.ast, line=12, col=1, kind=ast.Name)
@@ -49,6 +50,10 @@ class TestTirpan(TirpanTestCase):
         type11 = TypeList()
         type11.add_elem(type5)
         type11.add_elem(type4)
+        print nodeType
+        print len(nodeType)
+        print any([type9  == elem for elem in nodeType])
+        print type9
         self.assertTrue(len(nodeType) == 11 and                                             \
                         any([type1  == elem for elem in nodeType]) and                      \
                         any([type2  == elem for elem in nodeType]) and                      \
