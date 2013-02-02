@@ -1,6 +1,7 @@
 .idea
 .project
 .pydevproject
+.vagrant
 *.pyc
 .*.swp
 tags
