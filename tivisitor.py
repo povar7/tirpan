@@ -24,6 +24,10 @@ class TIVisitor(ast.NodeVisitor):
         self.respect_values      = False
         self.treat_list_as_tuple = [False]
 
+    def visit(self, node):
+        node.scope = config.current_scope
+        super(TIVisitor,self).visit(node)
+
     def visit_Num(self, node):
         node.link = ConstTypeGraphNode(node.n, self.respect_values or (self.filename and self.filename.endswith(TIVisitor.CONST_FILES)))
     
