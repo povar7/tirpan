@@ -12,10 +12,9 @@ test_file_name = get_test_file_name('misc19.py')
 class TestTirpan(TirpanTestCase):
     def setUp(self):
         self.setUpFor(test_file_name)
-        self.defects = config.defect_printer.getDefects()
 
     def test_check_defect(self):
-        self.assertEqual(len(self.defects), 1, 'there must be a defect')
+        self.assertEqual(len(detector.defects()), 1, 'there must be a defect')
 
 if __name__ == '__main__':
     unittest.main()

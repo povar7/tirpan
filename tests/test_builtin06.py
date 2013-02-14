@@ -11,7 +11,6 @@ test_file_name = get_test_file_name('builtin06.py')
 import ast
 
 from init         import common_init
-from errorprinter import ErrorPrinter
 from scope        import Scope
 from tiimporter   import Importer, QuasiAlias
 from tiparser     import TIParser

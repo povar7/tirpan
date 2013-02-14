@@ -10,20 +10,6 @@ from tibacktrace import get_backtrace
 from typenodes   import *
 from configure import config
 
-class DefectPrinter(object):
-    def __init__(self):
-        self._defects = set()
-
-    def addDefect(self, defect):
-        self._defects.add(defect)
-
-    def getDefects(self):
-        return self._defects
-
-    def printDefects(self):
-        for defect in self._defects:
-            print defect
-
 class TirpanDefect(object):
     def __repr__(self):
         return '%s: %s' % (self._kind, self._descr)
@@ -58,6 +44,6 @@ def check_basename_call(visitor, test):
                 for elem in nodeType:
                     if not isinstance(elem, (TypeBaseString, TypeUnknown)):
                         try:
-                            config.defect_printer.addDefect(TirpanWrongFuncArgDefect(elem))
+                            pass #Bug Found
                         except AttributeError:
                             pass

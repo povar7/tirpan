@@ -22,6 +22,7 @@ from ticheckers   import *
 from typenodes    import *
 from utils        import *
 from configure    import config
+from detector     import detector
 
 type_none    = TypeNone()
 type_unknown = TypeUnknown()
@@ -747,8 +748,7 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             self.args  = None
             var.addDependency(DependencyType.Func, self)
         except AttributeError:
-            from errorprinter import CallNotResolvedError
-            config.error_printer.printError(CallNotResolvedError(node))
+            detector.collector.add_defect("Cannot resolve func call", node)
         self.args      = []
         self.argsTypes = []
         self.starargs      = None

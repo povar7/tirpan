@@ -8,10 +8,8 @@ Created on 29.01.2012
 
 import argparse
 
-from errorprinter import ErrorPrinter
 from init         import common_init
 from scope        import Scope
-from ticheckers   import DefectPrinter
 from tiimporter   import Importer, QuasiAlias
 from tiparser     import TIParser
 from configure import config
@@ -43,8 +41,6 @@ if __name__ == '__main__':
     config.current_scope  = config.global_scope
     config.current_res    = None
     config.importer       = Importer()
-    config.defect_printer = DefectPrinter()
-    config.error_printer  = ErrorPrinter()
     config.verbose        = args.verbose
     config.test_results   = args.test
     config.test_precision = args.precision

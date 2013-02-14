@@ -13,12 +13,10 @@ sys.path.append(os.path.join(tests_dir, '..'))
 
 from configure import config
 from init import common_init
-from errorprinter import ErrorPrinter
-from ticheckers   import DefectPrinter
 from tiimporter import Importer
 from typenodes    import *
 from datetime import datetime
-
+from detector import detector
 import tirpan
 
 def get_test_file_name(file_name):
@@ -26,10 +24,9 @@ def get_test_file_name(file_name):
 
 class TirpanTestCase(unittest.TestCase):
     def setUpFor(self, filename):
+        detector.collector.defects = []
         config.load_defaults()
-        config.error_printer  = ErrorPrinter()
         config.importer       = Importer()
-        config.defect_printer = DefectPrinter()
         common_init(config.global_scope, config.importer)
         start_time = datetime.now()
         tirpan.run(filename)

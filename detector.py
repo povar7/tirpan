@@ -13,6 +13,9 @@ class Detector(object):
     #print module.name
     self.checker.visit(module.ast)
 
+  def defects(self):
+    return self.collector.defects
+
 
 class Checker(ast.NodeVisitor):
     model = None
@@ -39,7 +42,5 @@ class Checker(ast.NodeVisitor):
                 if callable(method):
                     method(node)
             super(Checker, self).visit(node)
-
-
 
 detector = Detector()
