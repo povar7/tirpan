@@ -15,12 +15,15 @@ from ticheckers   import DefectPrinter
 from tiimporter   import Importer, QuasiAlias
 from tiparser     import TIParser
 from configure import config
+from detector import detector
 
 def run(filename):
     alias = QuasiAlias('__main__')
     config.importer.set_main_path(filename)
     config.importer.load_module('sys')
     config.importer.import_files(filename, [alias])
+    for module in config.importer.imported_files.values():
+        detector.check(module)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python Type Inference Project.')
@@ -47,8 +50,5 @@ if __name__ == '__main__':
     config.test_precision = args.precision
     config.print_imports  = args.imports
     config.types_number   = args.limit
-
     common_init(config.global_scope, config.importer)
-
     run(args.filename)
-    config.defect_printer.printDefects()

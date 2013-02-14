@@ -327,10 +327,11 @@ class TIVisitor(ast.NodeVisitor):
         node.link = UnknownTypeGraphNode(node)
 
     def visit_If(self, node):
-        fileno    = getFileNumber(node)
-        skip_if   = False
-        skip_else = False
-        test      = node.test
+        fileno     = getFileNumber(node)
+        skip_if    = False
+        skip_else  = False
+        test       = node.test
+        test.scope = config.current_scope
         if fileno != 0:
             if isinstance(test, ast.Compare):
                 if isinstance(test.left, ast.Name) and \
