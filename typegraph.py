@@ -23,6 +23,7 @@ from typenodes    import *
 from utils        import *
 from configure    import config
 from detector     import detector
+from defect       import FuncCallDefect
 
 type_none    = TypeNone()
 type_unknown = TypeUnknown()
