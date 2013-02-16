@@ -748,7 +748,7 @@ class FuncCallTypeGraphNode(TypeGraphNode):
             self.args  = None
             var.addDependency(DependencyType.Func, self)
         except AttributeError:
-            detector.collector.add_defect("Cannot resolve func call", node)
+            detector.collector.add_defect(FuncCallDefect(node))
         self.args      = []
         self.argsTypes = []
         self.starargs      = None

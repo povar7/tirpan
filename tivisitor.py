@@ -25,7 +25,7 @@ class TIVisitor(ast.NodeVisitor):
         self.treat_list_as_tuple = [False]
 
     def visit(self, node):
-        node.scope = config.current_scope
+        #node.scope = config.current_scope
         super(TIVisitor,self).visit(node)
 
     def visit_Num(self, node):
@@ -331,7 +331,7 @@ class TIVisitor(ast.NodeVisitor):
         skip_if    = False
         skip_else  = False
         test       = node.test
-        test.scope = config.current_scope
+        #test.scope = config.current_scope
         if fileno != 0:
             if isinstance(test, ast.Compare):
                 if isinstance(test.left, ast.Name) and \

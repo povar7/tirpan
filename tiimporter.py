@@ -17,6 +17,7 @@ from typegraph import UsualModuleTypeGraphNode, ExternModuleTypeGraphNode
 from typegraph import UsualVarTypeGraphNode, ExternVarTypeGraphNode
 from configure import config
 from detector  import detector
+from defect    import ImportDefect
 from typenodes import *
 
 def get_init_name(name):
@@ -133,7 +134,7 @@ class Importer(object):
                 except AttributeError:
                     filename = None
                 if filename is None:
-                    detector.collector.add_defect("Cannot import " + name, None)
+                    detector.collector.add_defect(ImportDefect(None, {'name':name}))
                     return None
                 searchname = filename
             if searchname in self.imported_files:
@@ -184,7 +185,7 @@ class Importer(object):
                     config.current_scope.add(new_var)
                     old_var.addDependency(DependencyType.Assign, new_var)
                 except AttributeError:
-                    detector.collector.add_defect('Cannot import ' + old_var_name + ' from ' + module.name, None)
+                    detector.collector.add_defect(ImportDefect(None, {'name':old_var_name, 'from': module.name}))
         return module
 
     def import_files(self, mainfile, aliases, from_aliases = None):

@@ -6,6 +6,7 @@ Created on 08.01.2013
 
 import unittest
 from tests_common import *
+from checkers.basename_checker import BasenameDefect
 test_file_name = get_test_file_name('misc19.py')
 
 
@@ -14,7 +15,7 @@ class TestTirpan(TirpanTestCase):
         self.setUpFor(test_file_name)
 
     def test_check_defect(self):
-        self.assertEqual(len(detector.defects()), 1, 'there must be a defect')
+        self.assertEqual(detector.count_defects(BasenameDefect), 1, 'there must be a defect')
 
 if __name__ == '__main__':
     unittest.main()

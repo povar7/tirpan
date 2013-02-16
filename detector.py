@@ -16,6 +16,9 @@ class Detector(object):
   def defects(self):
     return self.collector.defects
 
+  def count_defects(self,klass):
+    return len([d for d in self.defects() if isinstance(d, klass)])
+
 
 class Checker(ast.NodeVisitor):
     model = None
