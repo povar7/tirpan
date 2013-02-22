@@ -14,5 +14,6 @@ class BasenameChecker(object):
       if isinstance(node.func, ast.Attribute) and node.func.attr == 'basename' and len(node.args) == 1:
         nodeTypes = node.args[0].link.nodeType
         if any(not isinstance(elem, (TypeBaseString, TypeUnknown)) for elem in nodeTypes):
+          print "Basename argument error"
           self.collector.add_defect(BasenameDefect(node))
 

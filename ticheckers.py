@@ -40,10 +40,3 @@ def check_basename_call(visitor, test):
             basename_func = list(external_funcs)[0]
             if basename_func.name == 'basename' and len(test.args) == 1:
                 visitor.visit(test.args[0])
-                nodeType = test.args[0].link.nodeType
-                for elem in nodeType:
-                    if not isinstance(elem, (TypeBaseString, TypeUnknown)):
-                        try:
-                            pass #Bug Found
-                        except AttributeError:
-                            pass

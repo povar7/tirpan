@@ -153,14 +153,10 @@ def filter_types_in_name(visitor, test, res):
 
 def filter_types_in_condition(visitor, test):
     res = set()
-    if isinstance(test, ast.BoolOp):
-        if isinstance(test.op, ast.And):
-            for value in test.values:
-                check_basename_call(visitor, value)
-                filter_types_in_name(visitor, value, res)
-    else:
-        check_basename_call(visitor, test)
-        filter_types_in_name(visitor, test, res)
+    elems = test.values if isinstance(test, ast.BoolOp) and isinstance(test.op, ast.And) else [test]
+    for value in elems:
+      check_basename_call(visitor, value)
+      filter_types_in_name(visitor, value, res)
     return res
 
 def unfilter_types_in_condition(var_pairs):
