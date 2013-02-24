@@ -896,7 +896,7 @@ class FuncCallTypeGraphNode(TypeGraphNode):
                self.name and not find_name_in_class_inst(args_type[0], self.name):
                 skip_flag = True
             else:
-                skip_flag = False                 
+                skip_flag = False 
             for elem in callables:
                 _, func = elem
                 if skip_flag and func.name == self.name:
