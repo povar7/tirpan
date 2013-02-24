@@ -18,7 +18,6 @@ from classes      import get_singletons_list
 from funccall     import *
 from returns      import check_returns
 from scope        import Scope
-from ticheckers   import *
 from typenodes    import *
 from utils        import *
 from configure    import config
@@ -155,8 +154,8 @@ def filter_types_in_condition(visitor, test):
     res = set()
     elems = test.values if isinstance(test, ast.BoolOp) and isinstance(test.op, ast.And) else [test]
     for value in elems:
-      check_basename_call(visitor, value)
-      filter_types_in_name(visitor, value, res)
+        if isinstance(value, ast.Call): visitor.visit_Call(value)
+        filter_types_in_name(visitor, value, res)
     return res
 
 def unfilter_types_in_condition(var_pairs):
