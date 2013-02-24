@@ -882,7 +882,6 @@ class FuncCallTypeGraphNode(TypeGraphNode):
                 sub_number = dependent_args[1]
                 if need_to_skip(args_type_orig[var_number], args_type_orig[sub_number], dependent_args[2]):
                     continue
-
             if self.attrCall and \
                isinstance(args_type_orig[0], (ModuleTypeGraphNode, ClassDefTypeGraphNode, FuncDefTypeGraphNode, TypeAtom)) and not isinstance(args_type_orig[0], TypeBaseString):
                 args_type = args_type_orig[1:]
@@ -898,7 +897,6 @@ class FuncCallTypeGraphNode(TypeGraphNode):
                 skip_flag = True
             else:
                 skip_flag = False                 
-
             for elem in callables:
                 _, func = elem
                 if skip_flag and func.name == self.name:
