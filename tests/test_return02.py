@@ -1,7 +1,6 @@
 import unittest, ast
 from tests_common import *
 from checkers.return_checker import ReturnDefect
-from utils        import findNode
 
 test_file_name = get_test_file_name('return02.py')
 
