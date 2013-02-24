@@ -203,6 +203,7 @@ class Scope(object):
                 var.nodeType = set([arg])
             except RuntimeError:
                 var.nodeType = set()
+        return variables
 
     def addGlobalNames(self, names):
         if not self.has_globals:
