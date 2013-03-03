@@ -96,7 +96,7 @@ class TemplateValue:
     self.result = set()
     self.args   = None
 
-def process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res, attr_call):
+def process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res, attr_call, parm_vars):
   from typegraph import ClassInstanceTypeGraphNode, SubscriptTypeGraphNode, DependencyType
 
   if kw_res is not None:
@@ -178,6 +178,7 @@ def get_elem_set(elem, params_copy):
 def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, kwarg_elem, attr_call, file_number):
   from tivisitor import TIVisitor
   from typegraph import DependencyType, AttributeTypeGraphNode, ExternFuncDefTypeGraphNode, UsualFuncDefTypeGraphNode, ClassInstanceTypeGraphNode
+  parm_vars = None
   cls, func = pair
   cls_instance = make_new_instance(cls)
   if cls_instance:
@@ -211,7 +212,7 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
       attr_call_for_trace = True
     else:
       attr_call_for_trace = attr_call
-    params_copy.linkParamsAndArgs(elem)
+    parm_vars = params_copy.linkParamsAndArgs(elem)
     load_increase = False
     try:
       func.templates[elem_copy] = TemplateValue()
@@ -283,10 +284,10 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
       return set()
   if not cls_instance and elem is not None:
     if params_copy is None:
-      process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res, attr_call)
+      process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res, attr_call, parm_vars)
     else:
       for new_elem in get_elem_set(elem, params_copy):
-        process_out_params(args, starargs, kwargs, new_elem, elem_copy, star_res, kw_res, attr_call)
+        process_out_params(args, starargs, kwargs, new_elem, elem_copy, star_res, kw_res, attr_call, parm_vars)
   try:
     result = func.templates[elem_copy].result
     if func.name == 'newplugin':
