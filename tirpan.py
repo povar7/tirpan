@@ -14,6 +14,7 @@ from tiimporter   import Importer, QuasiAlias
 from tiparser     import TIParser
 from configure import config
 from detector import detector
+from checkers.basename_checker import BasenameDefect
 
 def run(filename):
     alias = QuasiAlias('__main__')
@@ -22,6 +23,7 @@ def run(filename):
     config.importer.import_files(filename, [alias])
     for module in config.importer.imported_files.values():
         detector.check(module)
+    detector.defects(BasenameDefect)[0].trace()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python Type Inference Project.')

@@ -206,6 +206,7 @@ def common_elem_types_index(nodeType, index):
 class TypeGraphNode(object):
     def __init__(self):
         self.deps = {}
+        self.inverse_relationship = {}
         self.nodeType  = set()
 
     def get_atom_type_node(self, atom_type, value = None):
@@ -230,7 +231,10 @@ class TypeGraphNode(object):
     def addDependency(self, dep_type, dep, *args):
         if not dep_type in self.deps:
             self.deps[dep_type] = set()
+        if not dep_type in dep.inverse_relationship:
+            dep.inverse_relationship[dep_type] = set()
         self.deps[dep_type].add((dep, args))
+        dep.inverse_relationship[dep_type].add((self, args))
         self.walk_dependency(dep_type, dep, *args)
 
     def removeDependency(self, dep_type, dep):

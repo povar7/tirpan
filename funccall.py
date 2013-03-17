@@ -84,7 +84,7 @@ def copy_params(params):
 def create_dummy_variable(nodeType):
   from typegraph import UsualVarTypeGraphNode
   res = UsualVarTypeGraphNode(None)
-  try: 
+  try:
     res.nodeType = set([nodeType])
   except RuntimeError:
     pass
@@ -98,7 +98,6 @@ class TemplateValue:
 
 def process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res, attr_call, parm_vars):
   from typegraph import ClassInstanceTypeGraphNode, SubscriptTypeGraphNode, DependencyType
-
   if kw_res is not None:
     kw_arg = elem[kw_res]
     for pair in kwargs.items():
@@ -145,6 +144,9 @@ def process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res
         var.addDependency(DependencyType.AttrObject, arg)
       else:
         var.addDependency(DependencyType.Assign, arg)
+      if not DependencyType.Assign in parm_vars[arg_index].inverse_relationship:
+        parm_vars[arg_index].inverse_relationship[DependencyType.Assign] = set()
+      parm_vars[arg_index].inverse_relationship[DependencyType.Assign].add((arg, ()))
     arg_index += 1
 
   if starargs is None:
@@ -240,7 +242,7 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
       except AttributeError:
         filename = None
       bt = get_backtrace()
-      bt.add_frame(attr_call_for_trace, func, elem_copy) 
+      bt.add_frame(attr_call_for_trace, func, elem_copy)
       visitor = TIVisitor(filename)
       for stmt in ast_copy:
         visitor.visit(stmt)
@@ -263,7 +265,7 @@ def process_product_elem(pair, args, arg_elem, starargs, stararg_elem, kwargs, k
       args_scope = config.current_scope
       config.current_scope = saved_scope
       bt = get_backtrace()
-      bt.add_frame(attr_call_for_trace, func, elem_copy) 
+      bt.add_frame(attr_call_for_trace, func, elem_copy)
       try:
         if func.name == 'connect' and \
            len(args) == 3 and \

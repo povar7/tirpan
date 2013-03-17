@@ -2,7 +2,7 @@ import ast
 from configure import config
 from checkers import BasenameChecker, ReturnChecker
 from defect_collector import DefectCollector
-
+from defect import Defect
 
 class Detector(object):
   def __init__(self):
@@ -13,8 +13,8 @@ class Detector(object):
     #print module.name
     self.checker.visit(module.ast)
 
-  def defects(self):
-    return self.collector.defects
+  def defects(self, klass = Defect):
+    return [d for d in self.collector.defects if isinstance(d, klass)]
 
   def count_defects(self,klass):
     return len([d for d in self.defects() if isinstance(d, klass)])
