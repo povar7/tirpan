@@ -6,7 +6,7 @@ Created on 11.12.2011
 
 from itertools    import product
 from ast          import AugAssign, BinOp, UnaryOp, BoolOp, Call, List, Lambda, Name, Return
-from copy         import deepcopy
+from copy         import copy, deepcopy
 from types        import NoneType
 
 from classes      import copy_class_inst, find_inits_in_classes
@@ -531,6 +531,13 @@ class UsualVarTypeGraphNode(VarTypeGraphNode):
             self.col  = getCol (node)
             self.fno  = getFileNumber(node)
 
+    def __deepcopy__(self, memo):
+        res = copy(self)
+        res.nodeType = deepcopy(self.nodeType)
+        res.deps = copy(self.deps)
+        res.inverse_relationship = copy(self.deps)
+        return res
+    
 class ExternVarTypeGraphNode(VarTypeGraphNode):
     def __init__(self, name, var_type):
         super(ExternVarTypeGraphNode, self).__init__(name)

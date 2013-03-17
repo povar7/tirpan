@@ -10,7 +10,7 @@ from copy import deepcopy
 
 from configure import config
 from classes   import get_quasi_getattr_instance_name
-from init      import get_operator_name 
+from init      import get_operator_name
 from tiexcepts import check_exceptions
 from typegraph import *
 from utils     import *
@@ -30,10 +30,10 @@ class TIVisitor(ast.NodeVisitor):
 
     def visit_Num(self, node):
         node.link = ConstTypeGraphNode(node.n, self.respect_values or (self.filename and self.filename.endswith(TIVisitor.CONST_FILES)))
-    
+
     def visit_Str(self, node):
         node.link = ConstTypeGraphNode(node.s, self.respect_values or (self.filename and self.filename.endswith(TIVisitor.CONST_FILES)))
-        
+
     def visit_Name(self, node):
         if node.id == 'None':
             node.link = ConstTypeGraphNode(None)
@@ -51,7 +51,7 @@ class TIVisitor(ast.NodeVisitor):
                 node.link.setPos(node)
             except AttributeError:
                 pass
-        
+
     def visit_Assign(self, node):
         self.visit(node.value)
         target = node.targets[0]
@@ -98,11 +98,11 @@ class TIVisitor(ast.NodeVisitor):
             node.link = ListTypeGraphNode(node)
         else:
             node.link = TupleTypeGraphNode(node)
-        
+
     def visit_Dict(self, node):
         self.generic_visit(node)
         node.link = DictTypeGraphNode(node)
-    
+
     def visit_Tuple(self, node):
         self.generic_visit(node)
         node.link = TupleTypeGraphNode(node)
@@ -145,7 +145,7 @@ class TIVisitor(ast.NodeVisitor):
             if defVal:
                 defVal.link.addDependency(DependencyType.Assign, arg.link)
                 arg.link.setDefaultParam()
-            
+
     def visit_FunctionDef(self, node):
         name = node.name
         funcDefNode = UsualFuncDefTypeGraphNode(node, name, config.current_scope)
@@ -187,14 +187,14 @@ class TIVisitor(ast.NodeVisitor):
             self.visit(node.starargs)
         for kwarg in node.keywords:
             self.visit(kwarg.value)
-       
+
         if isinstance(node.func, ast.Name) and node.func.id == '_':
             node.func.id = 'unicode'
         self.visit(node.func)
         node.link = FuncCallTypeGraphNode(node)
         node.link.processCall()
 
-    def common_in(self, node): 
+    def common_in(self, node):
         self.visit(node.iter)
         target = node.target
         save   = self.left_part
@@ -237,7 +237,7 @@ class TIVisitor(ast.NodeVisitor):
                 var.parent   = None
                 var.nodeType = None
                 var_copy = deepcopy(var)
-                var.nodeType = nodeType 
+                var.nodeType = nodeType
                 var.parent = save
                 config.current_scope.add(var_copy)
                 var_copy.parent = var.parent
@@ -264,7 +264,7 @@ class TIVisitor(ast.NodeVisitor):
         var = config.current_scope.find(name)
         node.link = FuncCallTypeGraphNode(node, var)
         node.link.processCall()
-        
+
     def visit_BoolOp(self, node):
         for value in node.values:
             self.visit(value)
@@ -300,10 +300,10 @@ class TIVisitor(ast.NodeVisitor):
         node.value.link.addDependency(DependencyType.AttrObject, node.link)
         self.left_part = save
 
-    def visit_Subscript(self, node): 
+    def visit_Subscript(self, node):
         self.visit(node.value)
         sub_slice = node.slice
-        self.visit(sub_slice) 
+        self.visit(sub_slice)
         is_index  = isinstance(sub_slice, ast.Index)
         if isinstance(sub_slice, ast.Index):
             index = sub_slice.value
@@ -396,7 +396,7 @@ class TIVisitor(ast.NodeVisitor):
                         tmp_str  = TypeStr(test.left.s)
                         if tmp_str in type1.elem_types():
                             skip_else = True
-                self.left_part = save 
+                self.left_part = save
         if not skip_if:
             var_pairs = filter_types_in_condition(self, test)
             for stmt in node.body:
