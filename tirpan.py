@@ -23,7 +23,8 @@ def run(filename):
     config.importer.import_files(filename, [alias])
     for module in config.importer.imported_files.values():
         detector.check(module)
-    detector.defects(BasenameDefect)[0].trace()
+    if len(detector.defects(BasenameDefect)) > 0:
+        detector.defects(BasenameDefect)[0].trace()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python Type Inference Project.')

@@ -144,9 +144,12 @@ def process_out_params(args, starargs, kwargs, elem, elem_copy, star_res, kw_res
         var.addDependency(DependencyType.AttrObject, arg)
       else:
         var.addDependency(DependencyType.Assign, arg)
-      if not DependencyType.Assign in parm_vars[arg_index].inverse_relationship:
-        parm_vars[arg_index].inverse_relationship[DependencyType.Assign] = set()
-      parm_vars[arg_index].inverse_relationship[DependencyType.Assign].add((arg, ()))
+      if parm_vars:
+        if not DependencyType.Assign in parm_vars[arg_index].inverse_relationship:
+          parm_vars[arg_index].inverse_relationship[DependencyType.Assign] = set()
+        parm_vars[arg_index].inverse_relationship[DependencyType.Assign].add((arg, ()))
+      else:
+        print "Arguments params not found"
     arg_index += 1
 
   if starargs is None:
