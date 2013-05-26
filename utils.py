@@ -1,5 +1,5 @@
 '''
-Created on 07.01.2012
+Created on 26.05.2013
 
 @author: bronikkk
 '''
@@ -29,18 +29,17 @@ def findAllNodes(tree, callback):
 def getLine(node):
     return getattr(node, 'lineno', None)
 
-def getCol (node):
+def getColumn(node):
     offset = getattr(node, 'col_offset', None)
     if offset is None:
         return None
     else:
         return offset + 1
 
-def getFile(node):
-    import __main__
-    fileno = getattr(node, 'fileno', None)
+def getFileName(node):
+    fileNumber = getattr(node, 'fileno', None)
     try:
-        name = __main__.importer.get_ident(fileno).name 
+        name = importer.getFileName(fileNumber)
     except KeyError:
         name = None
     return name
@@ -49,20 +48,11 @@ def getFileNumber(node):
     return getattr(node, 'fileno', None)
 
 def findNode(tree, **kwargs):
-    try:
-        line = kwargs['line']
-    except KeyError:
-        line = None
-    try:
-        col = kwargs['col']
-    except KeyError:
-        col = None
-    try:
-        kind = kwargs['kind']
-    except KeyError:
-        kind = None
-    callback = lambda(node) : \
-               (getLine(node) == line  if line else True) and \
-               (getCol (node) == col   if col  else True) and \
-               (isinstance(node, kind) if kind else True)
+    line = kwargs['line']
+    col  = kwargs['col' ]
+    kind = kwargs['kind']
+    def callback(node):
+        return ((getLine(node) == line  if line else True) and
+                (getCol (node) == col   if col  else True) and
+                (isinstance(node, kind) if kind else True))
     return findFirstNode(tree, callback)
