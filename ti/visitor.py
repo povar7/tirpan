@@ -7,9 +7,9 @@ Created on 26.05.2013
 import ast
 
 import config
-from   ti.tgnode import EdgeType
-from   ti.tgnode import ConstTGNode, ListTGNode
-from   utils     import checkEqual
+import ti.tgnode
+
+from ti.tgnode import EdgeType
 
 class Visitor(ast.NodeVisitor):
 
@@ -18,24 +18,24 @@ class Visitor(ast.NodeVisitor):
         self.leftPart  = False
 
     def visit_Num(self, node):
-        node.link = ConstTGNode(node)
+        node.link = ti.tgnode.ConstTGNode(node)
     
     def visit_Str(self, node):
-        node.link = ConstTGNode(node)
+        node.link = ti.tgnode.ConstTGNode(node)
         
     def visit_Name(self, node):
         if node.id == 'None':
-            link = ConstTGNode(node)
+            link = ti.tgnode.ConstTGNode(node)
         else:
             if self.leftPart:
-                fileScope = config.globalScope
+                fileScope = config.data.globalScope
                 #try:
                 #    fileScope = importer.getFileScope(node.fileno)
                 #except AttributeError:
                 #    fileScope = None
-                link = config.currentScope.findOrAddName(node.id, True, fileScope)
+                link = config.data.currentScope.findOrAddName(node.id, True, fileScope)
             else:
-                link = config.currentScope.findOrAddName(node.id)
+                link = config.data.currentScope.findOrAddName(node.id)
         node.link = link
        
     def visit_Assign(self, node):
@@ -62,13 +62,29 @@ class Visitor(ast.NodeVisitor):
 
     def visit_List(self, node):
         self.generic_visit(node)
-        node.link = ListTGNode(node)
+        node.link = ti.tgnode.ListTGNode(node)
+
+    def visit_common_subscript(self, collection, index):
+        self.visit(index) 
+        link = ti.tgnode.SubscriptTGNode()
+        link.addEdge(EdgeType.ASSIGN_OBJECT, collection.link)
+        collection.link.addEdge(EdgeType.ATTR_OBJECT, link)
+        link.addEdge(EdgeType.ASSIGN_SLICE, index.link)
+        index.link.addEdge(EdgeType.ATTR_SLICE, link)
+        return link
         
     def visit_Dict(self, node):
-        pass
-    
+        node.link = ti.tgnode.DictTGNode()
+        for number in range(len(node.keys)):
+            key = node.keys  [number]
+            val = node.values[number]
+            self.visit(val)
+            link = self.visit_common_subscript(node, key)
+            val.link.addEdge(EdgeType.ASSIGN, link)
+ 
     def visit_Tuple(self, node):
-        pass
+        self.generic_visit(node)
+        node.link = ti.tgnode.TupleTGNode(node)
 
     def visit_Import(self, node):
         pass
@@ -101,7 +117,7 @@ class Visitor(ast.NodeVisitor):
         pass
 
     def visit_Compare(self, node):
-        node.link = ConstTGNode(False)
+        node.link = ti.tgnode.ConstTGNode(False)
 
     def visit_Return(self, node):
         pass
@@ -128,7 +144,7 @@ class Visitor(ast.NodeVisitor):
         pass
 
     def visit_GeneratorExp(self, node):
-        node.link = UnknownTGNode()
+        node.link = ti.tgnode.UnknownTGNode()
 
     def visit_Global(self, node):
         pass
@@ -146,7 +162,7 @@ class Visitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Set(self, node):
-        node.link = UnknownTGNode()
+        node.link = ti.tgnode.UnknownTGNode()
 
     def visit_comprehension(self, node):
         pass

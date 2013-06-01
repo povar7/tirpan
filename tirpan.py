@@ -12,6 +12,7 @@ import config
 from ti.parser import Parser
 
 def run(filename):
+    config.initialize()
     inputFileParser = Parser(filename)
     inputFileParser.walk()
     return inputFileParser.ast

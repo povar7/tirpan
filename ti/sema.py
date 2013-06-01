@@ -29,6 +29,7 @@ class Sema(object):
 class LiteralSema(Sema):
 
     def __init__(self, ltype):
+        super(LiteralSema, self).__init__()
         self.ltype = ltype
 
     def isInstanceEqualTo(self, other):
@@ -37,11 +38,41 @@ class LiteralSema(Sema):
     def getInstanceHash(self):
         return hash(self.ltype)
 
-class ListSema(Sema):
+class LiteralValueSema(LiteralSema):
+
+    def __init__(self, value):
+        super(LiteralValueSema, self).__init__(value.__class__)
+        self.value = value
+
+    def isInstanceEqualTo(self, other):
+        return (self.ltype == other.ltype and
+                self.value == other.value)
+
+    def getInstanceHash(self):
+        return hash((self.ltype, self.value))
+
+class CollectionSema(Sema):
 
     def __init__(self):
-        self.elems  = set()
+        super(CollectionSema, self).__init__()
         self.frozen = False
+
+    def getElements(self):
+        return self.elems
+
+    def setElementsAtIndex(self, index, values):
+        for value in values:
+            self.setElementAtIndex(index, value)
+
+    def setElementsAtKey(self, key, values):
+        for value in values:
+            self.setElementAtKey(key, value)
+
+class ListOrTupleSema(CollectionSema):
+    
+    def __init__(self):
+        super(ListOrTupleSema, self).__init__()
+        self.elems  = set()
 
     def addElement(self, elem):
         assert(not self.frozen)
@@ -57,10 +88,18 @@ class ListSema(Sema):
 
     def setElementAtIndex(self, index, elem):
         assert(not self.frozen)
-        self.elems[index] = elem
+        try:
+            if self.elems[index] == NoSema():
+                self.elems[index] = elem
+                return
+        except KeyError:
+            pass
+        except TypeError:
+            pass
+        self.setElementAtKey(index, elem)
 
-    def getElements(self):
-        return self.elems
+    def setElementAtKey(self, key, elem):
+        self.addElement(elem)
 
     def isInstanceEqualTo(self, other):
         assert(self.frozen == other.frozen)
@@ -76,12 +115,59 @@ class ListSema(Sema):
             return id(self)
 
     def freeze(self):
-        self.elems = freeze(self.elems)
+        self.elems = freezeSet(self.elems)
+        self.frozen = True
+
+class ListSema(ListOrTupleSema):
+
+    def __init__(self):
+        super(ListSema, self).__init__()
+
+class TupleSema(ListOrTupleSema):
+
+    def __init__(self):
+        super(TupleSema, self).__init__()
+
+class DictSema(CollectionSema):
+    
+    def __init__(self):
+        super(DictSema, self).__init__()
+        self.elems = dict()
+
+    def isInstanceEqualTo(self, other):
+        assert(self.frozen == other.frozen)
+        if self.frozen:
+            return self.elems == other.elems
+        else:
+            return self is other
+
+    def getInstanceHash(self):
+        if self.frozen:
+            return hash(frozenset(self.elems.items()))
+        else:
+            return id(self)
+
+    def getElementsAtKey(self, key):
+        try:
+            return self.elems[key]
+        except:
+            return set()
+
+    def setElementAtKey(self, key, elem):
+        try:
+            value = self.elems[key]
+            value.add(elem)
+        except KeyError:
+            self.elems[key] = {elem}
+
+    def freeze(self):
+        self.elems = freezeDict(self.elems)
         self.frozen = True
 
 class ScopeSema(Sema):
 
     def __init__(self, parent = None, hasGlobals = None):
+        super(ScopeSema, self).__init__
         self.parent      = parent
         self.variables   = {}
         self.hasGlobals  = hasGlobals
@@ -122,7 +208,7 @@ class ScopeSema(Sema):
 class UnknownSema(Sema):
 
     def __init__(self):
-        pass
+        super(UnknownSema, self).__init__()
 
     def isInstanceEqualTo(self, other):
         return True
@@ -135,10 +221,19 @@ unknownSema = UnknownSema()
 def NoSema():
     return unknownSema
 
-def freeze(elems):
+def freezeSet(elems):
     res = set()
     for elem in elems:
         elementCopy = copy.copy(elem)
         elementCopy.freeze()
         res.add(elementCopy)
+    return res
+
+def freezeDict(elems):
+    res = {}
+    for key, val in elems.items():
+        keyCopy = copy.copy(key)
+        keyCopy.freeze()
+        valCopy = frozenset(freezeSet(val))
+        res[keyCopy] = valCopy
     return res
