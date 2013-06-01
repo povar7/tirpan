@@ -12,8 +12,9 @@ from   ti.tgnode import ConstTGNode, ListTGNode
 from   utils     import checkEqual
 
 class Visitor(ast.NodeVisitor):
-    def __init__(self, fileName):
-        self.fileName  = fileName
+
+    def __init__(self, filename):
+        self.filename  = filename
         self.leftPart  = False
 
     def visit_Num(self, node):

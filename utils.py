@@ -48,11 +48,11 @@ def getFileNumber(node):
     return getattr(node, 'fileno', None)
 
 def findNode(tree, **kwargs):
-    line = kwargs['line']
-    col  = kwargs['col' ]
-    kind = kwargs['kind']
+    line = kwargs.get('line')
+    col  = kwargs.get('col' )
+    kind = kwargs.get('kind')
     def callback(node):
-        return ((getLine(node) == line  if line else True) and
-                (getCol (node) == col   if col  else True) and
-                (isinstance(node, kind) if kind else True))
+        return ((getLine(node) == line  if line is not None else True) and
+                (getCol (node) == col   if col  is not None else True) and
+                (isinstance(node, kind) if kind is not None else True))
     return findFirstNode(tree, callback)

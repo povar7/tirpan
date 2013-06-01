@@ -11,9 +11,14 @@ import argparse
 import config
 from ti.parser import Parser
 
-argParser = argparse.ArgumentParser()
-argParser.add_argument('filename', help='name of analyzed Python source file')
-args = argParser.parse_args()
+def run(filename):
+    inputFileParser = Parser(filename)
+    inputFileParser.walk()
+    return inputFileParser.ast
 
-inputFileParser = Parser(args.filename)
-inputFileParser.walk()
+if __name__ == '__main__':
+    argParser = argparse.ArgumentParser()
+    argParser.add_argument('filename', help='name of analyzed Python source file')
+    args = argParser.parse_args()
+
+    run(args.filename)

@@ -9,10 +9,10 @@ import ast
 from ti.visitor import Visitor
 
 class Parser(object):
-    def __init__(self, fileName): 
-        with open(fileName) as inputFile:
+    def __init__(self, filename): 
+        with open(filename) as inputFile:
             self.ast = ast.parse(inputFile.read())
-        self.visitor = Visitor(fileName)
+        self.visitor = Visitor(filename)
     
     def walk(self):
         self.visitor.visit(self.ast)

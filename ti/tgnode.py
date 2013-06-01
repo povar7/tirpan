@@ -9,6 +9,7 @@ import ast
 from ti.sema import LiteralSema, ListSema, NoSema
 
 class EdgeType(object):
+
     ARGUMENT       = 'Argument'
     ASSIGN         = 'Assign'
     ASSIGN_ELEMENT = 'AssignElement'
@@ -70,6 +71,7 @@ class EdgeType(object):
         right.walkEdges()
 
 class TGNode(object):
+
     def __init__(self):
         self.edges    = {}
         self.nodeType = set()
@@ -92,6 +94,7 @@ class TGNode(object):
                 self.walkEdge(edgeType, node, *args)
 
 class ConstTGNode(TGNode):
+
     def __init__(self, node):
         super(ConstTGNode, self).__init__()
         self.node = node
@@ -104,6 +107,7 @@ class ConstTGNode(TGNode):
         self.nodeType = {LiteralSema(value.__class__)}
 
 class VariableTGNode(TGNode):
+
     def __init__(self, name, nodeType = None):
         super(VariableTGNode, self).__init__()
         self.name     = name
@@ -117,6 +121,7 @@ class VariableTGNode(TGNode):
         self.parent = parent
 
 class ListTGNode(TGNode):
+
     def __init__(self, node):
         super(ListTGNode, self).__init__()
         listSema      = ListSema()
@@ -133,6 +138,7 @@ class ListTGNode(TGNode):
             node.elt.addEdge(EdgeType.ELEMENT, self)
     
 class UnknownTGNode(TGNode):
+
     def __init__(self, node):
         super(UnknownTGNode, self).__init__()
         self.nodeType = {NoSema()}

@@ -4,11 +4,15 @@ Created on 26.05.2013
 @author: bronikkk
 '''
 
+import copy
+
 class ScopeWrap(object):
+
     def __init__(self, scope):
         self.scope = scope
 
 class Sema(object):
+
     def __eq__(self, other):
         return (self.__class__ == other.__class__ and
                 self.isInstanceEqualTo(other))
@@ -19,7 +23,11 @@ class Sema(object):
     def __hash__(self):
         return hash((self.__class__, self.getInstanceHash()))
 
+    def freeze(self):
+        pass
+
 class LiteralSema(Sema):
+
     def __init__(self, ltype):
         self.ltype = ltype
 
@@ -30,10 +38,13 @@ class LiteralSema(Sema):
         return hash(self.ltype)
 
 class ListSema(Sema):
+
     def __init__(self):
-        self.elems = set()
+        self.elems  = set()
+        self.frozen = False
 
     def addElement(self, elem):
+        assert(not self.frozen)
         if isinstance(self.elems, list):
             self.elems = set(self.elems)
         self.elems.add(elem)
@@ -45,18 +56,31 @@ class ListSema(Sema):
             return None
 
     def setElementAtIndex(self, index, elem):
+        assert(not self.frozen)
         self.elems[index] = elem
 
     def getElements(self):
         return self.elems
 
     def isInstanceEqualTo(self, other):
-        return self is other
+        assert(self.frozen == other.frozen)
+        if self.frozen:
+            return self.elems == other.elems
+        else:
+            return self is other
 
     def getInstanceHash(self):
-        return id(self)
+        if self.frozen:
+            return hash(frozenset(self.elems))
+        else:
+            return id(self)
+
+    def freeze(self):
+        self.elems = freeze(self.elems)
+        self.frozen = True
 
 class ScopeSema(Sema):
+
     def __init__(self, parent = None, hasGlobals = None):
         self.parent      = parent
         self.variables   = {}
@@ -96,6 +120,7 @@ class ScopeSema(Sema):
         return self.parent
 
 class UnknownSema(Sema):
+
     def __init__(self):
         pass
 
@@ -109,3 +134,11 @@ unknownSema = UnknownSema()
 
 def NoSema():
     return unknownSema
+
+def freeze(elems):
+    res = set()
+    for elem in elems:
+        elementCopy = copy.copy(elem)
+        elementCopy.freeze()
+        res.add(elementCopy)
+    return res
