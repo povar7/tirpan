@@ -65,12 +65,14 @@ class Visitor(ast.NodeVisitor):
         node.link = ti.tgnode.ListTGNode(node)
 
     def visit_common_subscript(self, collection, index):
-        self.visit(index) 
-        link = ti.tgnode.SubscriptTGNode()
+        hasIndex = index is not None
+        link = ti.tgnode.SubscriptTGNode(hasIndex)
         link.addEdge(EdgeType.ASSIGN_OBJECT, collection.link)
         collection.link.addEdge(EdgeType.ATTR_OBJECT, link)
-        link.addEdge(EdgeType.ASSIGN_SLICE, index.link)
-        index.link.addEdge(EdgeType.ATTR_SLICE, link)
+        if hasIndex:
+            self.visit(index) 
+            link.addEdge(EdgeType.ASSIGN_SLICE, index.link)
+            index.link.addEdge(EdgeType.ATTR_SLICE, link)
         return link
         
     def visit_Dict(self, node):
@@ -132,7 +134,9 @@ class Visitor(ast.NodeVisitor):
         pass
 
     def visit_Subscript(self, node):
-        pass
+        self.visit(node.value)
+        index = getattr(node.slice, 'value', None)
+        node.link = self.visit_common_subscript(node.value, index)
 
     def visit_ListComp(self, node):
         pass

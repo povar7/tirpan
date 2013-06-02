@@ -196,8 +196,9 @@ class DictTGNode(TGNode):
 
 class SubscriptTGNode(TGNode):
 
-    def __init__(self):
+    def __init__(self, hasIndex):
         super(SubscriptTGNode, self).__init__()
+        self.hasIndex = hasIndex
 
     def getSlices(self):
        slices = set()
@@ -214,40 +215,75 @@ class SubscriptTGNode(TGNode):
     def process(self):
        objects = self.getObjects()
        slices  = self.getSlices()
-       self.setValues(objects, slices, self.nodeType)
-       self.nodeType = self.getValues(objects, slices)
+       self.setValues(objects, slices, self.nodeType, self.hasIndex)
+       self.nodeType = self.getValues(objects, slices, self.hasIndex)
 
     @staticmethod
-    def setValues(objects, slices, values):
+    def setValuesWithIndex(obj, slices, values):
+        for elem in slices:
+            if isinstance(obj, DictSema):
+                index = None
+            else:
+                index = getattr(elem, 'value', None)
+            if index is not None:
+                obj.setElementsAtIndex(index, values)
+            else:
+                obj.setElementsAtKey(elem, values)
+
+    @staticmethod
+    def setValuesWithoutIndex(obj, values):
+        if not isinstance(obj, ListSema):
+            return
+        for value in values:
+            for elem in value.getElements():
+                obj.addElement(elem)
+
+    @staticmethod
+    def setValues(objects, slices, values, hasIndex):
         for obj in objects:
             if not isinstance(obj, CollectionSema):
                 continue
-            for elem in slices:
-                if isinstance(obj, DictSema):
-                    index = None
-                else:
-                    index = getattr(elem, 'value', None)
-                if index is not None:
-                    obj.setElementsAtIndex(index, values)
-                else:
-                    obj.setElementsAtKey(elem, values)
+            if hasIndex:
+                SubscriptTGNode.setValuesWithIndex(obj, slices, values)
+            else:
+                SubscriptTGNode.setValuesWithoutIndex(obj, values)
 
     @staticmethod
-    def getValues(objects, slices):
+    def getValuesWithIndex(obj, slices):
+        res = set()
+        for elem in slices:
+            if isinstance(obj, DictSema):
+                index = None
+            else:
+                index = getattr(elem, 'value', None)
+            if index is not None:
+                newTypes = obj.getElementsAtIndex(index)
+            else:
+                newTypes = obj.getElementsAtKey(elem)
+            res |= newTypes
+        return res
+
+    @staticmethod
+    def getValuesWithoutIndex(obj):
+        if isinstance(obj, ListSema):
+            objCopy = ListSema()
+            for elem in obj.getElements():
+                objCopy.addElement(elem)
+            return {objCopy}
+        else:
+            return set()
+            
+    @staticmethod
+    def getValues(objects, slices, hasIndex):
         res = set()
         for obj in objects:
             if not isinstance(obj, CollectionSema):
                 continue
-            for elem in slices:
-                if isinstance(obj, DictSema):
-                    index = None
-                else:
-                    index = getattr(elem, 'value', None)
-                if index is not None:
-                    new_types = obj.getElementsAtIndex(index)
-                else:
-                    new_types = obj.getElementsAtKey(elem)
-                res |= new_types
+            if hasIndex:
+                newTypes = SubscriptTGNode.getValuesWithIndex(obj, slices)
+            else:
+                newTypes = SubscriptTGNode.getValuesWithoutIndex(obj)
+            res |= newTypes
         return res
     
 class UnknownTGNode(TGNode):

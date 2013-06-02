@@ -57,9 +57,6 @@ class CollectionSema(Sema):
         super(CollectionSema, self).__init__()
         self.frozen = False
 
-    def getElements(self):
-        return self.elems
-
     def setElementsAtIndex(self, index, values):
         for value in values:
             self.setElementAtIndex(index, value)
@@ -80,10 +77,25 @@ class ListOrTupleSema(CollectionSema):
             self.elems = set(self.elems)
         self.elems.add(elem)
 
+    def getElements(self):
+        return self.elems
+
+    def getElementsSet(self):
+        if isinstance(self.elems, set):
+            return self.elems
+        else:
+            return set(self.elems)
+
+    def getElementsAtIndex(self, index):
+        try:
+            return {self.elems[index]}
+        except:
+            return self.getElementsSet()
+
     def getElementAtIndex(self, index):
         try:
             return self.elems[index]
-        except TypeError:
+        except:
             return None
 
     def setElementAtIndex(self, index, elem):
@@ -100,6 +112,9 @@ class ListOrTupleSema(CollectionSema):
 
     def setElementAtKey(self, key, elem):
         self.addElement(elem)
+
+    def getElementsAtKey(self, key):
+        return self.getElementsSet()
 
     def isInstanceEqualTo(self, other):
         assert(self.frozen == other.frozen)
