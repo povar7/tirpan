@@ -8,6 +8,7 @@ import ast
 
 import config
 import ti.tgnode
+import ti.sema
 
 from ti.tgnode import EdgeType
 
@@ -95,6 +96,14 @@ class Visitor(ast.NodeVisitor):
         pass
 
     def visit_Module(self, node):
+        nodeType = {ti.sema.LiteralValueSema(True)} 
+        trueVariable = ti.tgnode.VariableTGNode('True', nodeType)
+        config.data.currentScope.addVariable(trueVariable)
+
+        nodeType = {ti.sema.LiteralValueSema(False)} 
+        falseVariable = ti.tgnode.VariableTGNode('False', nodeType)
+        config.data.currentScope.addVariable(falseVariable)
+
         self.generic_visit(node)
 
     def visit_arguments(self, node):
@@ -106,8 +115,29 @@ class Visitor(ast.NodeVisitor):
     def visit_Call(self, node):
         pass
 
+    def visit_common_in(self, node):
+        self.visit(node.iter)
+        link   = node.iter.link
+        target = node.target
+        save   = self.leftPart
+        self.leftPart = True
+        if isinstance(target, ast.Tuple):
+            for elem in target.elts:
+                self.visit(elem)
+            self.leftPart = save
+            index = 0
+            for elem in target.elts:
+                link.addEdge(EdgeType.ASSIGN_DOUBLE, elem.link, index)
+                index += 1
+        else:
+            self.visit(target)
+            self.leftPart = save
+            link.addEdge(EdgeType.ASSIGN_ELEMENT, target.link, None)
+
     def visit_For(self, node):
-        pass
+        self.visit_common_in(node)
+        for stmt in node.body:
+            self.visit(stmt)
 
     def visit_BinOp(self, node):
         pass

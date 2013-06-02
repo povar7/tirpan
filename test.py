@@ -79,6 +79,48 @@ class TestAssign01(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'c', 'name is not "c"')
 
+class TestAssign02(unittest.TestCase):
+    
+    ast = tirpan.run('tests/assign02.py')
+        
+    def test_el(self):
+        node = utils.findNode(self.ast, line=2, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode), 'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(int)
+        type2 = LiteralSema(float)
+        type3 = LiteralSema(str)
+        self.assertTrue(len(nodeType) == 3 and
+                        any([type1 == elem for elem in nodeType]) and
+                        any([type2 == elem for elem in nodeType]) and
+                        any([type3 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'el', 'name is not "el"')
+
+class TestAssign03(unittest.TestCase):
+    
+    ast = tirpan.run('tests/assign03.py')
+        
+    def test_el(self):
+        node = utils.findNode(self.ast, line=2, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode), 'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(int)
+        type2 = LiteralValueSema(1)
+        type3 = LiteralSema(str)
+        type4 = LiteralValueSema('abc')
+        self.assertTrue(len(nodeType) == 4 and
+                        any([type1 == elem for elem in nodeType]) and
+                        any([type2 == elem for elem in nodeType]) and
+                        any([type3 == elem for elem in nodeType]) and
+                        any([type4 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'el', 'name is not "el"')
+
 class TestStd01(unittest.TestCase):
     
     ast = tirpan.run('tests/std01.py')

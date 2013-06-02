@@ -46,7 +46,7 @@ class EdgeType(object):
     @staticmethod
     def processAssignElement(left, right, *args):
         index = args[0]
-        types = left.getElements(index)
+        types = left.getElementsTypes(index)
         EdgeType.updateRight(right, types)
 
     @staticmethod
@@ -121,6 +121,12 @@ class TGNode(object):
             return self.edges[edgeType]
         except KeyError:
             return set()
+
+    def getElementsTypes(self, index):
+        res = set()
+        for singleType in self.nodeType:
+            res |= singleType.getElementsAtIndex(index)
+        return res
 
     def process(self):
         pass

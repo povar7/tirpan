@@ -162,6 +162,9 @@ class DictSema(CollectionSema):
         else:
             return id(self)
 
+    def getElementsAtIndex(self, index):
+        return set(self.elems.keys())
+
     def getElementsAtKey(self, key):
         try:
             return self.elems[key]
