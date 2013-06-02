@@ -15,14 +15,15 @@ from ti.tgnode import EdgeType
 class Visitor(ast.NodeVisitor):
 
     def __init__(self, filename):
-        self.filename  = filename
-        self.leftPart  = False
+        self.filename = filename
+        self.leftPart = False
+        self.getValue = False
 
     def visit_Num(self, node):
-        node.link = ti.tgnode.ConstTGNode(node)
+        node.link = ti.tgnode.ConstTGNode(node, self.getValue)
     
     def visit_Str(self, node):
-        node.link = ti.tgnode.ConstTGNode(node)
+        node.link = ti.tgnode.ConstTGNode(node, self.getValue)
         
     def visit_Name(self, node):
         if node.id == 'None':
@@ -75,7 +76,10 @@ class Visitor(ast.NodeVisitor):
         link.addEdge(EdgeType.ASSIGN_OBJECT, collection.link)
         collection.link.addEdge(EdgeType.ATTR_OBJECT, link)
         if hasIndex:
-            self.visit(index) 
+            save = self.getValue
+            self.getValue = True
+            self.visit(index)
+            self.getValue = save
             link.addEdge(EdgeType.ASSIGN_SLICE, index.link)
             index.link.addEdge(EdgeType.ATTR_SLICE, link)
         return link

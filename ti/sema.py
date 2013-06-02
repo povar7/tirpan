@@ -57,64 +57,42 @@ class CollectionSema(Sema):
         super(CollectionSema, self).__init__()
         self.frozen = False
 
-    def setElementsAtIndex(self, index, values):
-        for value in values:
-            self.setElementAtIndex(index, value)
-
-    def setElementsAtKey(self, key, values):
-        for value in values:
-            self.setElementAtKey(key, value)
-
 class ListOrTupleSema(CollectionSema):
     
-    def __init__(self):
+    def __init__(self, size = None):
         super(ListOrTupleSema, self).__init__()
-        self.elems  = set()
-
-    def addElement(self, elem):
-        assert(not self.frozen)
-        if isinstance(self.elems, list):
-            self.elems = set(self.elems)
-        self.elems.add(elem)
+        self.elems = []
+        for index in range(size + 1 if size is not None else 0):
+            self.elems.append(set())
 
     def getElements(self):
-        return self.elems
-
-    def getElementsSet(self):
-        if isinstance(self.elems, set):
-            return self.elems
-        else:
-            return set(self.elems)
+        res = set()
+        for elem in self.elems:
+            res |= elem
+        return res
 
     def getElementsAtIndex(self, index):
         try:
-            return {self.elems[index]}
+            return self.elems[index + 1]
         except:
-            return self.getElementsSet()
+            return self.getElements()
 
-    def getElementAtIndex(self, index):
-        try:
-            return self.elems[index]
-        except:
-            return None
+    def addElements(self, values):
+        for elem in self.elems:
+            elem |= values
 
-    def setElementAtIndex(self, index, elem):
+    def addElementsAtIndex(self, index, values):
         assert(not self.frozen)
         try:
-            if self.elems[index] == NoSema():
-                self.elems[index] = elem
-                return
-        except KeyError:
-            pass
-        except TypeError:
-            pass
-        self.setElementAtKey(index, elem)
+            self.elems[index + 1] |= values
+        except:
+            self.addElementsAtKey(index, values)
 
-    def setElementAtKey(self, key, elem):
-        self.addElement(elem)
+    def addElementsAtKey(self, key, values):
+        self.elems[0] |= values
 
     def getElementsAtKey(self, key):
-        return self.getElementsSet()
+        return self.getElements()
 
     def isInstanceEqualTo(self, other):
         assert(self.frozen == other.frozen)
@@ -130,18 +108,22 @@ class ListOrTupleSema(CollectionSema):
             return id(self)
 
     def freeze(self):
-        self.elems = freezeSet(self.elems)
+        res = []
+        for atom in self.elems:
+            atomCopy = frozenset(freezeSet(atom))
+            res.append(atomCopy)
+        self.elems  = res
         self.frozen = True
 
 class ListSema(ListOrTupleSema):
 
-    def __init__(self):
-        super(ListSema, self).__init__()
+    def __init__(self, size = 0):
+        super(ListSema, self).__init__(size)
 
 class TupleSema(ListOrTupleSema):
 
-    def __init__(self):
-        super(TupleSema, self).__init__()
+    def __init__(self, size = 0):
+        super(TupleSema, self).__init__(size)
 
 class DictSema(CollectionSema):
     
@@ -171,12 +153,12 @@ class DictSema(CollectionSema):
         except:
             return set()
 
-    def setElementAtKey(self, key, elem):
+    def addElementsAtKey(self, key, values):
         try:
-            value = self.elems[key]
-            value.add(elem)
-        except KeyError:
-            self.elems[key] = {elem}
+            oldValue = self.elems[key]
+        except:
+            oldValue = self.elems[key] = set()
+        oldValue |= values
 
     def freeze(self):
         self.elems = freezeDict(self.elems)

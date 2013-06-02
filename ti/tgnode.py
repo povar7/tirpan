@@ -59,12 +59,6 @@ class EdgeType(object):
 
     @staticmethod
     def processAttrSlice(left, right, *args):
-        # Trying to retrieve constants
-        if isinstance(left, ConstTGNode) and len(left.nodeType) == 1:
-            left.nodeType.add(LiteralValueSema(left.getValue()))
-            left.walkEdges()
-            return
-
         right.process()
 
     @staticmethod
@@ -81,8 +75,7 @@ class EdgeType(object):
         for obj in right.nodeType:
             if not isinstance(obj, CollectionSema):
                 continue
-            for leftType in left.nodeType:
-                obj.setElementAtIndex(index, leftType)
+            obj.addElementsAtIndex(index, left.nodeType)
 
         # Remove simple loops in type variables graph
         try:
@@ -133,7 +126,7 @@ class TGNode(object):
 
 class ConstTGNode(TGNode):
 
-    def __init__(self, node):
+    def __init__(self, node, getValue):
         super(ConstTGNode, self).__init__()
         if isinstance(node, ast.Num):
             value = node.n
@@ -142,7 +135,10 @@ class ConstTGNode(TGNode):
         else:
             assert(False)
         self.value = value
-        self.nodeType = {LiteralSema(value.__class__)}
+        if getValue:
+            self.nodeType = {LiteralValueSema(value)}
+        else:
+            self.nodeType = {LiteralSema(value.__class__)}
 
     def getValue(self):
         return self.value
@@ -165,11 +161,10 @@ class ListTGNode(TGNode):
 
     def __init__(self, node):
         super(ListTGNode, self).__init__()
-        listSema      = ListSema()
-        self.nodeType = {listSema}
         if isinstance(node, ast.List):
             elems = node.elts
-            listSema.elems = [NoSema(),] * len(elems)
+            listSema      = ListSema(len(elems))
+            self.nodeType = {listSema}
             index = 0
             for elem in elems:
                 link = elem.link
@@ -182,11 +177,10 @@ class TupleTGNode(TGNode):
 
     def __init__(self, node):
         super(TupleTGNode, self).__init__()
-        tupleSema     = TupleSema()
+        elems = node.elts
+        tupleSema     = TupleSema(len(elems))
         self.nodeType = {tupleSema}
         if isinstance(node, ast.Tuple):
-            elems = node.elts
-            tupleSema.elems = [NoSema(),] * len(elems)
             index = 0
             for elem in elems:
                 link = elem.link
@@ -232,17 +226,16 @@ class SubscriptTGNode(TGNode):
             else:
                 index = getattr(elem, 'value', None)
             if index is not None:
-                obj.setElementsAtIndex(index, values)
+                obj.addElementsAtIndex(index, values)
             else:
-                obj.setElementsAtKey(elem, values)
+                obj.addElementsAtKey(elem, values)
 
     @staticmethod
     def setValuesWithoutIndex(obj, values):
         if not isinstance(obj, ListSema):
             return
         for value in values:
-            for elem in value.getElements():
-                obj.addElement(elem)
+            obj.addElements(value.getElements())
 
     @staticmethod
     def setValues(objects, slices, values, hasIndex):
@@ -272,9 +265,8 @@ class SubscriptTGNode(TGNode):
     @staticmethod
     def getValuesWithoutIndex(obj):
         if isinstance(obj, ListSema):
-            objCopy = ListSema()
-            for elem in obj.getElements():
-                objCopy.addElement(elem)
+            objCopy = ListSema(0)
+            objCopy.addElementsAtKey(None, obj.getElements())
             return {objCopy}
         else:
             return set()
