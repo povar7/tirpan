@@ -34,7 +34,9 @@ class Visitor(ast.NodeVisitor):
                 #    fileScope = importer.getFileScope(node.fileno)
                 #except AttributeError:
                 #    fileScope = None
-                link = config.data.currentScope.findOrAddName(node.id, True, fileScope)
+                link = config.data.currentScope.findOrAddName(node.id,
+                                                              True,
+                                                              fileScope)
             else:
                 link = config.data.currentScope.findOrAddName(node.id)
         node.link = link
@@ -50,7 +52,9 @@ class Visitor(ast.NodeVisitor):
             self.leftPart = save
             index = 0
             for ast_el in target.elts:
-                node.value.link.addEdge(EdgeType.ASSIGN_ELEMENT, ast_el.link, index)
+                node.value.link.addEdge(EdgeType.ASSIGN_ELEMENT,
+                                        ast_el.link,
+                                        index)
                 index += 1
         else:
             self.visit(target)
