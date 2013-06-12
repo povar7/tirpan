@@ -172,7 +172,7 @@ class Visitor(ast.NodeVisitor):
             self.visit(stmt)
 
     def visit_BinOp(self, node):
-        pass
+        node.link = ti.tgnode.UnknownTGNode(node)
 
     def visit_UnaryOp(self, node):
         pass
@@ -181,7 +181,7 @@ class Visitor(ast.NodeVisitor):
         pass
 
     def visit_Compare(self, node):
-        node.link = ti.tgnode.ConstTGNode(False)
+        node.link = ti.tgnode.UnknownTGNode(node)
 
     def visit_Return(self, node):
         self.visit(node.value)
@@ -209,7 +209,7 @@ class Visitor(ast.NodeVisitor):
         pass
 
     def visit_If(self, node):
-        pass
+        self.generic_visit(node)
 
     def visit_GeneratorExp(self, node):
         node.link = ti.tgnode.UnknownTGNode()

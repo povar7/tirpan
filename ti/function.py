@@ -12,19 +12,27 @@ import ti.sema
 from   ti.tgnode  import EdgeType, FunctionTemplateTGNode
 from   ti.visitor import Visitor
 
-def linkCall(function, argumentTypes):
-    origin = function.origin
-    params = origin.getAllParams()
-    scope  = ti.sema.ScopeSema()
-    index  = 0
+def linkCall(function, argsTypes, listArgsTypes):
+    origin    = function.origin
+    params    = origin.getOrdinaryParams()
+    listParam = origin.getListParam()
+    scope     = ti.sema.ScopeSema()
+    index     = 0
     for param in params:
         paramCopy = copy.deepcopy(param)
         try:
-            paramCopy.nodeType = {argumentTypes[index]}
+            paramCopy.nodeType = {argsTypes[index]}
         except IndexError:
             paramCopy.nodeType = set()
         scope.addVariable(paramCopy)
         index += 1
+    if listParam:
+        listParamCopy = copy.deepcopy(listParam)
+        tupleType = ti.sema.TupleSema(0)
+        for elem in listArgsTypes:
+            tupleType.elems.append({elem})
+        listParamCopy.nodeType = {tupleType}
+        scope.addVariable(listParamCopy)
     return scope
 
 def matchCall(function, argumentNodes):
@@ -77,19 +85,24 @@ def matchCall(function, argumentNodes):
 
 def getProductElements(normResult, listResult, dictResult):
     normResultTypes = [elem.nodeType for elem in normResult]
-    for elem in itertools.product(*normResultTypes):
+    listResultTypes = [elem.nodeType for elem in listResult]
+    for elem in itertools.product(itertools.product(*normResultTypes),
+                                  itertools.product(*listResultTypes)):
         yield elem
 
-def processProductElement(function, tgnode, argumentTypes):
-    key       = argumentTypes
-    origin    = function.origin
-    templates = origin.getTemplates()
-    template  = templates.get(key)
-    if not template:
-        params   = linkCall(function, argumentTypes)
+def processProductElement(function, tgnode, productElement):
+    key         = productElement
+    origin      = function.origin
+    templates   = origin.getTemplates()
+    template    = templates.get(key)
+    newTemplate = template is None
+    if newTemplate:
+        params   = linkCall(function, *productElement)
         template = FunctionTemplateTGNode(params, origin.getParent())
-        templates[key] = template
+    if (tgnode, ()) not in template.edges:
         template.addEdge(EdgeType.ASSIGN, tgnode)
+    if newTemplate:
+        templates[key] = template
         save = config.data.currentScope
         templateScope = template.getScope()
         astCopy = copy.deepcopy(origin.ast)
@@ -101,6 +114,8 @@ def processProductElement(function, tgnode, argumentTypes):
 
 def processCall(node, functionNode, argumentNodes):
     for function in functionNode.nodeType:
+        if not isinstance(function, ti.tgnode.FunctionSema):
+           continue
         matchResult = matchCall(function, argumentNodes)
         if not matchResult:
             continue

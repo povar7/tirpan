@@ -33,7 +33,10 @@ class EdgeType(object):
 
     @staticmethod
     def processArgument(left, right, *args):
-        pass
+        length = len(right.nodeType)
+        right.process()
+        if len(right.nodeType) > length:
+            right.walkEdges()
 
     @staticmethod
     def processAssign(left, right, *args):
@@ -91,7 +94,10 @@ class EdgeType(object):
 
     @staticmethod
     def processFunc(left, right, *args):
-        pass
+        length = len(right.nodeType)
+        right.process()
+        if len(right.nodeType) > length:
+            right.walkEdges()
 
     @staticmethod
     def processRevArgument(left, right, *args):
@@ -141,7 +147,7 @@ class TGNode(object):
 
 class ConstTGNode(TGNode):
 
-    def __init__(self, node, getValue):
+    def __init__(self, node, getValue = False):
         super(ConstTGNode, self).__init__()
         if isinstance(node, ast.Num):
             value = node.n
@@ -343,6 +349,12 @@ class FunctionDefinitionTGNode(TGNode):
         variables = self.params.variables.values() 
         return [var for var in variables if var.number]
 
+    def getListParam(self):
+        return self.listParam
+
+    def getDictParam(self):
+        return self.dictParam
+
     def getParams(self):
         return self.params
 
@@ -419,6 +431,8 @@ class FunctionCallTGNode(TGNode):
  
     def process(self):
         from ti.function import processCall
+        if self._isLocked:
+            return
         functionNode  = self.getFunctionNode()
         argumentNodes = []
         for index in range(self.argsNum):
