@@ -6,7 +6,7 @@ Created on 26.05.2013
 
 import ast
 
-from ti.sema    import *
+from ti.sema import *
 
 class EdgeType(object):
 
@@ -18,6 +18,9 @@ class EdgeType(object):
     ATTR_SLICE     = 'AttrSlice'
     ATTR_OBJECT    = 'AttrObject'
     ELEMENT        = 'Element'
+    FUNC           = 'Func'
+    REV_ARGUMENT   = 'RevArgument'
+    REV_FUNC       = 'RevFunc'
 
     @staticmethod
     def updateRight(right, types):
@@ -86,6 +89,18 @@ class EdgeType(object):
 
         right.walkEdges()
 
+    @staticmethod
+    def processFunc(left, right, *args):
+        pass
+
+    @staticmethod
+    def processRevArgument(left, right, *args):
+        pass
+
+    @staticmethod
+    def processRevFunc(left, right, *args):
+        pass
+
 class TGNode(object):
 
     def __init__(self):
@@ -147,15 +162,21 @@ class VariableTGNode(TGNode):
 
     def __init__(self, name, nodeType = None):
         super(VariableTGNode, self).__init__()
-        self.name     = name
+        self.name   = name
+        self.number = None
+        # self.parent = None
+
         if nodeType is not None:
             self.nodeType = nodeType
         else:
             self.nodeType = set()
-        self.parent   = None
+
+    def setNumber(self, number):
+        self.number = number
 
     def setParent(self, parent):
-        self.parent = parent
+        # self.parent = parent
+        pass
 
 class ListTGNode(TGNode):
 
@@ -283,7 +304,145 @@ class SubscriptTGNode(TGNode):
                 newTypes = SubscriptTGNode.getValuesWithoutIndex(obj)
             res |= newTypes
         return res
-    
+
+class FunctionDefinitionTGNode(TGNode):
+
+    def __init__(self, name, scope):
+        super(FunctionDefinitionTGNode, self).__init__()
+
+        nodeType = FunctionSema(self, scope)
+
+        self.nodeType  = {nodeType}
+        self.parent    = scope
+        self.templates = {}
+
+        self.params    = ScopeSema()
+        self.listParam = None
+        self.dictParam = None
+        self.defaults  = {}
+
+    def isListParam(self, param):
+        return param and param is self.listParam
+
+    def isDictParam(self, param):
+        return param and param is self.dictParam
+
+    @staticmethod
+    def sortParams(x, y):
+        return cmp(x.number, y.number)
+
+    def getAllParams(self):
+        res = self.getOrdinaryParams()
+        if self.listParam:
+            res.append(self.listParam)
+        if self.dictParam:
+            res.append(self.dictParam)
+        return res
+
+    def getOrdinaryParams(self):
+        variables = self.params.variables.values() 
+        return [var for var in variables if var.number]
+
+    def getParams(self):
+        return self.params
+
+    def getParent(self):
+        return self.parent
+
+    def getDefaults(self):
+        return self.defaults
+
+    def getTemplates(self):
+        return self.templates
+
+class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
+
+    def __init__(self, node, name, scope):
+        super(UsualFunctionDefinitionTGNode, self).__init__(name, scope)
+
+        if isinstance(node, ast.Lambda):
+            self.ast = [node.body]
+        else:
+            self.ast = node.body
+
+        if node.args.vararg:
+            self.listParam = VariableTGNode(node.args.vararg)
+
+        if node.args.kwarg:
+            self.dictParam = VariableTGNode(node.args.kwarg)
+
+class FunctionCallTGNode(TGNode):
+
+    def __init__(self, node):
+        super(FunctionCallTGNode, self).__init__()
+
+        self._isLocked = True
+
+        if isinstance(node, ast.Call):
+            func = node.func.link
+            args = node.args
+        else:
+            func = None
+        func.addEdge(EdgeType.FUNC, self)
+        self.addEdge(EdgeType.REV_FUNC, func)
+
+        index = 0
+        for arg in node.args:
+            link = arg.link
+            link.addEdge(EdgeType.ARGUMENT, self)
+            self.addEdge(EdgeType.REV_ARGUMENT, link, index)
+            index += 1
+        self.argsNum = index
+
+        self._isLocked = False
+
+        self.process()
+
+    def getArgumentNode(self, index):
+        for node, args in self.getEdges(EdgeType.REV_ARGUMENT):
+            try:
+                if args[0] == index:
+                    return node
+            except IndexError:
+                pass
+        return None
+
+    def getFunctionNode(self):
+        edges = self.getEdges(EdgeType.REV_FUNC)
+        assert(len(edges) == 1)
+        for node, args in edges:
+            return node
+        return None
+
+    def isLocked(self):
+        return self._isLocked
+ 
+    def process(self):
+        from ti.function import processCall
+        functionNode  = self.getFunctionNode()
+        argumentNodes = []
+        for index in range(self.argsNum):
+            argumentNodes.append(self.getArgumentNode(index))
+        processCall(self, functionNode, argumentNodes)
+
+class FunctionTemplateTGNode(TGNode):
+
+    def __init__(self, params, scope):
+        super(FunctionTemplateTGNode, self).__init__()
+
+        self.params = params
+        self.parent = scope
+        self.scope  = TemplateSema(self)
+
+    def getParams(self):
+        return self.params
+
+    def getParent(self):
+        return self.parent
+
+    def getScope(self):
+        return self.scope
+
 class UnknownTGNode(TGNode):
 
     def __init__(self, node):

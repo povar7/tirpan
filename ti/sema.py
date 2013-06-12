@@ -164,29 +164,38 @@ class DictSema(CollectionSema):
         self.elems = freezeDict(self.elems)
         self.frozen = True
 
-class ScopeSema(Sema):
+class FunctionSema(Sema):
 
-    def __init__(self, parent = None, hasGlobals = None):
-        super(ScopeSema, self).__init__
-        self.parent      = parent
-        self.variables   = {}
-        self.hasGlobals  = hasGlobals
-        self.globalNames = set()
+    def __init__(self, origin, scope):
+        super(FunctionSema, self).__init__()
+        self.origin = origin
+        self.scope  = scope
+
+    def isInstanceEqualTo(self, other):
+        return self is other
+
+    def getInstanceHash(self):
+        return id(self)
+
+class ScopeInterface(object):
 
     def addVariable(self, var):
         var.setParent(self)
-        self.variables[var.name] = var
+        variables = self.getVariables()
+        variables[var.name] = var
 
     def findName(self, name, considerGlobals = False, scopeWrap = None):
-        if name in self.variables:
-            return self.variables[name]
+        variables = self.getVariables()
+        if name in variables:
+            return variables[name]
         if (considerGlobals and
-            self.hasGlobals and name not in self.globalNames):
+            self.hasGlobals() and name not in self.getGlobalNames()):
             if scopeWrap:
                 scopeWrap.scope = None
             return None
-        if self.parent:
-            return self.parent.findName(name, considerGlobals, scopeWrap)
+        parent = self.getParent()
+        if parent:
+            return parent.findName(name, considerGlobals, scopeWrap)
         return None
 
     def findOrAddName(self, name, considerGlobals = False, fileScope = None):
@@ -201,9 +210,49 @@ class ScopeSema(Sema):
             else:
                 self.addVariable(res)
         return res
+
+class ScopeSema(Sema, ScopeInterface):
+
+    def __init__(self, parent = None, globalsFlag = None):
+        super(ScopeSema, self).__init__()
+        self.parent      = parent
+        self.variables   = {}
+        self.globalsFlag = globalsFlag
+        self.globalNames = set()
+
+    def getGlobalNames(self):
+        return self.globalNames
  
     def getParent(self):
         return self.parent
+
+    def getVariables(self):
+        return self.variables
+
+    def hasGlobals(self):
+        return self.globalsFlag
+
+    def connectReturn(self, node):
+        parent = self.getParent()
+        if parent:
+            parent.connectReturn(node)
+
+class TemplateSema(Sema, ScopeInterface):
+
+    def __init__(self, origin):
+        super(TemplateSema, self).__init__()
+        self.origin = origin
+
+    def getParent(self):
+        return self.origin.getParent()
+
+    def getVariables(self):
+        scope = self.origin.getParams()
+        return scope.getVariables()
+
+    def connectReturn(self, node):
+        from ti.tgnode import EdgeType
+        node.link.addEdge(EdgeType.ASSIGN, self.origin)
 
 class UnknownSema(Sema):
 

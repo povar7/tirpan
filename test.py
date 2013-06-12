@@ -360,5 +360,47 @@ class TestStd05(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'd', 'name is not "d"')
 
+class TestFunc06(unittest.TestCase):
+    
+    ast = tirpan.run('tests/func06.py')
+        
+    def test_z(self):
+        node = utils.findNode(self.ast, line=4, col=1, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(float)
+        self.assertTrue(len(nodeType) == 1 and
+                        any([type1 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'z', 'name is not "z"')
+
+class TestFunc23(unittest.TestCase):
+    
+    ast = tirpan.run('tests/func23.py')
+        
+    def test_z(self):
+        node = utils.findNode(self.ast, line=8, col=1, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        childType1 = LiteralSema(int)
+        childType2 = LiteralSema(float)
+        type1 = TupleSema()
+        type1.elems = [set()] + [{LiteralSema(str)}, {childType1, childType2}]
+        type1.freeze()
+        type2 = TupleSema()
+        type2.elems = [set()] + [{LiteralSema(unicode)}, {childType1, childType2}]
+        type2.freeze()
+        self.assertTrue(len(nodeType) == 2 and
+                        any([type1 == elem for elem in nodeType]) and
+                        any([type2 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'z', 'name is not "z"')
+
 if __name__ == '__main__':
     unittest.main()

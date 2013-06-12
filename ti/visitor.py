@@ -114,14 +114,38 @@ class Visitor(ast.NodeVisitor):
 
         self.generic_visit(node)
 
-    def visit_arguments(self, node):
-        pass
-           
     def visit_FunctionDef(self, node):
-        pass
+        save = config.data.currentScope
+        name = node.name
+        link = ti.tgnode.UsualFunctionDefinitionTGNode(node, name, save)
+        var  = save.findOrAddName(name)
+        node.link = link
+        config.data.currentScope = link.getParams()
+        nonDefs = len(node.args.args) - len(node.args.defaults)
+        index = 0
+        for param in node.args.args:
+            self.visit(param)
+            defPos = index - nonDefs
+            defVal = node.args.defaults[defPos] if defPos >= 0 else None
+            if defVal:
+                self.visit(defVal)
+                link.defaults[param.link.name] = defVal.link
+            index += 1
+            param.link.setNumber(index)
+        config.data.currentScope = save
+        link.addEdge(EdgeType.ASSIGN, var)
 
     def visit_Call(self, node):
-        pass
+        for arg in node.args:
+            self.visit(arg)
+        if node.starargs is not None:
+            self.visit(node.starargs)
+        if node.kwargs is not None:
+            self.visit(node.kwargs)
+        for pair in node.keywords:
+            self.visit(pair.value)
+        self.visit(node.func)
+        node.link = ti.tgnode.FunctionCallTGNode(node)
 
     def visit_common_in(self, node):
         self.visit(node.iter)
@@ -160,7 +184,9 @@ class Visitor(ast.NodeVisitor):
         node.link = ti.tgnode.ConstTGNode(False)
 
     def visit_Return(self, node):
-        pass
+        self.visit(node.value)
+        node.link = node.value.link
+        config.data.currentScope.connectReturn(node)
 
     def visit_Yield(self, node):
         pass
