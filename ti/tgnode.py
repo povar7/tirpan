@@ -142,9 +142,6 @@ class TGNode(object):
             res |= singleType.getElementsAtIndex(index)
         return res
 
-    def process(self):
-        pass
-
 class ConstTGNode(TGNode):
 
     def __init__(self, node, getValue = False):
@@ -153,6 +150,8 @@ class ConstTGNode(TGNode):
             value = node.n
         elif isinstance(node, ast.Str):
             value = node.s
+        elif isinstance(node, ast.Name) and node.id == 'None':
+            value = None
         else:
             assert(False)
         self.value = value
@@ -182,6 +181,9 @@ class VariableTGNode(TGNode):
 
     def setParent(self, parent):
         # self.parent = parent
+        pass
+
+    def process(self):
         pass
 
 class ListTGNode(TGNode):
@@ -220,6 +222,52 @@ class DictTGNode(TGNode):
         super(DictTGNode, self).__init__()
         dictSema = DictSema()
         self.nodeType = {dictSema}
+
+class AttributeTGNode(TGNode):
+
+    def __init__(self, attr):
+        super(AttributeTGNode, self).__init__()
+        self.attr = attr
+
+    def getObjects(self):
+       objects = set()
+       for node, args in self.getEdges(EdgeType.ASSIGN_OBJECT):
+           objects |= node.nodeType
+       return objects
+
+    def process(self):
+       objects = self.getObjects()
+       self.setValues(objects, self.attr, self.nodeType)
+       self.nodeType = self.getValues(objects, self.attr)
+
+    @staticmethod
+    def setValuesWithAttr(obj, attr, values):
+        from ti.lookup import lookupVariable
+        var = lookupVariable(obj, attr)
+        if var is not None:
+            EdgeType.updateRight(var, values)
+
+    @staticmethod
+    def setValues(objects, attr, values):
+        for obj in objects:
+            if not isinstance(obj, CollectionSema):
+                continue
+            AttributeTGNode.setValuesWithAttr(obj, attr, values)
+
+    @staticmethod
+    def getValuesWithAttr(obj, attr):
+        from ti.lookup import lookupTypes
+        return lookupTypes(obj, attr)
+
+    @staticmethod
+    def getValues(objects, attr):
+        res = set()
+        for obj in objects:
+            if not isinstance(obj, CollectionSema):
+                continue
+            newTypes = AttributeTGNode.getValuesWithAttr(obj, attr)
+            res |= newTypes
+        return res
 
 class SubscriptTGNode(TGNode):
 
@@ -317,8 +365,8 @@ class FunctionDefinitionTGNode(TGNode):
         super(FunctionDefinitionTGNode, self).__init__()
 
         nodeType = FunctionSema(self, scope)
-
         self.nodeType  = {nodeType}
+
         self.parent    = scope
         self.templates = {}
 
@@ -326,6 +374,8 @@ class FunctionDefinitionTGNode(TGNode):
         self.listParam = None
         self.dictParam = None
         self.defaults  = {}
+
+        self.globalNames = set()
 
     def isListParam(self, param):
         return param and param is self.listParam
@@ -347,7 +397,8 @@ class FunctionDefinitionTGNode(TGNode):
 
     def getOrdinaryParams(self):
         variables = self.params.variables.values() 
-        return [var for var in variables if var.number]
+        unsorted = [var for var in variables if var.number]
+        return sorted(unsorted, self.sortParams)
 
     def getListParam(self):
         return self.listParam
@@ -382,6 +433,19 @@ class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
         if node.args.kwarg:
             self.dictParam = VariableTGNode(node.args.kwarg)
+
+class ExternalFunctionDefinitionTGNode(FunctionDefinitionTGNode):
+
+    def __init__(self, num, quasi, name, scope):
+        super(ExternalFunctionDefinitionTGNode, self).__init__(name, scope)
+
+        self.quasi = quasi
+
+        for index in range(num):
+            number = index + 1
+            param = VariableTGNode(str(number))
+            param.setNumber(number)
+            self.params.addVariable(param)
 
 class FunctionCallTGNode(TGNode):
 
@@ -441,15 +505,41 @@ class FunctionCallTGNode(TGNode):
 
 class FunctionTemplateTGNode(TGNode):
 
-    def __init__(self, params, scope):
+    def __init__(self, params, function):
         super(FunctionTemplateTGNode, self).__init__()
 
-        self.params = params
-        self.parent = scope
-        self.scope  = TemplateSema(self)
+        self.function = function
+        self.params   = params
+        self.parent   = function.getParent()
+        self.scope    = TemplateSema(self)
 
     def getParams(self):
         return self.params
+
+    def getParent(self):
+        return self.parent
+
+    def getScope(self):
+        return self.scope
+
+    def process(self):
+        pass
+
+class ClassTGNode(TGNode):
+
+    def __init__(self, name, scope):
+        super(ClassTGNode, self).__init__()
+
+        nodeType = ClassSema(self)
+        self.nodeType = {nodeType}
+
+        self.name   = name
+        self.parent = scope
+        self.scope  = nodeType
+        self.body   = ScopeSema()
+
+    def getBody(self):
+        return self.body
 
     def getParent(self):
         return self.parent

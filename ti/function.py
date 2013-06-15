@@ -9,8 +9,8 @@ import itertools
 
 import config
 import ti.sema
-from   ti.tgnode  import EdgeType, FunctionTemplateTGNode
-from   ti.visitor import Visitor
+import ti.tgnode
+import ti.visitor
 
 def linkCall(function, argsTypes, listArgsTypes):
     origin    = function.origin
@@ -41,7 +41,12 @@ def matchCall(function, argumentNodes):
     defaults    = origin.getDefaults()
     params      = origin.getAllParams()
 
-    paramIndex  = 0
+    if isinstance(function.parent, ti.sema.CollectionSema):
+        paramIndex = 1
+        firstParam = function.parent
+    else:
+        paramIndex = 0
+        firstParam = None
     paramNumber = len(params)
 
     argIndex    = 0
@@ -81,11 +86,15 @@ def matchCall(function, argumentNodes):
     if argIndex < argNumber:
         return None
 
-    return normResult, listResult, dictResult
+    return normResult, listResult, dictResult, firstParam
 
-def getProductElements(normResult, listResult, dictResult):
-    normResultTypes = [elem.nodeType for elem in normResult]
-    listResultTypes = [elem.nodeType for elem in listResult]
+def getProductElements(normResult, listResult, dictResult, firstParam):
+    if firstParam:
+        normResultTypes = [{firstParam}]
+    else:
+        normResultTypes = []
+    normResultTypes += [elem.nodeType for elem in normResult]
+    listResultTypes  = [elem.nodeType for elem in listResult]
     for elem in itertools.product(itertools.product(*normResultTypes),
                                   itertools.product(*listResultTypes)):
         yield elem
@@ -98,19 +107,30 @@ def processProductElement(function, tgnode, productElement):
     newTemplate = template is None
     if newTemplate:
         params   = linkCall(function, *productElement)
-        template = FunctionTemplateTGNode(params, origin.getParent())
+        template = ti.tgnode.FunctionTemplateTGNode(params, origin)
     if (tgnode, ()) not in template.edges:
-        template.addEdge(EdgeType.ASSIGN, tgnode)
+        template.addEdge(ti.tgnode.EdgeType.ASSIGN, tgnode)
     if newTemplate:
         templates[key] = template
         save = config.data.currentScope
         templateScope = template.getScope()
-        astCopy = copy.deepcopy(origin.ast)
-        visitor = Visitor(None)
-        config.data.currentScope = ti.sema.ScopeSema(templateScope)
-        for stmt in astCopy:
-            visitor.visit(stmt)
-        config.data.currentScope = save
+        if isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode):
+            astCopy = copy.deepcopy(origin.ast)
+            visitor = ti.visitor.Visitor(None)
+            config.data.currentScope = ti.sema.ScopeSema(templateScope)
+            for stmt in astCopy:
+                visitor.visit(stmt)
+            config.data.currentScope = save
+        else:
+            unsorted = [var for var in params.variables.values() if var.number]
+            sortParams = ti.tgnode.FunctionDefinitionTGNode.sortParams
+            sortedParams = sorted(unsorted, sortParams)
+            types = []
+            for param in sortedParams:
+                assert(len(param.nodeType) == 1)
+                types.append(list(param.nodeType)[0])
+            template.nodeType = origin.quasi(types)
+            template.walkEdges()
 
 def processCall(node, functionNode, argumentNodes):
     for function in functionNode.nodeType:

@@ -195,7 +195,12 @@ class Visitor(ast.NodeVisitor):
         pass
 
     def visit_Attribute(self, node):
-        pass
+        collection = node.value
+        self.visit(collection)
+        link = ti.tgnode.AttributeTGNode(node.attr)
+        link.addEdge(EdgeType.ASSIGN_OBJECT, collection.link)
+        collection.link.addEdge(EdgeType.ATTR_OBJECT, link)
+        node.link = link
 
     def visit_Subscript(self, node):
         self.visit(node.value)

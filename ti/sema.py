@@ -166,10 +166,10 @@ class DictSema(CollectionSema):
 
 class FunctionSema(Sema):
 
-    def __init__(self, origin, scope):
+    def __init__(self, origin, parent):
         super(FunctionSema, self).__init__()
         self.origin = origin
-        self.scope  = scope
+        self.parent = parent
 
     def isInstanceEqualTo(self, other):
         return self is other
@@ -211,17 +211,21 @@ class ScopeInterface(object):
                 self.addVariable(res)
         return res
 
+    def findNameHere(self, name):
+        variables = self.getVariables()
+        if name in variables:
+            return variables[name]
+        return None
+
 class ScopeSema(Sema, ScopeInterface):
 
-    def __init__(self, parent = None, globalsFlag = None):
+    def __init__(self, parent = None):
         super(ScopeSema, self).__init__()
-        self.parent      = parent
-        self.variables   = {}
-        self.globalsFlag = globalsFlag
-        self.globalNames = set()
+        self.parent    = parent
+        self.variables = {}
 
-    def getGlobalNames(self):
-        return self.globalNames
+    def hasGlobals(self):
+        return False
  
     def getParent(self):
         return self.parent
@@ -229,13 +233,28 @@ class ScopeSema(Sema, ScopeInterface):
     def getVariables(self):
         return self.variables
 
-    def hasGlobals(self):
-        return self.globalsFlag
-
     def connectReturn(self, node):
         parent = self.getParent()
         if parent:
             parent.connectReturn(node)
+
+class ClassSema(Sema, ScopeInterface):
+   
+    def __init__(self, origin):
+        super(ClassSema, self).__init__()
+        self.origin = origin
+
+    def getParent(self):
+        return self.origin.getParent()
+
+    def getVariables(self):
+        return self.origin.getBody().variables
+
+    def isInstanceEqualTo(self, other):
+        return self is other
+
+    def getInstanceHash(self):
+        return id(self)
 
 class TemplateSema(Sema, ScopeInterface):
 
@@ -243,12 +262,18 @@ class TemplateSema(Sema, ScopeInterface):
         super(TemplateSema, self).__init__()
         self.origin = origin
 
+    def getGlobalNames(self):
+        return self.origin.function.globalNames
+
     def getParent(self):
         return self.origin.getParent()
 
     def getVariables(self):
         scope = self.origin.getParams()
         return scope.getVariables()
+
+    def hasGlobals(self):
+        return True
 
     def connectReturn(self, node):
         from ti.tgnode import EdgeType

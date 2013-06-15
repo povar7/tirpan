@@ -7,6 +7,7 @@ Created on 01.06.2013
 '''
 
 import ast
+import types
 import unittest
 
 import tirpan
@@ -117,6 +118,89 @@ class TestAssign03(unittest.TestCase):
                         any([type2 == elem for elem in nodeType]),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'el', 'name is not "el"')
+
+class TestAssign04(unittest.TestCase):
+    
+    ast = tirpan.run('tests/assign04.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=1, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(int)
+        type2 = LiteralSema(types.NoneType)
+        self.assertTrue(len(nodeType) == 2 and
+                        any([type1 == elem for elem in nodeType]) and
+                        any([type2 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
+class TestBuiltin03(unittest.TestCase):
+    
+    ast = tirpan.run('tests/builtin03.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=1, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = ListSema()
+        type1.elems = [{LiteralSema(float)}] + [{LiteralSema(int)}]
+        type1.freeze() 
+        self.assertTrue(len(nodeType) == 1 and
+                        any([type1 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
+    def test_y(self):
+        node = utils.findNode(self.ast, line=3, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = ListSema()
+        type1.elems = [{LiteralSema(float)}] + [{LiteralSema(int)}]
+        type1.freeze() 
+        self.assertTrue(len(nodeType) == 1 and
+                        any([type1 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'y', 'name is not "y"')
+
+    def test_z(self):
+        node = utils.findNode(self.ast, line=5, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = ListSema()
+        type1.elems = [{LiteralSema(float)}] + [{LiteralSema(int)}]
+        type1.freeze() 
+        self.assertTrue(len(nodeType) == 1 and
+                        any([type1 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'z', 'name is not "z"')
+
+    def test_foo(self):
+        node = utils.findNode(self.ast, line=7, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        self.assertTrue(len(nodeType) == 1,
+                        'wrong types calculated')
+        type1 = list(nodeType)[0]
+        self.assertTrue(isinstance(type1, FunctionSema) and
+                        isinstance(type1.parent, ListSema),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'foo', 'name is not "foo"')
 
 class TestStd01(unittest.TestCase):
     
