@@ -11,11 +11,12 @@ from ti.sema import *
 
 class EdgeType(object):
 
-    ARGUMENT       = 'Argument'
-    ASSIGN         = 'Assign'
+    ARGUMENT         = 'Argument'
+    ASSIGN           = 'Assign'
     ASSIGN_ELEMENT   = 'AssignElement'
     ASSIGN_OBJECT    = 'AssignObject'
     ASSIGN_SLICE     = 'AssignSlice'
+    ASSIGN_YIELD     = 'AssignYield'
     ATTR_SLICE       = 'AttrSlice'
     ATTR_OBJECT      = 'AttrObject'
     ELEMENT          = 'Element'
@@ -67,6 +68,13 @@ class EdgeType(object):
     @staticmethod
     def processAssignSlice(left, right, *args):
         pass
+
+    @staticmethod
+    def processAssignYield(left, right, *args):
+        listType = ListSema(0)
+        listType.elems[0] |= left.nodeType
+        types = {listType}
+        EdgeType.updateRight(right, types)
 
     @staticmethod
     def processAttrSlice(left, right, *args):
@@ -178,7 +186,7 @@ class ConstTGNode(TGNode):
         elif isinstance(node, ast.Str):
             value = node.s
         elif (isinstance(node, ast.Name)   and node.id == 'None' or
-              isinstance(node, ast.Return) and not node.value):
+              isinstance(node, (ast.Return, ast.Yield)) and not node.value):
             value = None
         else:
             assert(False)
@@ -486,7 +494,9 @@ class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 class ExternalFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
     def __init__(self, num, quasi, name, scope, defaults):
-        super(ExternalFunctionDefinitionTGNode, self).__init__(name, scope, defaults)
+        super(ExternalFunctionDefinitionTGNode, self).__init__(name,
+                                                               scope,
+                                                               defaults)
 
         self.quasi = quasi
 

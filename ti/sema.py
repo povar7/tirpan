@@ -26,6 +26,9 @@ class Sema(object):
     def freeze(self):
         pass
 
+    def getElementsAtIndex(self, index):
+        return set()
+
 class LiteralSema(Sema):
 
     def __init__(self, ltype):
@@ -238,6 +241,11 @@ class ScopeSema(Sema, ScopeInterface):
         if parent:
             parent.connectReturn(node)
 
+    def connectYield(self, node):
+        parent = self.getParent()
+        if parent:
+            parent.connectYield(node)
+
 class ClassSema(Sema, ScopeInterface):
    
     def __init__(self, origin):
@@ -278,6 +286,10 @@ class TemplateSema(Sema, ScopeInterface):
     def connectReturn(self, node):
         from ti.tgnode import EdgeType
         node.link.addEdge(EdgeType.ASSIGN, self.origin)
+
+    def connectYield(self, node):
+        from ti.tgnode import EdgeType
+        node.link.addEdge(EdgeType.ASSIGN_YIELD, self.origin)
 
 class UnknownSema(Sema):
 

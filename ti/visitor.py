@@ -157,13 +157,15 @@ class Visitor(ast.NodeVisitor):
         save   = self.leftPart
         self.leftPart = True
         if isinstance(target, ast.Tuple):
+            var = ti.tgnode.VariableTGNode(None)
             for elem in target.elts:
                 self.visit(elem)
             self.leftPart = save
             index = 0
             for elem in target.elts:
-                link.addEdge(EdgeType.ASSIGN_DOUBLE, elem.link, index)
+                var.addEdge(EdgeType.ASSIGN_ELEMENT, elem.link, index)
                 index += 1
+            link.addEdge(EdgeType.ASSIGN_ELEMENT, var, None)
         else:
             self.visit(target)
             self.leftPart = save
@@ -186,16 +188,20 @@ class Visitor(ast.NodeVisitor):
     def visit_Compare(self, node):
         node.link = ti.tgnode.UnknownTGNode(node)
 
-    def visit_Return(self, node):
+    def visit_common_ret(self, node):
         if node.value:
             self.visit(node.value)
             node.link = node.value.link
         else:
             node.link = ti.tgnode.ConstTGNode(node)
+
+    def visit_Return(self, node):
+        self.visit_common_ret(node)
         config.data.currentScope.connectReturn(node)
 
     def visit_Yield(self, node):
-        pass
+        self.visit_common_ret(node)
+        config.data.currentScope.connectYield(node)
 
     def visit_Lambda(self, node):
         save = config.data.currentScope

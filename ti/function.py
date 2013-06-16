@@ -190,5 +190,6 @@ def processCall(node, functionNode, argumentNodes, KWArgumentNodes,
         matchResult = matchCall(function, argumentNodes, KWArgumentNodes)
         if not matchResult:
             continue
-        for productElement, kwKeys in getProductElements(listArgumentType, *matchResult):
+        for productElement, kwKeys in getProductElements(listArgumentType,
+                                                         *matchResult):
             processProductElement(function, node, productElement, kwKeys)
