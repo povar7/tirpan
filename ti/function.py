@@ -89,16 +89,21 @@ def matchCall(function, argumentNodes, KWArgumentNodes):
             argIndex    = argNumber
             paramIndex += 1
         elif origin.isDictParam(param):
-            # We must also generate dictResult here
             paramIndex += 1
             dictResult  = KWArgumentNodes
         else:
             if argIndex >= argNumber:
-                # We must also check for dict values here
-                return None
-            normResult.append(argumentNodes[argIndex])
-            argIndex   += 1
-            paramIndex += 1
+                try:
+                    nameParam = KWArgumentNodes[param.name]
+                    del KWArgumentNodes[param.name]
+                    normResult.append(nameParam)
+                    paramIndex += 1
+                except KeyError:
+                    return None
+            else:
+                normResult.append(argumentNodes[argIndex])
+                argIndex   += 1
+                paramIndex += 1
 
     if argIndex < argNumber:
         return None
