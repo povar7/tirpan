@@ -119,7 +119,9 @@ def getProductElements(listArgumentType,
     else:
         normResultTypes = []
     for elem in normResult:
-        if elem:
+        if isinstance(elem, set):
+            normResultTypes.append(elem)
+        elif elem:
             normResultTypes.append(elem.nodeType)
         else:
             normResultTypes.append(listArgumentType[index])

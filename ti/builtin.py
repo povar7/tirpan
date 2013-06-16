@@ -4,9 +4,9 @@ Created on 15.06.2013
 @author: bronikkk
 '''
 
-def initBuiltinFunction(scope, name, quasi, num):
+def initBuiltinFunction(scope, name, quasi, num, defaults = None):
     from ti.tgnode import ExternalFunctionDefinitionTGNode, EdgeType
-    func = ExternalFunctionDefinitionTGNode(num, quasi, name, scope)
+    func = ExternalFunctionDefinitionTGNode(num, quasi, name, scope, defaults)
     var  = scope.findOrAddName(name)
     func.addEdge(EdgeType.ASSIGN, var)
     scope.addVariable(var)

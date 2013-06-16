@@ -389,7 +389,7 @@ class SubscriptTGNode(TGNode):
 
 class FunctionDefinitionTGNode(TGNode):
 
-    def __init__(self, name, scope):
+    def __init__(self, name, scope, defaults):
         super(FunctionDefinitionTGNode, self).__init__()
 
         nodeType = FunctionSema(self, scope)
@@ -402,7 +402,8 @@ class FunctionDefinitionTGNode(TGNode):
         self.params    = ScopeSema()
         self.listParam = None
         self.dictParam = None
-        self.defaults  = {}
+
+        self.defaults  = defaults if defaults else {}
 
         self.globalNames = set()
 
@@ -453,7 +454,7 @@ class FunctionDefinitionTGNode(TGNode):
 class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
     def __init__(self, node, name, scope):
-        super(UsualFunctionDefinitionTGNode, self).__init__(name, scope)
+        super(UsualFunctionDefinitionTGNode, self).__init__(name, scope, None)
 
         if isinstance(node, ast.Lambda):
             self.ast = [node.body]
@@ -484,8 +485,8 @@ class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
 class ExternalFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
-    def __init__(self, num, quasi, name, scope):
-        super(ExternalFunctionDefinitionTGNode, self).__init__(name, scope)
+    def __init__(self, num, quasi, name, scope, defaults):
+        super(ExternalFunctionDefinitionTGNode, self).__init__(name, scope, defaults)
 
         self.quasi = quasi
 

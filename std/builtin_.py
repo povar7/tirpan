@@ -4,14 +4,28 @@ Created on 05.06.2013
 @author: bronikkk
 '''
 
+import types
+
 from ti.sema import *
 
-typeNone = LiteralValueSema(None)
+typeInt  = LiteralSema(int)
+typeNone = LiteralSema(types.NoneType)
 
-def quasiAppend(types):
-    if isinstance(types[0], ListSema):
-        types[0].addElementsAtIndex(None, {types[1]})
+def quasiAppend(params):
+    if isinstance(params[0], ListSema):
+        params[0].addElementsAtIndex(None, {params[1]})
     return {typeNone}
+
+def quasiRange1(params):
+    return quasiRange3(params + [typeInt, typeInt])
+
+def quasiRange3(params):
+    if params[0] == typeInt and params[1] == typeInt and params[2] == typeInt:
+        listType = ListSema(0)
+        listType.addElementsAtIndex(None, {typeInt})
+        return {listType}
+    else:
+        return set()
 
 listClassName = str(type([]))
 
@@ -28,6 +42,8 @@ listClass = (
             )
 
 functions = [
+                ['range'     , quasiRange1  , 1],
+                ['range'     , quasiRange3  , 3 , {'3' : {typeInt}}],
             ]
 
 variables = [
@@ -37,7 +53,7 @@ modules   = [
             ]
 
 classes   = [
-                listClass
+                listClass,
             ]
 
 def getAll():
