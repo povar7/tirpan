@@ -114,6 +114,19 @@ class Visitor(ast.NodeVisitor):
 
         self.generic_visit(node)
 
+    def visit_arguments(self, node, link):
+        nonDefs = len(node.args) - len(node.defaults)
+        index = 0
+        for param in node.args:
+            self.visit(param)
+            defPos = index - nonDefs
+            defVal = node.defaults[defPos] if defPos >= 0 else None
+            if defVal:
+                self.visit(defVal)
+                link.defaults[param.link.name] = defVal.link
+            index += 1
+            param.link.setNumber(index)
+
     def visit_FunctionDef(self, node):
         save = config.data.currentScope
         name = node.name
@@ -121,17 +134,7 @@ class Visitor(ast.NodeVisitor):
         var  = save.findOrAddName(name)
         node.link = link
         config.data.currentScope = link.getParams()
-        nonDefs = len(node.args.args) - len(node.args.defaults)
-        index = 0
-        for param in node.args.args:
-            self.visit(param)
-            defPos = index - nonDefs
-            defVal = node.args.defaults[defPos] if defPos >= 0 else None
-            if defVal:
-                self.visit(defVal)
-                link.defaults[param.link.name] = defVal.link
-            index += 1
-            param.link.setNumber(index)
+        self.visit_arguments(node.args, link)
         config.data.currentScope = save
         link.addEdge(EdgeType.ASSIGN, var)
 
@@ -195,7 +198,12 @@ class Visitor(ast.NodeVisitor):
         pass
 
     def visit_Lambda(self, node):
-        pass
+        save = config.data.currentScope
+        link = ti.tgnode.UsualFunctionDefinitionTGNode(node, None, save)
+        node.link = link
+        config.data.currentScope = link.getParams()   
+        self.visit_arguments(node.args, link)
+        config.data.currentScope = save
 
     def visit_Attribute(self, node):
         collection = node.value

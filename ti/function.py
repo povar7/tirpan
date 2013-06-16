@@ -167,6 +167,8 @@ def processProductElement(function, tgnode, productElement, kwKeys):
             for stmt in astCopy:
                 visitor.visit(stmt)
             config.data.currentScope = save
+            if not origin.name:
+                astCopy[0].link.addEdge(ti.tgnode.EdgeType.ASSIGN, template)
         else:
             unsorted = [var for var in params.variables.values() if var.number]
             sortParams = ti.tgnode.FunctionDefinitionTGNode.sortParams

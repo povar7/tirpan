@@ -395,6 +395,7 @@ class FunctionDefinitionTGNode(TGNode):
         nodeType = FunctionSema(self, scope)
         self.nodeType  = {nodeType}
 
+        self.name      = name
         self.parent    = scope
         self.templates = {}
 
@@ -456,16 +457,16 @@ class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
         if isinstance(node, ast.Lambda):
             self.ast = [node.body]
+            self.defaultReturn = False
         else:
             self.ast = node.body
+            self.defaultReturn = not self.checkReturns(self.ast)
 
         if node.args.vararg:
             self.listParam = VariableTGNode(node.args.vararg)
 
         if node.args.kwarg:
             self.dictParam = VariableTGNode(node.args.kwarg)
-
-        self.defaultReturn = not self.checkReturns(self.ast)
 
     def hasDefaultReturn(self):
         return self.defaultReturn
