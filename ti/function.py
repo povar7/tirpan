@@ -112,12 +112,12 @@ def matchCall(function, argumentNodes, KWArgumentNodes):
 
 def getProductElements(listArgumentType,
                        normResult, listResult, dictResult, firstParam):
+    index = 0
+
     if firstParam:
         normResultTypes = [{firstParam}]
     else:
         normResultTypes = []
-
-    index = 0
     for elem in normResult:
         if elem:
             normResultTypes.append(elem.nodeType)
@@ -125,7 +125,14 @@ def getProductElements(listArgumentType,
             normResultTypes.append(listArgumentType[index])
             index += 1
 
-    listResultTypes  = [elem.nodeType for elem in listResult]
+    listResultTypes = []
+    # DON'T set index = 0
+    for elem in listResult:
+        if elem:
+            listResultTypes.append(elem.nodeType)
+        else:
+            listResultTypes.append(listArgumentType[index])
+            index += 1
   
     kwKeys = []
     dictResultTypes = []

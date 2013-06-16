@@ -910,6 +910,40 @@ class TestFunc15(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'a', 'name is not "a"')
 
+class TestFunc16(unittest.TestCase):
+    
+    ast = tirpan.run('tests/func16.py')
+        
+    def test_y(self):
+        node = utils.findNode(self.ast, line=9, col=1, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = ListSema()
+        type1.elems = [{LiteralSema(long)}, {LiteralSema(str)}]
+        type1.freeze()
+        self.assertTrue(len(nodeType) == 1 and
+                        any([type1 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'y', 'name is not "y"')
+
+    def test_z(self):
+        node = utils.findNode(self.ast, line=10, col=1, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = ListSema()
+        type1.elems = [{LiteralSema(complex)}, {LiteralSema(unicode)}]
+        type1.freeze()
+        self.assertTrue(len(nodeType) == 1 and
+                        any([type1 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'z', 'name is not "z"')
+
 class TestFunc18(unittest.TestCase):
     
     ast = tirpan.run('tests/func18.py')
