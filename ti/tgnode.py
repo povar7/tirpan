@@ -13,17 +13,19 @@ class EdgeType(object):
 
     ARGUMENT       = 'Argument'
     ASSIGN         = 'Assign'
-    ASSIGN_ELEMENT = 'AssignElement'
-    ASSIGN_OBJECT  = 'AssignObject'
-    ASSIGN_SLICE   = 'AssignSlice'
-    ATTR_SLICE     = 'AttrSlice'
-    ATTR_OBJECT    = 'AttrObject'
-    ELEMENT        = 'Element'
-    FUNC           = 'Func'
-    KWARGUMENT     = 'KWArgument'
-    REV_ARGUMENT   = 'RevArgument'
-    REV_FUNC       = 'RevFunc'
-    REV_KWARGUMENT = 'RevKWArgument'
+    ASSIGN_ELEMENT   = 'AssignElement'
+    ASSIGN_OBJECT    = 'AssignObject'
+    ASSIGN_SLICE     = 'AssignSlice'
+    ATTR_SLICE       = 'AttrSlice'
+    ATTR_OBJECT      = 'AttrObject'
+    ELEMENT          = 'Element'
+    FUNC             = 'Func'
+    KWARGUMENT       = 'KWArgument'
+    LISTARGUMENT     = 'ListArgument'
+    REV_ARGUMENT     = 'RevArgument'
+    REV_FUNC         = 'RevFunc'
+    REV_KWARGUMENT   = 'RevKWArgument'
+    REV_LISTARGUMENT = 'RevListArgument'
 
     @staticmethod
     def updateRight(right, types):
@@ -110,6 +112,13 @@ class EdgeType(object):
             right.walkEdges()
 
     @staticmethod
+    def processListArgument(left, right, *args):
+        length = len(right.nodeType)
+        right.process()
+        if len(right.nodeType) > length:
+            right.walkEdges()
+
+    @staticmethod
     def processRevArgument(left, right, *args):
         pass
 
@@ -119,6 +128,10 @@ class EdgeType(object):
 
     @staticmethod
     def processRevKWArgument(left, right, *args):
+        pass
+
+    @staticmethod
+    def processRevListArgument(left, right, *args):
         pass
 
 class TGNode(object):
@@ -509,6 +522,11 @@ class FunctionCallTGNode(TGNode):
             link.addEdge(EdgeType.KWARGUMENT, self)
             self.addEdge(EdgeType.REV_KWARGUMENT, link, pair.arg)
 
+        if node.starargs:
+            link = node.starargs.link
+            link.addEdge(EdgeType.LISTARGUMENT, self)
+            self.addEdge(EdgeType.REV_LISTARGUMENT, link)
+
         self._isLocked = False
 
         self.process()
@@ -536,6 +554,13 @@ class FunctionCallTGNode(TGNode):
             res[key] = node
         return res
 
+    def getListArgumentNode(self):
+        edges = self.getEdges(EdgeType.REV_LISTARGUMENT)
+        assert(len(edges) <= 1)
+        for node, args in edges:
+            return node
+        return None
+
     def isLocked(self):
         return self._isLocked
  
@@ -543,12 +568,25 @@ class FunctionCallTGNode(TGNode):
         from ti.function import processCall
         if self._isLocked:
             return
-        functionNode    = self.getFunctionNode()
-        argumentNodes   = []
-        KWArgumentNodes = self.getKWArgumentNodes()
+        functionNode     = self.getFunctionNode()
+        oldArgumentNodes = []
+        KWArgumentNodes  = self.getKWArgumentNodes()
+        listArgumentNode = self.getListArgumentNode()
+        if listArgumentNode:
+            listArgumentTypes = []
+            for oneType in listArgumentNode.nodeType:
+                if isinstance(oneType, TupleSema):
+                    listArgumentTypes.append(oneType.elems[1:])
+        else:
+            listArgumentTypes = [[]]
         for index in range(self.argsNum):
-            argumentNodes.append(self.getArgumentNode(index))
-        processCall(self, functionNode, argumentNodes, KWArgumentNodes)
+            oldArgumentNodes.append(self.getArgumentNode(index))
+        for listArgumentType in listArgumentTypes:
+            argumentNodes = oldArgumentNodes[:]
+            for elem in listArgumentType:
+                argumentNodes.append(None)
+            processCall(self, functionNode, argumentNodes, KWArgumentNodes,
+                        listArgumentType)
 
 class FunctionTemplateTGNode(TGNode):
 

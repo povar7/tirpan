@@ -138,9 +138,9 @@ class Visitor(ast.NodeVisitor):
     def visit_Call(self, node):
         for arg in node.args:
             self.visit(arg)
-        if node.starargs is not None:
+        if node.starargs:
             self.visit(node.starargs)
-        if node.kwargs is not None:
+        if node.kwargs:
             self.visit(node.kwargs)
         for pair in node.keywords:
             self.visit(pair.value)

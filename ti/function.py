@@ -110,12 +110,20 @@ def matchCall(function, argumentNodes, KWArgumentNodes):
 
     return normResult, listResult, dictResult, firstParam
 
-def getProductElements(normResult, listResult, dictResult, firstParam):
+def getProductElements(listArgumentType,
+                       normResult, listResult, dictResult, firstParam):
     if firstParam:
         normResultTypes = [{firstParam}]
     else:
         normResultTypes = []
-    normResultTypes += [elem.nodeType for elem in normResult]
+
+    index = 0
+    for elem in normResult:
+        if elem:
+            normResultTypes.append(elem.nodeType)
+        else:
+            normResultTypes.append(listArgumentType[index])
+            index += 1
 
     listResultTypes  = [elem.nodeType for elem in listResult]
   
@@ -163,12 +171,13 @@ def processProductElement(function, tgnode, productElement, kwKeys):
             template.nodeType = origin.quasi(types)
             template.walkEdges()
 
-def processCall(node, functionNode, argumentNodes, KWArgumentNodes):
+def processCall(node, functionNode, argumentNodes, KWArgumentNodes,
+                listArgumentType):
     for function in functionNode.nodeType:
         if not isinstance(function, ti.tgnode.FunctionSema):
            continue
         matchResult = matchCall(function, argumentNodes, KWArgumentNodes)
         if not matchResult:
             continue
-        for productElement, kwKeys in getProductElements(*matchResult):
+        for productElement, kwKeys in getProductElements(listArgumentType, *matchResult):
             processProductElement(function, node, productElement, kwKeys)
