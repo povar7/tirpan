@@ -10,6 +10,7 @@ from ti.sema import *
 
 typeInt  = LiteralSema(int)
 typeNone = LiteralSema(types.NoneType)
+typeType = LiteralSema(type)
 
 def quasiAppend(params):
     if isinstance(params[0], ListSema):
@@ -26,6 +27,12 @@ def quasiRange3(params):
         return {listType}
     else:
         return set()
+
+def quasiType(params):
+    return {typeType}
+
+def quasiTypeVar():
+    return {typeType}
 
 listClassName = str(type([]))
 
@@ -44,9 +51,12 @@ listClass = (
 functions = [
                 ['range'     , quasiRange1  , 1],
                 ['range'     , quasiRange3  , 3 , {'3' : {typeInt}}],
+                ['type'      , quasiType    , 1],
             ]
 
 variables = [
+                ['int'       , quasiTypeVar    ],
+                ['type'      , quasiTypeVar    ],
             ]
 
 modules   = [

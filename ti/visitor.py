@@ -112,6 +112,10 @@ class Visitor(ast.NodeVisitor):
         falseVariable = ti.tgnode.VariableTGNode('False', nodeType)
         config.data.currentScope.addVariable(falseVariable)
 
+        nodeType = {ti.sema.LiteralValueSema(self.filename)}
+        fileVariable = ti.tgnode.VariableTGNode('__file__', nodeType)
+        config.data.currentScope.addVariable(fileVariable)
+
         self.generic_visit(node)
 
     def visit_arguments(self, node, link):

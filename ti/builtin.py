@@ -13,7 +13,7 @@ def initBuiltinFunction(scope, name, quasi, num, defaults = None):
 
 def initBuiltinVariable(scope, name, typeFunction):
     from ti.tgnode import VariableTGNode, EdgeType 
-    ext = VariableTGNode(name, typeFunction)
+    ext = VariableTGNode(None, typeFunction())
     var = scope.findOrAddName(name)
     ext.addEdge(EdgeType.ASSIGN, var)
     scope.addVariable(var)
