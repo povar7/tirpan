@@ -12,12 +12,15 @@ import ti.sema
 import ti.tgnode
 import ti.visitor
 
-def linkCall(function, argsTypes, listArgsTypes):
+def linkCall(function, kwKeys, argsTypes, listArgsTypes, dictArgsTypes):
     origin    = function.origin
     params    = origin.getOrdinaryParams()
     listParam = origin.getListParam()
-    scope     = ti.sema.ScopeSema()
-    index     = 0
+    dictParam = origin.getDictParam()
+
+    scope = ti.sema.ScopeSema()
+    
+    index = 0
     for param in params:
         paramCopy = copy.deepcopy(param)
         try:
@@ -26,6 +29,7 @@ def linkCall(function, argsTypes, listArgsTypes):
             paramCopy.nodeType = set()
         scope.addVariable(paramCopy)
         index += 1
+
     if listParam:
         listParamCopy = copy.deepcopy(listParam)
         tupleType = ti.sema.TupleSema(0)
@@ -33,9 +37,21 @@ def linkCall(function, argsTypes, listArgsTypes):
             tupleType.elems.append({elem})
         listParamCopy.nodeType = {tupleType}
         scope.addVariable(listParamCopy)
+
+    index = 0
+    if dictParam:
+        dictParamCopy = copy.deepcopy(dictParam)
+        dictType  = ti.sema.DictSema()
+        for key in kwKeys:
+            keyElement = ti.sema.LiteralValueSema(key)
+            dictType.elems[keyElement] = {dictArgsTypes[index]}
+            index += 1
+        dictParamCopy.nodeType = {dictType}
+        scope.addVariable(dictParamCopy)
+
     return scope
 
-def matchCall(function, argumentNodes):
+def matchCall(function, argumentNodes, KWArgumentNodes):
     origin      = function.origin
 
     defaults    = origin.getDefaults()
@@ -74,7 +90,8 @@ def matchCall(function, argumentNodes):
             paramIndex += 1
         elif origin.isDictParam(param):
             # We must also generate dictResult here
-            paramIndex += 1 
+            paramIndex += 1
+            dictResult  = KWArgumentNodes
         else:
             if argIndex >= argNumber:
                 # We must also check for dict values here
@@ -94,19 +111,28 @@ def getProductElements(normResult, listResult, dictResult, firstParam):
     else:
         normResultTypes = []
     normResultTypes += [elem.nodeType for elem in normResult]
-    listResultTypes  = [elem.nodeType for elem in listResult]
-    for elem in itertools.product(itertools.product(*normResultTypes),
-                                  itertools.product(*listResultTypes)):
-        yield elem
 
-def processProductElement(function, tgnode, productElement):
+    listResultTypes  = [elem.nodeType for elem in listResult]
+  
+    kwKeys = []
+    dictResultTypes = []
+    for pair in dictResult.items():
+        kwKeys.append(pair[0])
+        dictResultTypes.append(pair[1].nodeType)
+
+    for elem in itertools.product(itertools.product(*normResultTypes),
+                                  itertools.product(*listResultTypes),
+                                  itertools.product(*dictResultTypes)):
+        yield elem, kwKeys
+
+def processProductElement(function, tgnode, productElement, kwKeys):
     key         = productElement
     origin      = function.origin
     templates   = origin.getTemplates()
     template    = templates.get(key)
     newTemplate = template is None
     if newTemplate:
-        params   = linkCall(function, *productElement)
+        params   = linkCall(function, kwKeys, *productElement)
         template = ti.tgnode.FunctionTemplateTGNode(params, origin)
     if (tgnode, ()) not in template.edges:
         template.addEdge(ti.tgnode.EdgeType.ASSIGN, tgnode)
@@ -132,12 +158,12 @@ def processProductElement(function, tgnode, productElement):
             template.nodeType = origin.quasi(types)
             template.walkEdges()
 
-def processCall(node, functionNode, argumentNodes):
+def processCall(node, functionNode, argumentNodes, KWArgumentNodes):
     for function in functionNode.nodeType:
         if not isinstance(function, ti.tgnode.FunctionSema):
            continue
-        matchResult = matchCall(function, argumentNodes)
+        matchResult = matchCall(function, argumentNodes, KWArgumentNodes)
         if not matchResult:
             continue
-        for productElement in getProductElements(*matchResult):
-            processProductElement(function, node, productElement)
+        for productElement, kwKeys in getProductElements(*matchResult):
+            processProductElement(function, node, productElement, kwKeys)

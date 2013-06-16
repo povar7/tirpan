@@ -19,8 +19,10 @@ class EdgeType(object):
     ATTR_OBJECT    = 'AttrObject'
     ELEMENT        = 'Element'
     FUNC           = 'Func'
+    KWARGUMENT     = 'KWArgument'
     REV_ARGUMENT   = 'RevArgument'
     REV_FUNC       = 'RevFunc'
+    REV_KWARGUMENT = 'RevKWArgument'
 
     @staticmethod
     def updateRight(right, types):
@@ -100,11 +102,22 @@ class EdgeType(object):
             right.walkEdges()
 
     @staticmethod
+    def processKWArgument(left, right, *args):
+        length = len(right.nodeType)
+        right.process()
+        if len(right.nodeType) > length:
+            right.walkEdges()
+
+    @staticmethod
     def processRevArgument(left, right, *args):
         pass
 
     @staticmethod
     def processRevFunc(left, right, *args):
+        pass
+
+    @staticmethod
+    def processRevKWArgument(left, right, *args):
         pass
 
 class TGNode(object):
@@ -470,6 +483,11 @@ class FunctionCallTGNode(TGNode):
             index += 1
         self.argsNum = index
 
+        for pair in node.keywords:
+            link = pair.value.link
+            link.addEdge(EdgeType.KWARGUMENT, self)
+            self.addEdge(EdgeType.REV_KWARGUMENT, link, pair.arg)
+
         self._isLocked = False
 
         self.process()
@@ -490,6 +508,13 @@ class FunctionCallTGNode(TGNode):
             return node
         return None
 
+    def getKWArgumentNodes(self):
+        res = {}
+        for node, args in self.getEdges(EdgeType.REV_KWARGUMENT):
+            key = args[0]
+            res[key] = node
+        return res
+
     def isLocked(self):
         return self._isLocked
  
@@ -497,11 +522,12 @@ class FunctionCallTGNode(TGNode):
         from ti.function import processCall
         if self._isLocked:
             return
-        functionNode  = self.getFunctionNode()
-        argumentNodes = []
+        functionNode    = self.getFunctionNode()
+        argumentNodes   = []
+        KWArgumentNodes = self.getKWArgumentNodes()
         for index in range(self.argsNum):
             argumentNodes.append(self.getArgumentNode(index))
-        processCall(self, functionNode, argumentNodes)
+        processCall(self, functionNode, argumentNodes, KWArgumentNodes)
 
 class FunctionTemplateTGNode(TGNode):
 
