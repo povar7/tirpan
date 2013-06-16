@@ -184,8 +184,11 @@ class Visitor(ast.NodeVisitor):
         node.link = ti.tgnode.UnknownTGNode(node)
 
     def visit_Return(self, node):
-        self.visit(node.value)
-        node.link = node.value.link
+        if node.value:
+            self.visit(node.value)
+            node.link = node.value.link
+        else:
+            node.link = ti.tgnode.ConstTGNode(node)
         config.data.currentScope.connectReturn(node)
 
     def visit_Yield(self, node):

@@ -5,6 +5,7 @@ Created on 26.05.2013
 '''
 
 import ast
+import types
 
 from ti.sema import *
 
@@ -163,7 +164,8 @@ class ConstTGNode(TGNode):
             value = node.n
         elif isinstance(node, ast.Str):
             value = node.s
-        elif isinstance(node, ast.Name) and node.id == 'None':
+        elif (isinstance(node, ast.Name)   and node.id == 'None' or
+              isinstance(node, ast.Return) and not node.value):
             value = None
         else:
             assert(False)
@@ -431,6 +433,9 @@ class FunctionDefinitionTGNode(TGNode):
     def getTemplates(self):
         return self.templates
 
+    def hasDefaultReturn(self):
+        return False
+
 class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
     def __init__(self, node, name, scope):
@@ -446,6 +451,22 @@ class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
         if node.args.kwarg:
             self.dictParam = VariableTGNode(node.args.kwarg)
+
+        self.defaultReturn = not self.checkReturns(self.ast)
+
+    def hasDefaultReturn(self):
+        return self.defaultReturn
+
+    @staticmethod
+    def checkReturns(body):
+        for stmt in body:
+            if isinstance(stmt, ast.Return):
+                return True
+            elif isinstance(stmt, ast.If):
+                if (UsualFunctionDefinitionTGNode.checkReturns(stmt.body) and
+                    UsualFunctionDefinitionTGNode.checkReturns(stmt.orelse)):
+                    return True
+        return False
 
 class ExternalFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
@@ -538,6 +559,9 @@ class FunctionTemplateTGNode(TGNode):
         self.params   = params
         self.parent   = function.getParent()
         self.scope    = TemplateSema(self)
+
+        if self.function.hasDefaultReturn():
+            self.nodeType.add(LiteralSema(types.NoneType))
 
     def getParams(self):
         return self.params
