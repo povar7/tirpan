@@ -20,7 +20,7 @@ def initBuiltinVariable(scope, name, typeFunction):
 
 def initBuiltinClass(scope, name, methods, fields):
     from ti.tgnode import ClassTGNode, EdgeType
-    cls = ClassTGNode(name, scope)
+    cls = ClassTGNode(name, [], scope)
     var = scope.findOrAddName(name)
     cls.addEdge(EdgeType.ASSIGN, var)
     scope.addVariable(var)

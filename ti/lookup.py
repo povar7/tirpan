@@ -41,6 +41,15 @@ def lookupVariable(obj, attr, setValue = False, createNew = False):
     elif isinstance(obj, ClassSema):
         lookupScope = obj.getBody()
         var = lookupScope.findNameHere(attr)
+        if var:
+            return var
+        for base in obj.origin.getBases():
+            for elem in base.link.nodeType:
+                if not isinstance(elem, ClassSema):
+                    continue
+                var = lookupVariable(elem, attr)
+                if var:
+                    return var
     elif isinstance(obj, InstanceSema):
         lookupScope = obj.getBody()
         var = lookupScope.findNameHere(attr)

@@ -248,7 +248,7 @@ class Visitor(ast.NodeVisitor):
             self.visit(base)
         name = node.name
         save = config.data.currentScope
-        link = ti.tgnode.ClassTGNode(name, save)
+        link = ti.tgnode.ClassTGNode(name, node.bases, save)
         var  = save.findOrAddName(name)
         node.link = link
         config.data.currentScope = link.getScope()

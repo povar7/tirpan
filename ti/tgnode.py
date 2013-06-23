@@ -642,7 +642,7 @@ class FunctionTemplateTGNode(TGNode):
 
 class ClassTGNode(TGNode):
 
-    def __init__(self, name, scope):
+    def __init__(self, name, bases, scope):
         super(ClassTGNode, self).__init__()
 
         nodeType = ClassSema(self)
@@ -651,9 +651,13 @@ class ClassTGNode(TGNode):
         self.name   = name
         self.parent = scope
         self.scope  = nodeType
+        self.bases  = bases
         self.body   = ScopeSema()
 
         self.templates = {}
+
+    def getBases(self):
+        return self.bases
 
     def getBody(self):
         return self.body

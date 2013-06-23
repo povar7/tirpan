@@ -78,7 +78,7 @@ def linkCall(function, isInit, kwKeys,
 
     return scope, inst
 
-def matchCall(function, argumentNodes, KWArgumentNodes):
+def matchCall(function, isInit, argumentNodes, KWArgumentNodes):
     origin = function.origin
 
     if isinstance(function, ti.sema.FunctionSema):
@@ -90,8 +90,8 @@ def matchCall(function, argumentNodes, KWArgumentNodes):
         defaults = {}
         parent   = function
 
-    if (isinstance(parent, ti.sema.CollectionSema) or
-        isinstance(parent, (ti.sema.ClassSema, ti.sema.InstanceSema))):
+    if (isinstance(parent, ti.sema.ClassSema) and isInit or
+        isinstance(parent, (ti.sema.CollectionSema, ti.sema.InstanceSema))):
         paramIndex = 1
         firstParam = parent
     else:
@@ -228,7 +228,8 @@ def processFunc(node, functionNode, argumentNodes, KWArgumentNodes,
     for function, isInit in getFunctions(functionNode):
         if not isinstance(function, classes):
             continue
-        matchResult = matchCall(function, argumentNodes, KWArgumentNodes)
+        matchResult = matchCall(function, isInit,
+                                argumentNodes, KWArgumentNodes)
         if not matchResult:
             continue
         for productElement, kwKeys in getProductElements(listArgumentType,
