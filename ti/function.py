@@ -8,23 +8,47 @@ import copy
 import itertools
 
 import config
+import ti.lookup
 import ti.sema
 import ti.tgnode
 import ti.visitor
 
-def linkCall(function, kwKeys, argsTypes, listArgsTypes, dictArgsTypes):
+def getFunctions(functionNode):
+    for elem in functionNode.nodeType:
+        if isinstance(elem, ti.sema.FunctionSema):
+            yield elem, False
+        elif isinstance(elem, ti.sema.ClassSema):
+            var = ti.lookup.lookupVariable(elem, '__init__')
+            if var:
+                for atom in var.nodeType:
+                    if isinstance(atom, ti.sema.FunctionSema):
+                        yield atom, True
+            else:
+                yield elem, True
+
+def linkCall(function, isInit, kwKeys,
+             argsTypes, listArgsTypes, dictArgsTypes):
+
     origin    = function.origin
     params    = origin.getOrdinaryParams()
     listParam = origin.getListParam()
     dictParam = origin.getDictParam()
 
     scope = ti.sema.ScopeSema()
+    inst  = None
     
     index = 0
     for param in params:
         paramCopy = copy.deepcopy(param)
         try:
-            paramCopy.nodeType = {argsTypes[index]}
+            argType = argsTypes[index]
+            if isInit and index == 0:
+                try:
+                    inst = argType.getClassInstance()
+                    argType = inst
+                except AttributeError:
+                    pass
+            paramCopy.nodeType = {argType}
         except IndexError:
             paramCopy.nodeType = set()
         scope.addVariable(paramCopy)
@@ -49,7 +73,7 @@ def linkCall(function, kwKeys, argsTypes, listArgsTypes, dictArgsTypes):
         dictParamCopy.nodeType = {dictType}
         scope.addVariable(dictParamCopy)
 
-    return scope
+    return inst, scope
 
 def matchCall(function, argumentNodes, KWArgumentNodes):
     origin      = function.origin
@@ -57,7 +81,8 @@ def matchCall(function, argumentNodes, KWArgumentNodes):
     defaults    = origin.getDefaults()
     params      = origin.getAllParams()
 
-    if isinstance(function.parent, ti.sema.CollectionSema):
+    classes = (ti.sema.ClassSema, ti.sema.CollectionSema)
+    if isinstance(function.parent, classes):
         paramIndex = 1
         firstParam = function.parent
     else:
@@ -147,15 +172,15 @@ def getProductElements(listArgumentType,
                                   itertools.product(*dictResultTypes)):
         yield elem, kwKeys
 
-def processProductElement(function, tgnode, productElement, kwKeys):
+def processProductElement(function, isInit, tgnode, productElement, kwKeys):
     key         = productElement
     origin      = function.origin
     templates   = origin.getTemplates()
     template    = templates.get(key)
     newTemplate = template is None
     if newTemplate:
-        params   = linkCall(function, kwKeys, *productElement)
-        template = ti.tgnode.FunctionTemplateTGNode(params, origin)
+        inst, params = linkCall(function, isInit, kwKeys, *productElement)
+        template = ti.tgnode.FunctionTemplateTGNode(params, origin, inst)
     if (tgnode, ()) not in template.edges:
         template.addEdge(ti.tgnode.EdgeType.ASSIGN, tgnode)
     if newTemplate:
@@ -182,14 +207,15 @@ def processProductElement(function, tgnode, productElement, kwKeys):
             template.nodeType = origin.quasi(types)
             template.walkEdges()
 
-def processCall(node, functionNode, argumentNodes, KWArgumentNodes,
+def processFunc(node, functionNode, argumentNodes, KWArgumentNodes,
                 listArgumentType):
-    for function in functionNode.nodeType:
+    for function, isInit in getFunctions(functionNode):
         if not isinstance(function, ti.tgnode.FunctionSema):
-           continue
+            continue
         matchResult = matchCall(function, argumentNodes, KWArgumentNodes)
         if not matchResult:
             continue
         for productElement, kwKeys in getProductElements(listArgumentType,
                                                          *matchResult):
-            processProductElement(function, node, productElement, kwKeys)
+            processProductElement(function, isInit,
+                                  node, productElement, kwKeys)

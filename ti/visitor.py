@@ -244,10 +244,22 @@ class Visitor(ast.NodeVisitor):
         pass
 
     def visit_ClassDef(self, node):
-        pass
+        for base in node.bases:
+            self.visit(base)
+        name = node.name
+        save = config.data.currentScope
+        link = ti.tgnode.ClassTGNode(name, save)
+        var  = save.findOrAddName(name)
+        node.link = link
+        config.data.currentScope = link.getScope()
+        for stmt in node.body:
+            self.visit(stmt)
+        config.data.currentScope = save
+        link.addEdge(EdgeType.ASSIGN, var)
 
     def visit_Print(self, node):
-        pass
+        for value in node.values:
+            self.visit(value)
 
     def visit_Index(self, node):
         self.generic_visit(node)

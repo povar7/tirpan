@@ -32,8 +32,24 @@ def lookupTypes(obj, attr):
         res |= var.nodeType
     return res
 
-def lookupVariable(obj, attr):
+def lookupVariable(obj, attr, setValue = False, createNew = False):
+    from ti.tgnode import VariableTGNode
+    var = None
     if isinstance(obj, CollectionSema):
         lookupScope = replaceStandardCollections(obj)
-        return lookupScope.findNameHere(attr)
-    return None
+        var = lookupScope.findNameHere(attr)
+    elif isinstance(obj, ClassSema):
+        lookupScope = obj.getBody()
+        var = lookupScope.findNameHere(attr)
+    elif isinstance(obj, InstanceSema):
+        lookupScope = obj.getBody()
+        var = lookupScope.findNameHere(attr)
+        if var:
+            return var
+        if createNew:
+            var = VariableTGNode(attr)
+            lookupScope.addVariable(var)
+            return var
+        if not setValue:
+            var = lookupVariable(obj.getStub(), attr)
+    return var 

@@ -9,6 +9,8 @@ import types
 
 from ti.sema import *
 
+classes = (CollectionSema, ClassSema, InstanceSema) 
+
 class EdgeType(object):
 
     ARGUMENT         = 'Argument'
@@ -40,7 +42,7 @@ class EdgeType(object):
     @staticmethod
     def processArgument(left, right, *args):
         length = len(right.nodeType)
-        right.process()
+        right.processCall()
         if len(right.nodeType) > length:
             right.walkEdges()
 
@@ -108,21 +110,21 @@ class EdgeType(object):
     @staticmethod
     def processFunc(left, right, *args):
         length = len(right.nodeType)
-        right.process()
+        right.processCall()
         if len(right.nodeType) > length:
             right.walkEdges()
 
     @staticmethod
     def processKWArgument(left, right, *args):
         length = len(right.nodeType)
-        right.process()
+        right.processCall()
         if len(right.nodeType) > length:
             right.walkEdges()
 
     @staticmethod
     def processListArgument(left, right, *args):
         length = len(right.nodeType)
-        right.process()
+        right.processCall()
         if len(right.nodeType) > length:
             right.walkEdges()
 
@@ -279,14 +281,14 @@ class AttributeTGNode(TGNode):
     @staticmethod
     def setValuesWithAttr(obj, attr, values):
         from ti.lookup import lookupVariable
-        var = lookupVariable(obj, attr)
+        var = lookupVariable(obj, attr, True, len(values) > 0)
         if var is not None:
             EdgeType.updateRight(var, values)
 
     @staticmethod
     def setValues(objects, attr, values):
         for obj in objects:
-            if not isinstance(obj, CollectionSema):
+            if not isinstance(obj, classes):
                 continue
             AttributeTGNode.setValuesWithAttr(obj, attr, values)
 
@@ -299,7 +301,7 @@ class AttributeTGNode(TGNode):
     def getValues(objects, attr):
         res = set()
         for obj in objects:
-            if not isinstance(obj, CollectionSema):
+            if not isinstance(obj, classes):
                 continue
             newTypes = AttributeTGNode.getValuesWithAttr(obj, attr)
             res |= newTypes
@@ -541,7 +543,7 @@ class FunctionCallTGNode(TGNode):
 
         self._isLocked = False
 
-        self.process()
+        self.processCall()
 
     def getArgumentNode(self, index):
         for node, args in self.getEdges(EdgeType.REV_ARGUMENT):
@@ -575,9 +577,13 @@ class FunctionCallTGNode(TGNode):
 
     def isLocked(self):
         return self._isLocked
- 
+
     def process(self):
-        from ti.function import processCall
+        pass
+ 
+    def processCall(self):
+        from ti.function import processFunc
+
         if self._isLocked:
             return
         functionNode     = self.getFunctionNode()
@@ -597,12 +603,12 @@ class FunctionCallTGNode(TGNode):
             argumentNodes = oldArgumentNodes[:]
             for elem in listArgumentType:
                 argumentNodes.append(None)
-            processCall(self, functionNode, argumentNodes, KWArgumentNodes,
-                        listArgumentType)
+            processFunc(self, functionNode,
+                        argumentNodes, KWArgumentNodes, listArgumentType)
 
 class FunctionTemplateTGNode(TGNode):
 
-    def __init__(self, params, function):
+    def __init__(self, params, function, inst):
         super(FunctionTemplateTGNode, self).__init__()
 
         self.function = function
@@ -610,7 +616,9 @@ class FunctionTemplateTGNode(TGNode):
         self.parent   = function.getParent()
         self.scope    = TemplateSema(self)
 
-        if self.function.hasDefaultReturn():
+        if inst:
+            self.nodeType.add(inst)
+        elif self.function.hasDefaultReturn():
             self.nodeType.add(LiteralSema(types.NoneType))
 
     def getParams(self):

@@ -14,7 +14,7 @@ import tirpan
 import utils
 
 from ti.sema   import *
-from ti.tgnode import VariableTGNode
+from ti.tgnode import AttributeTGNode, VariableTGNode
 
 class TestAssign01(unittest.TestCase):
     
@@ -1140,6 +1140,89 @@ class TestFunc23(unittest.TestCase):
                         any([type2 == elem for elem in nodeType]),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
+
+class TestObject01(unittest.TestCase):
+    
+    ast = tirpan.run('tests/object01.py')
+        
+    def test_B_x(self):
+        node = utils.findNode(self.ast, line=14, kind=ast.Attribute)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, AttributeTGNode),
+                        'type is not an attribute')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(int)
+        self.assertTrue(len(nodeType) == 1 and
+                        any([type1 == elem for elem in nodeType]),
+                        'wrong types calculated')
+
+    def test_b_x(self):
+        node = utils.findNode(self.ast, line=15, kind=ast.Attribute)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, AttributeTGNode),
+                        'type is not an attribute')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(int)
+        self.assertTrue(len(nodeType) == 1 and
+                        any([type1 == elem for elem in nodeType]),
+                        'wrong types calculated')
+
+    def test_B_y(self):
+        node = utils.findNode(self.ast, line=16, kind=ast.Attribute)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, AttributeTGNode),
+                        'type is not an attribute')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(float)
+        self.assertTrue(len(nodeType) == 1 and
+                        any([type1 == elem for elem in nodeType]),
+                        'wrong types calculated')
+
+    def test_b_y(self):
+        node = utils.findNode(self.ast, line=17, kind=ast.Attribute)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, AttributeTGNode),
+                        'type is not an attribute')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(float)
+        type2 = LiteralSema(long)
+        type3 = LiteralSema(str)
+        self.assertTrue(len(nodeType) == 3 and
+                        any([type1 == elem for elem in nodeType]) and
+                        any([type2 == elem for elem in nodeType]) and
+                        any([type3 == elem for elem in nodeType]),
+                        'wrong types calculated')
+
+    def test_b_t(self):
+        node = utils.findNode(self.ast, line=18, kind=ast.Attribute)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, AttributeTGNode),
+                        'type is not an attribute')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(long)
+        type2 = LiteralSema(str)
+        self.assertTrue(len(nodeType) == 2 and
+                        any([type1 == elem for elem in nodeType]) and
+                        any([type2 == elem for elem in nodeType]),
+                        'wrong types calculated')
+
+    def test_c(self):
+        node = utils.findNode(self.ast, line=21, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(complex)
+        self.assertTrue(len(nodeType) == 1 and
+                        any([type1 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'c', 'name is not "c"')
 
 if __name__ == '__main__':
     unittest.main()

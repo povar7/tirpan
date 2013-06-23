@@ -252,11 +252,44 @@ class ClassSema(Sema, ScopeInterface):
         super(ClassSema, self).__init__()
         self.origin = origin
 
+    def getBody(self):
+        return self.origin.getBody()
+
+    def getClassInstance(self):
+        return InstanceSema(self)
+
+    def getGlobalNames(self):
+        return set() 
+
     def getParent(self):
         return self.origin.getParent()
 
     def getVariables(self):
-        return self.origin.getBody().variables
+        scope = self.getBody()
+        return scope.variables
+
+    def hasGlobals(self):
+        return True
+
+    def isInstanceEqualTo(self, other):
+        return self is other
+
+    def getInstanceHash(self):
+        return id(self)
+
+class InstanceSema(Sema, ScopeInterface):
+
+    def __init__(self, stub):
+        super(InstanceSema, self).__init__()
+
+        self.body = ScopeSema()
+        self.stub = stub
+
+    def getBody(self):
+        return self.body
+
+    def getStub(self):
+        return self.stub
 
     def isInstanceEqualTo(self, other):
         return self is other
