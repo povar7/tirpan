@@ -20,7 +20,7 @@ def lookupTypes(obj, attr):
     var = lookupVariable(obj, attr)
     if var is None:
         return set()
-    if isinstance(obj, CollectionSema):
+    if isinstance(obj, (CollectionSema, InstanceSema)):
         for elem in var.nodeType:
             if isinstance(elem, FunctionSema):
                 elemCopy = copy.copy(elem)

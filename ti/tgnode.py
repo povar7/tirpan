@@ -611,15 +611,22 @@ class FunctionTemplateTGNode(TGNode):
     def __init__(self, params, function, inst):
         super(FunctionTemplateTGNode, self).__init__()
 
-        self.function = function
-        self.params   = params
-        self.parent   = function.getParent()
-        self.scope    = TemplateSema(self)
+        if isinstance(function, FunctionDefinitionTGNode):
+            self.function = function
+            self.parent   = function.getParent()
+            self.scope    = TemplateSema(self)
+
+            if not inst and self.function.hasDefaultReturn():
+                self.nodeType.add(LiteralSema(types.NoneType))
+        else:
+            self.function = None
+            self.parent   = None
+            self.scope    = None
 
         if inst:
             self.nodeType.add(inst)
-        elif self.function.hasDefaultReturn():
-            self.nodeType.add(LiteralSema(types.NoneType))
+
+        self.params = params
 
     def getParams(self):
         return self.params
@@ -646,6 +653,8 @@ class ClassTGNode(TGNode):
         self.scope  = nodeType
         self.body   = ScopeSema()
 
+        self.templates = {}
+
     def getBody(self):
         return self.body
 
@@ -654,6 +663,9 @@ class ClassTGNode(TGNode):
 
     def getScope(self):
         return self.scope
+
+    def getTemplates(self):
+        return self.templates
 
 class UnknownTGNode(TGNode):
 

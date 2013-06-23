@@ -29,6 +29,11 @@ def getFunctions(functionNode):
 def linkCall(function, isInit, kwKeys,
              argsTypes, listArgsTypes, dictArgsTypes):
 
+    if isinstance(function, ti.sema.ClassSema):
+        argType = argsTypes[0]
+        inst = argType.getClassInstance()
+        return None, inst
+
     origin    = function.origin
     params    = origin.getOrdinaryParams()
     listParam = origin.getListParam()
@@ -43,12 +48,10 @@ def linkCall(function, isInit, kwKeys,
         try:
             argType = argsTypes[index]
             if isInit and index == 0:
-                try:
-                    inst = argType.getClassInstance()
-                    argType = inst
-                except AttributeError:
-                    pass
-            paramCopy.nodeType = {argType}
+                inst = argType.getClassInstance()
+                paramCopy.nodeType = {inst}
+            else:
+                paramCopy.nodeType = {argType}
         except IndexError:
             paramCopy.nodeType = set()
         scope.addVariable(paramCopy)
@@ -73,18 +76,24 @@ def linkCall(function, isInit, kwKeys,
         dictParamCopy.nodeType = {dictType}
         scope.addVariable(dictParamCopy)
 
-    return inst, scope
+    return scope, inst
 
 def matchCall(function, argumentNodes, KWArgumentNodes):
-    origin      = function.origin
+    origin = function.origin
 
-    defaults    = origin.getDefaults()
-    params      = origin.getAllParams()
+    if isinstance(function, ti.sema.FunctionSema):
+        params   = origin.getAllParams()
+        defaults = origin.getDefaults()
+        parent   = function.parent
+    else:
+        params   = []
+        defaults = {}
+        parent   = function
 
-    classes = (ti.sema.ClassSema, ti.sema.CollectionSema)
-    if isinstance(function.parent, classes):
+    if (isinstance(parent, ti.sema.CollectionSema) or
+        isinstance(parent, (ti.sema.ClassSema, ti.sema.InstanceSema))):
         paramIndex = 1
-        firstParam = function.parent
+        firstParam = parent
     else:
         paramIndex = 0
         firstParam = None
@@ -173,30 +182,36 @@ def getProductElements(listArgumentType,
         yield elem, kwKeys
 
 def processProductElement(function, isInit, tgnode, productElement, kwKeys):
-    key         = productElement
-    origin      = function.origin
+    origin = function.origin
+
+    if isInit:
+        key = productElement, tgnode
+    else:
+        key = productElement, None
+
     templates   = origin.getTemplates()
     template    = templates.get(key)
     newTemplate = template is None
+
     if newTemplate:
-        inst, params = linkCall(function, isInit, kwKeys, *productElement)
+        params, inst = linkCall(function, isInit, kwKeys, *productElement)
         template = ti.tgnode.FunctionTemplateTGNode(params, origin, inst)
     if (tgnode, ()) not in template.edges:
         template.addEdge(ti.tgnode.EdgeType.ASSIGN, tgnode)
     if newTemplate:
         templates[key] = template
-        save = config.data.currentScope
-        templateScope = template.getScope()
         if isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode):
             astCopy = copy.deepcopy(origin.ast)
             visitor = ti.visitor.Visitor(None)
+            save = config.data.currentScope
+            templateScope = template.getScope()
             config.data.currentScope = ti.sema.ScopeSema(templateScope)
             for stmt in astCopy:
                 visitor.visit(stmt)
             config.data.currentScope = save
             if not origin.name:
                 astCopy[0].link.addEdge(ti.tgnode.EdgeType.ASSIGN, template)
-        else:
+        elif isinstance(origin, ti.tgnode.ExternalFunctionDefinitionTGNode):
             unsorted = [var for var in params.variables.values() if var.number]
             sortParams = ti.tgnode.FunctionDefinitionTGNode.sortParams
             sortedParams = sorted(unsorted, sortParams)
@@ -209,8 +224,9 @@ def processProductElement(function, isInit, tgnode, productElement, kwKeys):
 
 def processFunc(node, functionNode, argumentNodes, KWArgumentNodes,
                 listArgumentType):
+    classes = (ti.sema.FunctionSema, ti.sema.ClassSema)
     for function, isInit in getFunctions(functionNode):
-        if not isinstance(function, ti.tgnode.FunctionSema):
+        if not isinstance(function, classes):
             continue
         matchResult = matchCall(function, argumentNodes, KWArgumentNodes)
         if not matchResult:
