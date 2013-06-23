@@ -246,6 +246,11 @@ class ScopeSema(Sema, ScopeInterface):
         if parent:
             parent.connectYield(node)
 
+    def addGlobalNames(self, names):
+        parent = self.getParent()
+        if parent:
+            parent.addGlobalNames(names)
+
 class ClassSema(Sema, ScopeInterface):
    
     def __init__(self, origin):
@@ -302,6 +307,10 @@ class TemplateSema(Sema, ScopeInterface):
     def __init__(self, origin):
         super(TemplateSema, self).__init__()
         self.origin = origin
+
+    def addGlobalNames(self, names):
+        globalNames  = self.getGlobalNames()
+        globalNames |= set(names)
 
     def getGlobalNames(self):
         return self.origin.function.globalNames

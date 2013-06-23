@@ -1141,6 +1141,97 @@ class TestFunc23(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
 
+class TestGlobal01(unittest.TestCase):
+    
+    ast = tirpan.run('tests/global01.py')
+        
+    def test_res(self):
+        node = utils.findNode(self.ast, line=1, col=1, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(types.NoneType)
+        type2 = LiteralSema(int)
+        type3 = LiteralSema(float)
+        self.assertTrue(len(nodeType) == 3 and
+                        any([type1 == elem for elem in nodeType]) and
+                        any([type2 == elem for elem in nodeType]) and
+                        any([type3 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'res', 'name is not "res"')
+
+class TestGlobal02(unittest.TestCase):
+    
+    ast = tirpan.run('tests/global02.py')
+        
+    def test_res(self):
+        node = utils.findNode(self.ast, line=1, col=1, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(types.NoneType)
+        self.assertTrue(len(nodeType) == 1 and
+                        any([type1 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'res', 'name is not "res"')
+
+class TestGlobal03(unittest.TestCase):
+    
+    ast = tirpan.run('tests/global03.py')
+        
+    def test_res1(self):
+        node = utils.findNode(self.ast, line=1, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(int)
+        type2 = LiteralValueSema(True)
+        self.assertTrue(len(nodeType) == 2 and
+                        any([type1 == elem for elem in nodeType]) and
+                        any([type2 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'res1', 'name is not "res1"')
+
+    def test_res2(self):
+        node = utils.findNode(self.ast, line=2, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(int)
+        self.assertTrue(len(nodeType) == 1 and
+                        any([type1 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'res2', 'name is not "res2"')
+
+class TestGlobal04(unittest.TestCase):
+    
+    ast = tirpan.run('tests/global04.py')
+        
+    def test_res(self):
+        node = utils.findNode(self.ast, line=8, col=1, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(types.NoneType)
+        type2 = LiteralSema(int)
+        type3 = LiteralSema(float)
+        self.assertTrue(len(nodeType) == 3 and
+                        any([type1 == elem for elem in nodeType]) and
+                        any([type2 == elem for elem in nodeType]) and
+                        any([type3 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'res', 'name is not "res"')
+
 class TestObject01(unittest.TestCase):
     
     ast = tirpan.run('tests/object01.py')

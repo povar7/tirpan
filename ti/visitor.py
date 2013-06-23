@@ -241,7 +241,7 @@ class Visitor(ast.NodeVisitor):
         node.link = ti.tgnode.UnknownTGNode()
 
     def visit_Global(self, node):
-        pass
+        config.data.currentScope.addGlobalNames(node.names)
 
     def visit_ClassDef(self, node):
         for base in node.bases:
