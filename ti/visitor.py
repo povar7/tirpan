@@ -219,12 +219,15 @@ class Visitor(ast.NodeVisitor):
         config.data.currentScope = save
 
     def visit_Attribute(self, node):
+        save = self.leftPart
+        self.leftPart = False
         collection = node.value
         self.visit(collection)
         link = ti.tgnode.AttributeTGNode(node.attr)
         link.addEdge(EdgeType.ASSIGN_OBJECT, collection.link)
         collection.link.addEdge(EdgeType.ATTR_OBJECT, link)
         node.link = link
+        self.leftPart = save
 
     def visit_Subscript(self, node):
         self.visit(node.value)

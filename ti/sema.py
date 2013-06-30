@@ -358,31 +358,6 @@ class ModuleSema(Sema, ScopeInterface):
     def hasGlobals(self):
         return False
 
-class PackageSema(Sema, ScopeInterface):
-
-    def __init__(self, origin):
-        super(PackageSema, self).__init__()
-        self.origin = origin
-
-    def isInstanceEqualTo(self, other):
-        return self is other
-
-    def getInstanceHash(self):
-        return id(self)
-
-    def getBody(self):
-        return self.origin.getBody()
-
-    def getParent(self):
-        return None
-
-    def getVariables(self):
-        scope = self.getBody()
-        return scope.variables
-
-    def hasGlobals(self):
-        return False
-
 class UnknownSema(Sema):
 
     def __init__(self):

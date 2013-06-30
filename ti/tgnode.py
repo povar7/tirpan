@@ -10,7 +10,7 @@ import types
 
 from ti.sema import *
 
-classes = (CollectionSema, ClassSema, InstanceSema, ModuleSema, PackageSema) 
+classes = (CollectionSema, ClassSema, InstanceSema, ModuleSema)
 
 class EdgeType(object):
 
@@ -27,6 +27,7 @@ class EdgeType(object):
     KWARGUMENT       = 'KWArgument'
     LISTARGUMENT     = 'ListArgument'
     REV_ARGUMENT     = 'RevArgument'
+    REV_ASSIGN       = 'RevAssign'
     REV_FUNC         = 'RevFunc'
     REV_KWARGUMENT   = 'RevKWArgument'
     REV_LISTARGUMENT = 'RevListArgument'
@@ -134,6 +135,10 @@ class EdgeType(object):
         pass
 
     @staticmethod
+    def processRevAssign(left, right, *args):
+        pass
+
+    @staticmethod
     def processRevFunc(left, right, *args):
         pass
 
@@ -152,6 +157,8 @@ class TGNode(object):
         self.nodeType = set()
 
     def addEdge(self, edgeType, node, *args):
+        if edgeType == EdgeType.ASSIGN:
+            node.addEdge(EdgeType.REV_ASSIGN, self)
         if not edgeType in self.edges:
             self.edges[edgeType] = set()
         self.edges[edgeType].add((node, args))
@@ -274,9 +281,16 @@ class AttributeTGNode(TGNode):
            objects |= node.nodeType
        return objects
 
+    def getRights(self):
+       rights = set()
+       for node, args in self.getEdges(EdgeType.REV_ASSIGN):
+           rights |= node.nodeType
+       return rights
+
     def process(self):
        objects = self.getObjects()
-       self.setValues(objects, self.attr, self.nodeType)
+       rights  = self.getRights()
+       self.setValues(objects, self.attr, rights)
        self.nodeType = self.getValues(objects, self.attr)
 
     @staticmethod
@@ -320,6 +334,12 @@ class SubscriptTGNode(TGNode):
            slices |= node.nodeType
        return slices
 
+    def getRights(self):
+       rights = set()
+       for node, args in self.getEdges(EdgeType.REV_ASSIGN):
+           rights |= node.nodeType
+       return rights
+
     def getObjects(self):
        objects = set()
        for node, args in self.getEdges(EdgeType.ASSIGN_OBJECT):
@@ -328,8 +348,9 @@ class SubscriptTGNode(TGNode):
 
     def process(self):
        objects = self.getObjects()
+       rights  = self.getRights()
        slices  = self.getSlices()
-       self.setValues(objects, slices, self.nodeType, self.hasIndex)
+       self.setValues(objects, slices, rights, self.hasIndex)
        self.nodeType = self.getValues(objects, slices, self.hasIndex)
 
     @staticmethod
@@ -711,27 +732,6 @@ class UsualModuleTGNode(ModuleTGNode):
 
     def getAST(self):
         return self.ast
-
-class PackageTGNode(TGNode):
-
-    def __init__(self):
-        super(PackageTGNode, self).__init__()
-        packageSema = PackageSema(self)
-        self.scope    = packageSema
-        self.nodeType = {packageSema}
-        self.body     = ScopeSema()
-
-    def getBody(self):
-        return self.body
-
-    def getScope(self):
-        return self.scope
-
-class UsualPackageTGNode(PackageTGNode):
-
-    def __init__(self, filename):
-        super(UsualPackageTGNode, self).__init__()
-        self.name = os.path.dirname(filename)
 
 class UnknownTGNode(TGNode):
 

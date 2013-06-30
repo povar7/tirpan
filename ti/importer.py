@@ -33,7 +33,7 @@ class Importer(object):
         return module.getScope()
 
     def getPaths(self, origin):
-        paths = [os.path.dirname(origin)]
+        paths = [os.path.dirname(origin), self.mainPath]
         paths.extend(sys.path[1:])
         return paths
 
@@ -88,11 +88,11 @@ class Importer(object):
         for index in range(len(packages)):
             name = packages[index]
             aliasName = name
-            res = self.addPackage(name, paths, aliasName, data)
+            res = self.addModule(name, paths, aliasName, data)
             if not res:
                 data.currentScope = save
                 return None
-            paths = [res.name]
+            paths = [os.path.dirname(res.name)]
             data.currentScope = res.getScope()
         data.currentScope = save
 
@@ -125,28 +125,35 @@ class Importer(object):
         for alias in names:
             name = alias.name
             if name == '*':
-                continue
-            if alias.asname:
-                aliasName = alias.asname
+                variables = scope.getVariables()
+                for oldName in variables:
+                    if (oldName.startswith('_') or
+                        oldName in ['True', 'False']):
+                        continue
+                    oldVar = variables[oldName]
+                    newVar = VariableTGNode(oldName)
+                    data.currentScope.addVariable(newVar)
+                    oldVar.addEdge(EdgeType.ASSIGN, newVar)
             else:
-                aliasName = name
-            oldVar = scope.findName(name)
-            if oldVar:
-                newVar = VariableTGNode(aliasName)
-                data.currentScope.addVariable(newVar)
-                oldVar.addEdge(EdgeType.ASSIGN, newVar)
+                if alias.asname:
+                    aliasName = alias.asname
+                else:
+                    aliasName = name
+                oldVar = scope.findName(name)
+                if oldVar:
+                    newVar = VariableTGNode(aliasName)
+                    data.currentScope.addVariable(newVar)
+                    oldVar.addEdge(EdgeType.ASSIGN, newVar)
 
     def findName(self, name, paths):
         for path in paths:
             canonical = os.path.join(path, name)
             if os.path.isdir(canonical):
                 filename  = os.path.join(canonical, '__init__.py')
-                isPackage = True
             else:
                 filename  = canonical + '.py'
-                isPackage = False
             if os.path.exists(filename):
-                return filename, isPackage
+                return filename
         return None
 
     def addModuleHere(self, scope, name, module):
@@ -165,37 +172,9 @@ class Importer(object):
         res = self.findName(name, paths)
         if res is None:
             return None
-        relName, isPackage = res
-        if isPackage:
-            return None
+        relName = res
         filename = os.path.abspath(relName)
         if filename in self.importedFiles:
             return self.importedFiles[filename]
         else:
             return self.processFile(relName, filename, data) 
-
-    def addPackage(self, name, paths, aliasName, data):
-        from ti.tgnode import EdgeType
-        package = self.getPackage(name, paths)
-        if not package:
-            return None
-        if aliasName:
-            scope = data.currentScope
-            var = scope.findOrAddName(aliasName)
-            package.addEdge(EdgeType.ASSIGN, var) 
-        return package
-
-    def getPackage(self, name, paths):
-        res = self.findName(name, paths)
-        if res is None:
-            return None
-        relName, isPackage = res
-        if not isPackage:
-            return None
-        filename = os.path.abspath(relName)
-        if filename in self.importedFiles:
-            return self.importedFiles[filename]
-        else:
-            package = ti.tgnode.UsualPackageTGNode(filename)
-            self.importedFiles[filename] = package
-            return package
