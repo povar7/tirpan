@@ -98,21 +98,27 @@ class Visitor(ast.NodeVisitor):
         node.link = ti.tgnode.TupleTGNode(node)
 
     def visit_Import(self, node):
-        pass
+        importer = config.data.importer
+        for alias in node.names:
+            importer.importFile(self.filename, alias)
 
     def visit_ImportFrom(self, node):
         pass
 
     def visit_Module(self, node):
-        nodeType = {ti.sema.LiteralValueSema(True)} 
-        trueVariable = ti.tgnode.VariableTGNode('True', nodeType)
-        config.data.currentScope.addVariable(trueVariable)
+        if not node.link.isInherited():
+            nodeType = {ti.sema.LiteralValueSema(True)} 
+            trueVariable = ti.tgnode.VariableTGNode('True', nodeType)
+            config.data.currentScope.addVariable(trueVariable)
 
-        nodeType = {ti.sema.LiteralValueSema(False)} 
-        falseVariable = ti.tgnode.VariableTGNode('False', nodeType)
-        config.data.currentScope.addVariable(falseVariable)
+            nodeType = {ti.sema.LiteralValueSema(False)} 
+            falseVariable = ti.tgnode.VariableTGNode('False', nodeType)
+            config.data.currentScope.addVariable(falseVariable)
 
         self.generic_visit(node)
+
+        if not node.link.isInherited():
+           config.data.currentScope = config.data.currentScope.getParent()
 
     def visit_arguments(self, node, link):
         nonDefs = len(node.args) - len(node.defaults)

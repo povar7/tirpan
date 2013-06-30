@@ -5,11 +5,12 @@ Created on 26.05.2013
 '''
 
 import ast
+import os
 import types
 
 from ti.sema import *
 
-classes = (CollectionSema, ClassSema, InstanceSema) 
+classes = (CollectionSema, ClassSema, InstanceSema, ModuleSema, PackageSema) 
 
 class EdgeType(object):
 
@@ -673,11 +674,12 @@ class ClassTGNode(TGNode):
 
 class ModuleTGNode(TGNode):
 
-    def __init__(self, parent, inheritedScope):
+    def __init__(self, name, parent, inheritedScope):
         super(ModuleTGNode, self).__init__()
+        self.name = name
 
-        self.isInherited = inheritedScope is not None
-        if self.isInherited:
+        self._inherited = inheritedScope is not None
+        if self._inherited:
             self.body   = None
             self.scope  = inheritedScope
         else:
@@ -696,14 +698,40 @@ class ModuleTGNode(TGNode):
     def getScope(self):
         return self.scope
 
+    def isInherited(self):
+        return self._inherited
+
 class UsualModuleTGNode(ModuleTGNode):
 
-    def __init__(self, ast, parentScope, inheritedScope = None):
-        super(UsualModuleTGNode, self).__init__(parentScope, inheritedScope)
+    def __init__(self, ast, name, parentScope, inheritedScope = None):
+        super(UsualModuleTGNode, self).__init__(name,
+                                                parentScope,
+                                                inheritedScope)
         self.ast = ast
 
     def getAST(self):
         return self.ast
+
+class PackageTGNode(TGNode):
+
+    def __init__(self):
+        super(PackageTGNode, self).__init__()
+        packageSema = PackageSema(self)
+        self.scope    = packageSema
+        self.nodeType = {packageSema}
+        self.body     = ScopeSema()
+
+    def getBody(self):
+        return self.body
+
+    def getScope(self):
+        return self.scope
+
+class UsualPackageTGNode(PackageTGNode):
+
+    def __init__(self, filename):
+        super(UsualPackageTGNode, self).__init__()
+        self.name = os.path.dirname(filename)
 
 class UnknownTGNode(TGNode):
 

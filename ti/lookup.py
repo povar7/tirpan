@@ -61,4 +61,7 @@ def lookupVariable(obj, attr, setValue = False, createNew = False):
             return var
         if not setValue:
             var = lookupVariable(obj.getStub(), attr)
+    elif isinstance(obj, (ModuleSema, PackageSema)):
+        lookupScope = obj.getBody()
+        var = lookupScope.findNameHere(attr)
     return var 
