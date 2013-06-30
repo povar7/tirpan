@@ -12,6 +12,12 @@ import ti.tgnode
 from   ti.parser import Parser
 from   ti.sema   import LiteralValueSema
 
+class QuasiAlias(object):
+
+    def __init__(self, name):
+        self.name   = name
+        self.asname = None
+
 class Importer(object):
 
     def __init__(self, relName, data):
@@ -68,7 +74,7 @@ class Importer(object):
 
     def importFile(self, origin, alias):
         import config
-        data  = config.data
+        data = config.data
 
         res = None
         
@@ -91,12 +97,12 @@ class Importer(object):
         data.currentScope = save
 
         name = parts[-1]
-        if len(packages) > 0:
+        if len(packages) > 0 or isinstance(alias, QuasiAlias):
             aliasName = None
         else:
             aliasName = name
         if alias.asname:
-            aliasName = node.asname
+            aliasName = alias.asname
 
         module = self.addModule(name, paths, aliasName, data)
 
@@ -104,6 +110,31 @@ class Importer(object):
             self.addModuleHere(res.getScope(), name, module) 
 
         return module
+
+    def importFromFile(self, origin, moduleName, names):
+        from ti.tgnode import VariableTGNode, EdgeType
+
+        import config
+        data = config.data
+
+        quasiAlias = QuasiAlias(moduleName)
+        module = self.importFile(origin, quasiAlias)
+        if not module:
+            return
+        scope = module.getScope()
+        for alias in names:
+            name = alias.name
+            if name == '*':
+                continue
+            if alias.asname:
+                aliasName = alias.asname
+            else:
+                aliasName = name
+            oldVar = scope.findName(name)
+            if oldVar:
+                newVar = VariableTGNode(aliasName)
+                data.currentScope.addVariable(newVar)
+                oldVar.addEdge(EdgeType.ASSIGN, newVar)
 
     def findName(self, name, paths):
         for path in paths:

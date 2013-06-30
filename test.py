@@ -300,6 +300,44 @@ class TestBuiltin06(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
+class TestImport01_1(unittest.TestCase):
+    
+    ast = tirpan.run('tests/import01_1.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=6, col=1, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = ListSema()
+        type1.elems  = [set()] + [{LiteralSema(int)}]
+        type1.elems += [{LiteralSema(str)}, {LiteralSema(float)}]
+        type1.freeze()
+        self.assertTrue(len(nodeType) == 1 and
+                        any([type1 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
+    def test_y(self):
+        node = utils.findNode(self.ast, line=7, col=1, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        childType = ListSema()
+        childType.elems  = [set()] + [{LiteralSema(int)}]
+        type1 = ListSema()
+        type1.elems  = [set()] + [{childType}]
+        type1.elems += [{LiteralSema(str)}, {LiteralSema(float)}]
+        type1.freeze()
+        self.assertTrue(len(nodeType) == 1 and
+                        any([type1 == elem for elem in nodeType]),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'y', 'name is not "y"')
+
 class TestImport08_1(unittest.TestCase):
     
     ast = tirpan.run('tests/import08_1.py')

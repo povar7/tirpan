@@ -103,7 +103,8 @@ class Visitor(ast.NodeVisitor):
             importer.importFile(self.filename, alias)
 
     def visit_ImportFrom(self, node):
-        pass
+        importer = config.data.importer
+        importer.importFromFile(self.filename, node.module, node.names)
 
     def visit_Module(self, node):
         if not node.link.isInherited():
