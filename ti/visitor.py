@@ -30,11 +30,11 @@ class Visitor(ast.NodeVisitor):
             link = ti.tgnode.ConstTGNode(node)
         else:
             if self.leftPart:
-                fileScope = config.data.globalScope
-                #try:
-                #    fileScope = importer.getFileScope(node.fileno)
-                #except AttributeError:
-                #    fileScope = None
+                try:
+                    importer  = config.data.importer
+                    fileScope = importer.getFileScope(node.fileno)
+                except AttributeError:
+                    fileScope = None
                 link = config.data.currentScope.findOrAddName(node.id,
                                                               True,
                                                               fileScope)
@@ -111,10 +111,6 @@ class Visitor(ast.NodeVisitor):
         nodeType = {ti.sema.LiteralValueSema(False)} 
         falseVariable = ti.tgnode.VariableTGNode('False', nodeType)
         config.data.currentScope.addVariable(falseVariable)
-
-        nodeType = {ti.sema.LiteralValueSema(self.filename)}
-        fileVariable = ti.tgnode.VariableTGNode('__file__', nodeType)
-        config.data.currentScope.addVariable(fileVariable)
 
         self.generic_visit(node)
 

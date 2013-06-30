@@ -671,6 +671,40 @@ class ClassTGNode(TGNode):
     def getTemplates(self):
         return self.templates
 
+class ModuleTGNode(TGNode):
+
+    def __init__(self, parent, inheritedScope):
+        super(ModuleTGNode, self).__init__()
+
+        self.isInherited = inheritedScope is not None
+        if self.isInherited:
+            self.body   = None
+            self.scope  = inheritedScope
+        else:
+            self.body  = ScopeSema()
+            self.scope = ModuleSema(self)
+
+        self.parent   = parent
+        self.nodeType = {self.scope}
+
+    def getBody(self):
+        return self.body
+
+    def getParent(self):
+        return self.parent
+
+    def getScope(self):
+        return self.scope
+
+class UsualModuleTGNode(ModuleTGNode):
+
+    def __init__(self, ast, parentScope, inheritedScope = None):
+        super(UsualModuleTGNode, self).__init__(parentScope, inheritedScope)
+        self.ast = ast
+
+    def getAST(self):
+        return self.ast
+
 class UnknownTGNode(TGNode):
 
     def __init__(self, node):

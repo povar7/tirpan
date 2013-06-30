@@ -333,6 +333,31 @@ class TemplateSema(Sema, ScopeInterface):
         from ti.tgnode import EdgeType
         node.link.addEdge(EdgeType.ASSIGN_YIELD, self.origin)
 
+class ModuleSema(Sema, ScopeInterface):
+
+    def __init__(self, origin):
+        super(ModuleSema, self).__init__()
+        self.origin = origin
+
+    def isInstanceEqualTo(self, other):
+        return self is other
+
+    def getInstanceHash(self):
+        return id(self)
+
+    def getBody(self):
+        return self.origin.getBody()
+
+    def getParent(self):
+        return self.origin.getParent()
+
+    def getVariables(self):
+        scope = self.getBody()
+        return scope.variables
+
+    def hasGlobals(self):
+        return False
+
 class UnknownSema(Sema):
 
     def __init__(self):

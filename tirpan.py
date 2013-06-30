@@ -12,10 +12,10 @@ import config
 from ti.parser import Parser
 
 def run(filename):
-    config.initialize()
-    inputFileParser = Parser(filename)
-    inputFileParser.walk()
-    return inputFileParser.ast
+    config.initialize(filename)
+    importer = config.data.importer
+    mainModule = importer.getIdent(0)
+    return mainModule.getAST()
 
 if __name__ == '__main__':
     argParser = argparse.ArgumentParser()

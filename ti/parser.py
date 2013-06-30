@@ -13,6 +13,9 @@ class Parser(object):
         with open(filename) as inputFile:
             self.ast = ast.parse(inputFile.read())
         self.visitor = Visitor(filename)
+
+    def getAST(self):
+        return self.ast
     
     def walk(self):
         self.visitor.visit(self.ast)
