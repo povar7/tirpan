@@ -1,3 +1,9 @@
+'''
+Created on 06.07.2013
+
+@author: bronikkk
+'''
+
 import sys
 
 from ti.sema import *

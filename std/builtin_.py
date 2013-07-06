@@ -60,6 +60,7 @@ variables = [
             ]
 
 modules   = [
+                ['os' ],
                 ['sys'],
             ]
 

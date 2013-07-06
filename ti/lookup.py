@@ -36,8 +36,9 @@ def lookupVariable(obj, attr, setValue = False, createNew = False):
     from ti.tgnode import VariableTGNode
     var = None
     if isinstance(obj, CollectionSema):
-        lookupScope = replaceStandardCollections(obj)
-        var = lookupScope.findNameHere(attr)
+        if isinstance(obj, ListSema):
+            lookupScope = replaceStandardCollections(obj)
+            var = lookupScope.findNameHere(attr)
     elif isinstance(obj, ClassSema):
         lookupScope = obj.getBody()
         var = lookupScope.findNameHere(attr)

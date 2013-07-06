@@ -65,7 +65,7 @@ class Visitor(ast.NodeVisitor):
         node.link = node.value.link
 
     def visit_AugAssign(self, node):
-        pass
+        self.generic_visit(node)
 
     def visit_List(self, node):
         self.generic_visit(node)
@@ -185,15 +185,19 @@ class Visitor(ast.NodeVisitor):
             self.visit(stmt)
 
     def visit_BinOp(self, node):
+        self.generic_visit(node)
         node.link = ti.tgnode.UnknownTGNode(node)
 
     def visit_UnaryOp(self, node):
-        pass
+        self.generic_visit(node)
+        node.link = ti.tgnode.UnknownTGNode(node)
         
     def visit_BoolOp(self, node):
-        pass
+        self.generic_visit(node)
+        node.link = ti.tgnode.UnknownTGNode(node)
 
     def visit_Compare(self, node):
+        self.generic_visit(node)
         node.link = ti.tgnode.UnknownTGNode(node)
 
     def visit_common_ret(self, node):
@@ -236,10 +240,10 @@ class Visitor(ast.NodeVisitor):
         node.link = self.visit_common_subscript(node.value, index)
 
     def visit_ListComp(self, node):
-        pass
+        self.generic_visit(node)
 
     def visit_IfExp(self, node):
-        pass
+        self.generic_visit(node)
 
     def visit_If(self, node):
         condition = node.test
@@ -254,6 +258,7 @@ class Visitor(ast.NodeVisitor):
                 self.visit(stmt)
 
     def visit_GeneratorExp(self, node):
+        self.generic_visit(node)
         node.link = ti.tgnode.UnknownTGNode()
 
     def visit_Global(self, node):
@@ -284,10 +289,11 @@ class Visitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Set(self, node):
+        self.generic_visit(node)
         node.link = ti.tgnode.UnknownTGNode()
 
     def visit_comprehension(self, node):
-        pass
+        self.generic_visit(node)
 
     def visit_TryExcept(self, node):
-        pass
+        self.generic_visit(node)

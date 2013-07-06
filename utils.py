@@ -29,9 +29,13 @@ def getColumn(node):
         return offset + 1
 
 def getFileName(node):
-    fileNumber = getattr(node, 'fileno', None)
+    import config
+    importer = config.data.importer
+    fileNumber = getFileNumber(node)
     try:
-        name = importer.getFileName(fileNumber)
+        name = importer.getIdent(fileNumber).name
+    except AttributeError:
+        name = None
     except KeyError:
         name = None
     return name
