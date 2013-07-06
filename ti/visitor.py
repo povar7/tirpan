@@ -11,6 +11,7 @@ import ti.tgnode
 import ti.sema
 
 from ti.tgnode import EdgeType
+from ti.skips  import *
 
 class Visitor(ast.NodeVisitor):
 
@@ -241,7 +242,16 @@ class Visitor(ast.NodeVisitor):
         pass
 
     def visit_If(self, node):
-        self.generic_visit(node)
+        condition = node.test
+        self.visit(condition)
+        skipIf   = checkSkipIf  (condition)
+        skipElse = checkSkipElse(condition)
+        if not skipIf:
+            for stmt in node.body:
+                self.visit(stmt)
+        if not skipElse:
+            for stmt in node.orelse:
+                self.visit(stmt)
 
     def visit_GeneratorExp(self, node):
         node.link = ti.tgnode.UnknownTGNode()
