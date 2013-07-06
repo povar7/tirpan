@@ -733,6 +733,11 @@ class UsualModuleTGNode(ModuleTGNode):
     def getAST(self):
         return self.ast
 
+class ExternalModuleTGNode(ModuleTGNode):
+
+    def __init__(self, name, parentScope):
+        super(ExternalModuleTGNode, self).__init__(name, parentScope, None)
+
 class UnknownTGNode(TGNode):
 
     def __init__(self, node):

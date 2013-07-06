@@ -6,14 +6,6 @@ Created on 26.05.2013
 
 import ast
 
-def checkEqual(collection):
-    try:
-        iterator = iter(collection)
-        first    = next(iterator)
-        return all(first == rest for rest in iterator)
-    except StopIteration:
-        return True
-
 def findFirstNode(tree, callback):
     for node in ast.walk(tree):
         if callback(node):

@@ -7,10 +7,7 @@ class Config(object):
     def __init__(self, filename):
         self.globalScope  = ScopeSema(None)
         self.currentScope = self.globalScope
-
-        self.importer = Importer(filename, self)
-
-        initBuiltins(None, self.globalScope)
+        self.importer     = Importer(filename, self)
 
 data = None
 
@@ -18,4 +15,6 @@ def initialize(filename):
     global data
     data = Config(filename)
     importer = data.importer
+    globalScope = data.globalScope
+    initBuiltins(importer, globalScope)
     importer.importMain(filename, data)

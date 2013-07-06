@@ -9,8 +9,9 @@ import os
 import sys
 
 import ti.tgnode
-from   ti.parser import Parser
-from   ti.sema   import LiteralValueSema
+from   ti.builtin import *
+from   ti.parser  import Parser
+from   ti.sema    import LiteralValueSema
 
 class QuasiAlias(object):
 
@@ -169,6 +170,8 @@ class Importer(object):
         return module
 
     def getModule(self, name, paths, data):
+        if name in self.importedFiles:
+            return self.importedFiles[name]
         res = self.findName(name, paths)
         if res is None:
             return None
@@ -177,4 +180,24 @@ class Importer(object):
         if filename in self.importedFiles:
             return self.importedFiles[filename]
         else:
-            return self.processFile(relName, filename, data) 
+            return self.processFile(relName, filename, data)
+
+    def importStandardModule(self, module, globalScope):
+        name = module.name
+        command = 'from std.%s_ import getAll' % name
+        exec command
+        functions, variables, modules, classes = getAll()
+        scope = module.getScope()
+        for func in functions:
+            initBuiltinFunction(scope, *func)
+        for var in variables:
+            initBuiltinVariable(scope, *var)
+        for mod in modules:
+            self.addStandardModule(globalScope, *mod)
+        for cls in classes:
+            initBuiltinClass(scope, *cls)
+
+    def addStandardModule(self, globalScope, name):
+        module = ti.tgnode.ExternalModuleTGNode(name, globalScope)
+        self.importStandardModule(module, globalScope)
+        self.importedFiles[name] = module

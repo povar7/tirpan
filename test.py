@@ -34,8 +34,8 @@ class TestAssign01(unittest.TestCase):
         type1.freeze()
         type2 = LiteralSema(unicode)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'a', 'name is not "a"')
 
@@ -55,8 +55,8 @@ class TestAssign01(unittest.TestCase):
         type1.freeze()
         type2 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'b', 'name is not "b"')
 
@@ -76,8 +76,8 @@ class TestAssign01(unittest.TestCase):
         type1.freeze()
         type2 = LiteralSema(complex)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'c', 'name is not "c"')
 
@@ -96,9 +96,9 @@ class TestAssign02(unittest.TestCase):
         type2 = LiteralSema(float)
         type3 = LiteralSema(str)
         self.assertTrue(len(nodeType) == 3 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]) and
-                        any([type3 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType) and
+                        any(type3 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'el', 'name is not "el"')
 
@@ -116,8 +116,8 @@ class TestAssign03(unittest.TestCase):
         type1 = LiteralValueSema(1)
         type2 = LiteralValueSema('abc')
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'el', 'name is not "el"')
 
@@ -135,8 +135,8 @@ class TestAssign04(unittest.TestCase):
         type1 = LiteralSema(int)
         type2 = LiteralSema(types.NoneType)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -155,7 +155,7 @@ class TestBuiltin01(unittest.TestCase):
         type1.elems = [{LiteralSema(int)}]
         type1.freeze() 
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -170,7 +170,7 @@ class TestBuiltin01(unittest.TestCase):
         type1.elems = [{LiteralSema(int)}]
         type1.freeze() 
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -185,7 +185,7 @@ class TestBuiltin01(unittest.TestCase):
         type1.elems = [{LiteralSema(int)}]
         type1.freeze() 
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
 
@@ -201,10 +201,10 @@ class TestBuiltin02(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(type)
-        isFunction = lambda x: isinstance(elem, FunctionSema)
+        isFunction = lambda x: isinstance(x, FunctionSema)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([isFunction(elem) for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(isFunction(elem) for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -217,7 +217,7 @@ class TestBuiltin02(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(type)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -236,7 +236,7 @@ class TestBuiltin03(unittest.TestCase):
         type1.elems = [{LiteralSema(float)}] + [{LiteralSema(int)}]
         type1.freeze() 
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -251,7 +251,7 @@ class TestBuiltin03(unittest.TestCase):
         type1.elems = [{LiteralSema(float)}] + [{LiteralSema(int)}]
         type1.freeze() 
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -266,7 +266,7 @@ class TestBuiltin03(unittest.TestCase):
         type1.elems = [{LiteralSema(float)}] + [{LiteralSema(int)}]
         type1.freeze() 
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
 
@@ -298,7 +298,7 @@ class TestBuiltin06(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralValueSema('tests/builtin06.py')
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -318,7 +318,7 @@ class TestImport01_1(unittest.TestCase):
         type1.elems += [{LiteralSema(str)}, {LiteralSema(float)}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -336,9 +336,70 @@ class TestImport01_1(unittest.TestCase):
         type1.elems += [{LiteralSema(str)}, {LiteralSema(float)}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
+
+class TestImport02(unittest.TestCase):
+    
+    ast = tirpan.run('tests/import02.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=12, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralValueSema('./test.py')
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
+    def test_y(self):
+        node = utils.findNode(self.ast, line=14, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        childType = LiteralValueSema(os.path.abspath('tests'))
+        type1 = ListSema()
+        type1.elems = [set()] + [{childType}]
+        for elem in sys.path[1:]:
+            type1.elems.append({LiteralValueSema(elem)})
+        type1.freeze()
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'y', 'name is not "y"')
+
+    def test_z(self):
+        node = utils.findNode(self.ast, line=16, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(int)
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'z', 'name is not "z"')
+
+    def test_t(self):
+        node = utils.findNode(self.ast, line=18, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(int)
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 't', 'name is not "t"')
 
 class TestImport03_1(unittest.TestCase):
     
@@ -353,7 +414,7 @@ class TestImport03_1(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -370,7 +431,7 @@ class TestImport03_2(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -383,7 +444,7 @@ class TestImport03_2(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralValueSema(True)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
 
@@ -400,7 +461,7 @@ class TestImport03_3(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -420,10 +481,10 @@ class TestImport05_1(unittest.TestCase):
         type3 = LiteralSema(types.NoneType)
         type4 = LiteralValueSema(True)
         self.assertTrue(len(nodeType) == 4 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]) and
-                        any([type3 == elem for elem in nodeType]) and
-                        any([type4 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType) and
+                        any(type3 == elem for elem in nodeType) and
+                        any(type4 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -440,7 +501,7 @@ class TestImport06_1(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -457,7 +518,7 @@ class TestImport07_1(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -474,7 +535,7 @@ class TestImport08_1(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -494,7 +555,7 @@ class TestStd01(unittest.TestCase):
                                  {LiteralSema(str)}, {LiteralSema(unicode)}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'a', 'name is not "a"')
 
@@ -510,7 +571,7 @@ class TestStd01(unittest.TestCase):
                                  {LiteralSema(str)}, {LiteralSema(unicode)}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'b', 'name is not "b"')
 
@@ -526,7 +587,7 @@ class TestStd01(unittest.TestCase):
         type1.elems[LiteralValueSema('abc')] = {LiteralSema(unicode)}
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'c', 'name is not "c"')
 
@@ -546,7 +607,7 @@ class TestStd02(unittest.TestCase):
         type1.freeze()
         nodeType = freezeSet(node.link.nodeType)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'a', 'name is not "a"')
 
@@ -561,7 +622,7 @@ class TestStd02(unittest.TestCase):
         type1.freeze()
         nodeType = freezeSet(node.link.nodeType)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'b', 'name is not "b"')
 
@@ -576,7 +637,7 @@ class TestStd02(unittest.TestCase):
         type1.elems = [{LiteralSema(int), LiteralSema(float)}] * 6
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'c', 'name is not "c"')
 
@@ -591,7 +652,7 @@ class TestStd02(unittest.TestCase):
         type1.elems = [{LiteralSema(int), LiteralSema(float)}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'd', 'name is not "d"')
 
@@ -607,7 +668,7 @@ class TestStd02(unittest.TestCase):
         type1.elems.append({LiteralSema(int)})
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'e', 'name is not "e"')
 
@@ -622,7 +683,7 @@ class TestStd02(unittest.TestCase):
         type1.elems = [{LiteralSema(int)}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'f', 'name is not "f"')
 
@@ -640,8 +701,8 @@ class TestStd03(unittest.TestCase):
         type1 = LiteralSema(int)
         type2 = LiteralValueSema(True)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'True', 'name is not "True"')
 
@@ -655,8 +716,8 @@ class TestStd03(unittest.TestCase):
         type1 = LiteralSema(float)
         type2 = LiteralValueSema(False)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'False', 'name is not "False"')
 
@@ -673,7 +734,7 @@ class TestStd05(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'a', 'name is not "a"')
 
@@ -687,8 +748,8 @@ class TestStd05(unittest.TestCase):
         type1 = LiteralSema(float)
         type2 = LiteralSema(str)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'b', 'name is not "b"')
 
@@ -701,7 +762,7 @@ class TestStd05(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'c', 'name is not "c"')
 
@@ -715,8 +776,8 @@ class TestStd05(unittest.TestCase):
         type1 = LiteralSema(float)
         type2 = LiteralSema(str)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'd', 'name is not "d"')
 
@@ -734,8 +795,8 @@ class TestStd06(unittest.TestCase):
         type1 = LiteralSema(int)
         type2 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'a', 'name is not "a"')
 
@@ -749,8 +810,8 @@ class TestStd06(unittest.TestCase):
         type1 = LiteralSema(str)
         type2 = LiteralSema(unicode)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'b', 'name is not "b"')
 
@@ -770,8 +831,8 @@ class TestFunc01(unittest.TestCase):
         type1.freeze()
         type2 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
 
@@ -797,11 +858,11 @@ class TestFunc02(unittest.TestCase):
         type4 = childType
         type5 = LiteralSema(unicode)
         self.assertTrue(len(nodeType) == 5 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]) and
-                        any([type3 == elem for elem in nodeType]) and
-                        any([type4 == elem for elem in nodeType]) and
-                        any([type5 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType) and
+                        any(type3 == elem for elem in nodeType) and
+                        any(type4 == elem for elem in nodeType) and
+                        any(type5 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
 
@@ -845,17 +906,17 @@ class TestFunc03(unittest.TestCase):
         type11.elems = [set()] + [{type3}, {type5}]
         type11.freeze()
         self.assertTrue(len(nodeType) == 11 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]) and
-                        any([type3 == elem for elem in nodeType]) and
-                        any([type4 == elem for elem in nodeType]) and
-                        any([type5 == elem for elem in nodeType]) and
-                        any([type6 == elem for elem in nodeType]) and
-                        any([type7 == elem for elem in nodeType]) and
-                        any([type8 == elem for elem in nodeType]) and
-                        any([type9 == elem for elem in nodeType]) and
-                        any([type10 == elem for elem in nodeType]) and
-                        any([type11 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType) and
+                        any(type3 == elem for elem in nodeType) and
+                        any(type4 == elem for elem in nodeType) and
+                        any(type5 == elem for elem in nodeType) and
+                        any(type6 == elem for elem in nodeType) and
+                        any(type7 == elem for elem in nodeType) and
+                        any(type8 == elem for elem in nodeType) and
+                        any(type9 == elem for elem in nodeType) and
+                        any(type10 == elem for elem in nodeType) and
+                        any(type11 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
 
@@ -873,8 +934,8 @@ class TestFunc04(unittest.TestCase):
         type1 = LiteralSema(int)
         type2 = NoSema()
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
 
@@ -919,17 +980,17 @@ class TestFunc05(unittest.TestCase):
         type11.freeze()
         type12 = LiteralSema(complex)
         self.assertTrue(len(nodeType) == 12 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]) and
-                        any([type3 == elem for elem in nodeType]) and
-                        any([type4 == elem for elem in nodeType]) and
-                        any([type5 == elem for elem in nodeType]) and
-                        any([type6 == elem for elem in nodeType]) and
-                        any([type7 == elem for elem in nodeType]) and
-                        any([type8 == elem for elem in nodeType]) and
-                        any([type9 == elem for elem in nodeType]) and
-                        any([type10 == elem for elem in nodeType]) and
-                        any([type11 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType) and
+                        any(type3 == elem for elem in nodeType) and
+                        any(type4 == elem for elem in nodeType) and
+                        any(type5 == elem for elem in nodeType) and
+                        any(type6 == elem for elem in nodeType) and
+                        any(type7 == elem for elem in nodeType) and
+                        any(type8 == elem for elem in nodeType) and
+                        any(type9 == elem for elem in nodeType) and
+                        any(type10 == elem for elem in nodeType) and
+                        any(type11 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'u', 'name is not "u"')
 
@@ -946,7 +1007,7 @@ class TestFunc06(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
 
@@ -963,7 +1024,7 @@ class TestFunc07(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -976,7 +1037,7 @@ class TestFunc07(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -993,7 +1054,7 @@ class TestFunc08(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'c', 'name is not "c"')
 
@@ -1006,7 +1067,7 @@ class TestFunc08(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'd', 'name is not "d"')
 
@@ -1027,7 +1088,7 @@ class TestFunc09(unittest.TestCase):
         type1.elems = [set()] + [{childType1}, {childType2}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -1044,7 +1105,7 @@ class TestFunc09(unittest.TestCase):
         type1.elems = [set()] + [{childType1}, {childType2}, {childType1}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -1064,7 +1125,7 @@ class TestFunc10(unittest.TestCase):
         type1.elems[LiteralValueSema('bar')] = {LiteralSema(float)}
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -1080,7 +1141,7 @@ class TestFunc10(unittest.TestCase):
         type1.elems[LiteralValueSema('papa')] = {LiteralSema(int)}
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -1098,8 +1159,8 @@ class TestFunc11(unittest.TestCase):
         type1 = LiteralSema(int)
         type2 = LiteralSema(types.NoneType)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -1113,8 +1174,8 @@ class TestFunc11(unittest.TestCase):
         type1 = LiteralSema(int)
         type2 = LiteralSema(types.NoneType)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -1133,7 +1194,7 @@ class TestFunc21(unittest.TestCase):
         type1.elems = [set()] + [{LiteralSema(int)}, {LiteralSema(float)}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -1148,7 +1209,7 @@ class TestFunc21(unittest.TestCase):
         type1.elems = [set()] + [{LiteralSema(float)}, {LiteralSema(int)}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -1166,8 +1227,8 @@ class TestFunc13(unittest.TestCase):
         type1 = LiteralSema(int)
         type2 = LiteralSema(types.NoneType)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -1181,8 +1242,8 @@ class TestFunc13(unittest.TestCase):
         type1 = LiteralSema(int)
         type2 = LiteralSema(types.NoneType)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -1199,7 +1260,7 @@ class TestFunc14(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -1216,7 +1277,7 @@ class TestFunc15(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'a', 'name is not "a"')
 
@@ -1235,7 +1296,7 @@ class TestFunc16(unittest.TestCase):
         type1.elems = [{LiteralSema(long)}, {LiteralSema(str)}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -1250,7 +1311,7 @@ class TestFunc16(unittest.TestCase):
         type1.elems = [{LiteralSema(complex)}, {LiteralSema(unicode)}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
 
@@ -1268,8 +1329,8 @@ class TestFunc18(unittest.TestCase):
         type1 = LiteralValueSema('abc')
         type2 = LiteralSema(types.NoneType)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -1288,7 +1349,7 @@ class TestFunc20(unittest.TestCase):
         type1.elems = [set()] + [{LiteralSema(float)}, {LiteralSema(int)}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -1314,8 +1375,8 @@ class TestFunc23(unittest.TestCase):
         type2.elems = [set()] + [{childType4}, {childType1, childType2}]
         type2.freeze()
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
 
@@ -1334,9 +1395,9 @@ class TestGlobal01(unittest.TestCase):
         type2 = LiteralSema(int)
         type3 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 3 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]) and
-                        any([type3 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType) and
+                        any(type3 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'res', 'name is not "res"')
 
@@ -1353,7 +1414,7 @@ class TestGlobal02(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(types.NoneType)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'res', 'name is not "res"')
 
@@ -1371,8 +1432,8 @@ class TestGlobal03(unittest.TestCase):
         type1 = LiteralSema(int)
         type2 = LiteralValueSema(True)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'res1', 'name is not "res1"')
 
@@ -1385,7 +1446,7 @@ class TestGlobal03(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'res2', 'name is not "res2"')
 
@@ -1404,9 +1465,9 @@ class TestGlobal04(unittest.TestCase):
         type2 = LiteralSema(int)
         type3 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 3 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]) and
-                        any([type3 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType) and
+                        any(type3 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'res', 'name is not "res"')
 
@@ -1423,7 +1484,7 @@ class TestObject01(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
 
     def test_b_x(self):
@@ -1435,7 +1496,7 @@ class TestObject01(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
 
     def test_B_y(self):
@@ -1447,7 +1508,7 @@ class TestObject01(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
 
     def test_b_y(self):
@@ -1460,8 +1521,8 @@ class TestObject01(unittest.TestCase):
         type1 = LiteralSema(long)
         type2 = LiteralSema(str)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
 
     def test_b_t(self):
@@ -1474,8 +1535,8 @@ class TestObject01(unittest.TestCase):
         type1 = LiteralSema(long)
         type2 = LiteralSema(str)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
 
     def test_c(self):
@@ -1487,7 +1548,7 @@ class TestObject01(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(complex)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'c', 'name is not "c"')
 
@@ -1505,8 +1566,8 @@ class TestObject02(unittest.TestCase):
         type1 = LiteralSema(int)
         type2 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'b', 'name is not "b"')
 
@@ -1523,7 +1584,7 @@ class TestObject03(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -1536,7 +1597,7 @@ class TestObject03(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -1555,9 +1616,9 @@ class TestObject04(unittest.TestCase):
         type2 = LiteralSema(int)
         type3 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 3 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]) and
-                        any([type3 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType) and
+                        any(type3 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'd1', 'name is not "d1"')
 
@@ -1572,9 +1633,9 @@ class TestObject04(unittest.TestCase):
         type2 = LiteralSema(int)
         type3 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 3 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]) and
-                        any([type3 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType) and
+                        any(type3 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'd2', 'name is not "d2"')
 
@@ -1588,8 +1649,8 @@ class TestObject04(unittest.TestCase):
         type1 = LiteralSema(types.NoneType)
         type2 = LiteralSema(str)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'd3', 'name is not "d3"')
 
@@ -1608,9 +1669,9 @@ class TestObject05(unittest.TestCase):
         type2 = LiteralSema(int)
         type3 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 3 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]) and
-                        any([type3 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType) and
+                        any(type3 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -1628,8 +1689,8 @@ class TestObject06(unittest.TestCase):
         type1 = LiteralSema(types.NoneType)
         type2 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -1643,8 +1704,8 @@ class TestObject06(unittest.TestCase):
         type1 = LiteralSema(types.NoneType)
         type2 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -1662,8 +1723,8 @@ class TestObject07(unittest.TestCase):
         type1 = LiteralSema(types.NoneType)
         type2 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -1677,8 +1738,8 @@ class TestObject07(unittest.TestCase):
         type1 = LiteralSema(types.NoneType)
         type2 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -1691,7 +1752,7 @@ class TestObject07(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(types.NoneType)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
 
@@ -1709,8 +1770,8 @@ class TestObject08(unittest.TestCase):
         type1 = LiteralSema(types.NoneType)
         type2 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -1728,8 +1789,8 @@ class TestObject09(unittest.TestCase):
         type1 = LiteralSema(types.NoneType)
         type2 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 2 and
-                        any([type1 == elem for elem in nodeType]) and
-                        any([type2 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -1746,7 +1807,7 @@ class TestObject11(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -1759,7 +1820,7 @@ class TestObject11(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
@@ -1772,7 +1833,7 @@ class TestObject11(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralValueSema(True)
         self.assertTrue(len(nodeType) == 1 and
-                        any([type1 == elem for elem in nodeType]),
+                        any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
 

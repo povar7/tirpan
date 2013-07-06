@@ -28,21 +28,6 @@ def initBuiltinClass(scope, name, methods, fields):
     for method in methods:
         initBuiltinFunction(classScope, *method)
 
-def importStandardModule(module, importer, name = None):
-    name = name or module.name
-    command = 'from std.%s_ import getAll' % name
-    exec command
-    functions, variables, modules, classes = getAll()
-    scope = module.getScope()
-    for func in functions:
-        initBuiltinFunction(scope, *func)
-    for var in variables:
-        initBuiltinVariable(scope, *var)
-    for mod in modules:
-        importer.addModule(scope, *mod)
-    for cls in classes:
-        initBuiltinClass(scope, *cls)
-
 class QuasiModule(object):
 
     def __init__(self, name, scope):
@@ -55,7 +40,7 @@ class QuasiModule(object):
 
 def initBuiltins(importer, globalScope): 
     builtinModule = QuasiModule('builtin', globalScope)
-    importStandardModule(builtinModule, importer)
+    importer.importStandardModule(builtinModule, globalScope)
     builtinModule.isLoaded = True
 
 def getListClass():
