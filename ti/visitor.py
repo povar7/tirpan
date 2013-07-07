@@ -122,7 +122,7 @@ class Visitor(ast.NodeVisitor):
         if not node.link.isInherited():
            config.data.currentScope = config.data.currentScope.getParent()
 
-    def visit_arguments(self, node, link):
+    def visit_arguments(self, node, link, oldScope):
         nonDefs = len(node.args) - len(node.defaults)
         index = 0
         for param in node.args:
@@ -130,7 +130,13 @@ class Visitor(ast.NodeVisitor):
             defPos = index - nonDefs
             defVal = node.defaults[defPos] if defPos >= 0 else None
             if defVal:
+                saveScope = config.data.currentScope
+                saveLeft  = self.leftPart
+                config.data.currentScope = oldScope
+                self.leftPart = False
                 self.visit(defVal)
+                self.leftPart = saveLeft
+                config.data.currentScope = saveScope
                 link.defaults[param.link.name] = defVal.link
             index += 1
             param.link.setNumber(index)
@@ -142,7 +148,7 @@ class Visitor(ast.NodeVisitor):
         var  = save.findOrAddName(name)
         node.link = link
         config.data.currentScope = link.getParams()
-        self.visit_arguments(node.args, link)
+        self.visit_arguments(node.args, link, save)
         config.data.currentScope = save
         link.addEdge(EdgeType.ASSIGN, var)
 
@@ -220,7 +226,7 @@ class Visitor(ast.NodeVisitor):
         link = ti.tgnode.UsualFunctionDefinitionTGNode(node, None, save)
         node.link = link
         config.data.currentScope = link.getParams()   
-        self.visit_arguments(node.args, link)
+        self.visit_arguments(node.args, link, save)
         config.data.currentScope = save
 
     def visit_Attribute(self, node):
