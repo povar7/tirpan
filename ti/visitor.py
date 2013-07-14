@@ -24,7 +24,7 @@ class Visitor(ast.NodeVisitor):
         node.link = ti.tgnode.ConstTGNode(node, self.getValue)
     
     def visit_Str(self, node):
-        node.link = ti.tgnode.ConstTGNode(node, self.getValue)
+        node.link = ti.tgnode.ConstTGNode(node, True)
         
     def visit_Name(self, node):
         if node.id == 'None':

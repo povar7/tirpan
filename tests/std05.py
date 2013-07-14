@@ -1,5 +1,5 @@
 x = 3.14
-x = 'str'
+x = 'abc'
 t = (1, x)
 a, b = t
 c = t[0]

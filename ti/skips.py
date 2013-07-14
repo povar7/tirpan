@@ -32,8 +32,29 @@ def checkSkipNotMain(condition):
         return False
     return utils.getFileNumber(condition) != 0
 
+def checkSkipSysFrozen(condition):
+    if not isinstance(condition, ast.Call):
+        return False
+    func = condition.func
+    if (not isinstance(condition.func, ast.Name) or
+        func.id != 'hasattr'):
+        return False
+    args = condition.args
+    if len(args) != 2:
+        return False
+    obj = args[0]
+    if (not isinstance(obj, ast.Name) or
+        obj.id != 'sys'):
+        return False
+    attr = args[1]
+    if (not isinstance(attr, ast.Str) or
+        attr.s != 'frozen'):
+        return False 
+    return True
+
 skipIfTemplates   = [
                         checkSkipNotMain,
+                        checkSkipSysFrozen,
                     ]
 
 def checkSkipNotPosix(condition):

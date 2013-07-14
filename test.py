@@ -18,6 +18,8 @@ import utils
 from ti.sema   import *
 from ti.tgnode import AttributeTGNode, VariableTGNode
 
+import tests.const
+
 class TestAssign01(unittest.TestCase):
     
     ast = tirpan.run('tests/assign01.py')
@@ -32,7 +34,7 @@ class TestAssign01(unittest.TestCase):
         type1 = ListSema()
         type1.elems = [set()] + [{LiteralSema(int)}]
         type1.freeze()
-        type2 = LiteralSema(unicode)
+        type2 = LiteralValueSema(u'abc')
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
                         any(type2 == elem for elem in nodeType),
@@ -49,9 +51,10 @@ class TestAssign01(unittest.TestCase):
         childType1 = ListSema()
         childType1.elems = [set()] + [{LiteralSema(int)}]
         childType1.freeze()
-        childType2 = LiteralSema(unicode)
+        childType2 = LiteralValueSema(u'abc')
         type1 = ListSema()
-        type1.elems = [set()] + [{LiteralSema(str)}, {childType1, childType2}]
+        type1.elems  = [set()]
+        type1.elems += [{LiteralValueSema('abc')}, {childType1, childType2}]
         type1.freeze()
         type2 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 2 and
@@ -70,9 +73,10 @@ class TestAssign01(unittest.TestCase):
         childType1 = ListSema()
         childType1.elems = [set()] + [{LiteralSema(int)}]
         childType1.freeze()
-        childType2 = LiteralSema(unicode)
+        childType2 = LiteralValueSema(u'abc')
         type1 = TupleSema()
-        type1.elems = [set()] + [{LiteralSema(str)}, {childType1, childType2}]
+        type1.elems  = [set()]
+        type1.elems += [{LiteralValueSema('abc')}, {childType1, childType2}]
         type1.freeze()
         type2 = LiteralSema(complex)
         self.assertTrue(len(nodeType) == 2 and
@@ -94,7 +98,7 @@ class TestAssign02(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(int)
         type2 = LiteralSema(float)
-        type3 = LiteralSema(str)
+        type3 = LiteralValueSema('abc')
         self.assertTrue(len(nodeType) == 3 and
                         any(type1 == elem for elem in nodeType) and
                         any(type2 == elem for elem in nodeType) and
@@ -280,8 +284,10 @@ class TestBuiltin03(unittest.TestCase):
         self.assertTrue(len(nodeType) == 1,
                         'wrong types calculated')
         type1 = list(nodeType)[0]
-        self.assertTrue(isinstance(type1, FunctionSema) and
-                        isinstance(type1.parent, ListSema),
+        isFunction = lambda(x) : (isinstance(x, FunctionSema) and
+                                  isinstance(x.parent, ListSema))
+        self.assertTrue(len(nodeType) == 1 and
+                        any(isFunction(elem) for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'foo', 'name is not "foo"')
 
@@ -313,10 +319,25 @@ class TestBuiltin07(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        name = os.path.__file__
-        if name.endswith('c'):
-            name = name[:-1]
-        type1 = LiteralValueSema(name)
+        isModule = lambda(x) : (isinstance(x, ModuleSema) and
+                                x.origin.name == 'posixpath')
+        self.assertTrue(len(nodeType) == 1 and
+                        any(isModule(elem) for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
+class TestBuiltin08(unittest.TestCase):
+    
+    ast = tirpan.run('tests/builtin08.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=4, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralValueSema(tests.const.PLUGINS_DIR)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -335,7 +356,7 @@ class TestImport01_1(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = ListSema()
         type1.elems  = [set()] + [{LiteralSema(int)}]
-        type1.elems += [{LiteralSema(str)}, {LiteralSema(float)}]
+        type1.elems += [{LiteralValueSema('abc')}, {LiteralSema(float)}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
@@ -353,7 +374,7 @@ class TestImport01_1(unittest.TestCase):
         childType.elems  = [set()] + [{LiteralSema(int)}]
         type1 = ListSema()
         type1.elems  = [set()] + [{childType}]
-        type1.elems += [{LiteralSema(str)}, {LiteralSema(float)}]
+        type1.elems += [{LiteralValueSema('abc')}, {LiteralSema(float)}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
@@ -603,8 +624,9 @@ class TestStd01(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = ListSema()
-        type1.elems = [set()] + [{LiteralSema(int)}, {LiteralSema(float)},
-                                 {LiteralSema(str)}, {LiteralSema(unicode)}]
+        type1.elems  = [set()]
+        type1.elems += [{LiteralSema(int)}, {LiteralSema(float)}]
+        type1.elems += [{LiteralValueSema('abc')}, {LiteralValueSema(u'abc')}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
@@ -619,8 +641,9 @@ class TestStd01(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = TupleSema()
-        type1.elems = [set()] + [{LiteralSema(int)}, {LiteralSema(float)},
-                                 {LiteralSema(str)}, {LiteralSema(unicode)}]
+        type1.elems  = [set()]
+        type1.elems += [{LiteralSema(int)}, {LiteralSema(float)}]
+        type1.elems += [{LiteralValueSema('abc')}, {LiteralValueSema(u'abc')}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
@@ -636,7 +659,7 @@ class TestStd01(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         type1 = DictSema()
         type1.elems[LiteralValueSema(1    )] = {LiteralSema(float)}
-        type1.elems[LiteralValueSema('abc')] = {LiteralSema(unicode)}
+        type1.elems[LiteralValueSema('abc')] = {LiteralValueSema(u'abc')}
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
@@ -798,7 +821,7 @@ class TestStd05(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(float)
-        type2 = LiteralSema(str)
+        type2 = LiteralValueSema('abc')
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
                         any(type2 == elem for elem in nodeType),
@@ -826,7 +849,7 @@ class TestStd05(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(float)
-        type2 = LiteralSema(str)
+        type2 = LiteralValueSema('abc')
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
                         any(type2 == elem for elem in nodeType),
@@ -859,8 +882,8 @@ class TestStd06(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(str)
-        type2 = LiteralSema(unicode)
+        type1 = LiteralValueSema('abc')
+        type2 = LiteralValueSema(u'abc')
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
                         any(type2 == elem for elem in nodeType),
@@ -903,12 +926,12 @@ class TestFunc02(unittest.TestCase):
         childType.elems = [set()] + [{LiteralSema(int)}]
         childType.freeze()
         type1 = ListSema()
-        type1.elems = [set()] + [{LiteralSema(str)}, {childType}]
+        type1.elems = [set()] + [{LiteralValueSema('abc')}, {childType}]
         type1.freeze()
         type2 = LiteralSema(float)
         type3 = LiteralSema(int)
         type4 = childType
-        type5 = LiteralSema(unicode)
+        type5 = LiteralValueSema(u'abc')
         self.assertTrue(len(nodeType) == 5 and
                         any(type1 == elem for elem in nodeType) and
                         any(type2 == elem for elem in nodeType) and
@@ -933,12 +956,12 @@ class TestFunc03(unittest.TestCase):
         childType.elems = [set()] + [{LiteralSema(int)}]
         childType.freeze()
         type1 = ListSema()
-        type1.elems = [set()] + [{LiteralSema(str)}, {childType}]
+        type1.elems = [set()] + [{LiteralValueSema('abc')}, {childType}]
         type1.freeze()
         type2 = LiteralSema(float)
         type3 = LiteralSema(int)
         type4 = childType
-        type5 = LiteralSema(unicode)
+        type5 = LiteralValueSema(u'abc')
         type6 = ListSema()
         type6.elems = [set()] + [{type1}, {type4}]
         type6.freeze()
@@ -1006,12 +1029,12 @@ class TestFunc05(unittest.TestCase):
         childType.elems = [set()] + [{LiteralSema(int)}]
         childType.freeze()
         type1 = ListSema()
-        type1.elems = [set()] + [{LiteralSema(str)}, {childType}]
+        type1.elems = [set()] + [{LiteralValueSema('abc')}, {childType}]
         type1.freeze()
         type2 = LiteralSema(float)
         type3 = LiteralSema(int)
         type4 = childType
-        type5 = LiteralSema(unicode)
+        type5 = LiteralValueSema(u'abc')
         type6 = ListSema()
         type6.elems = [set()] + [{type1}, {type4}]
         type6.freeze()
@@ -1135,7 +1158,7 @@ class TestFunc09(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         childType1 = LiteralSema(float)
-        childType2 = LiteralSema(str)
+        childType2 = LiteralValueSema('abc')
         type1 = TupleSema()
         type1.elems = [set()] + [{childType1}, {childType2}]
         type1.freeze()
@@ -1152,7 +1175,7 @@ class TestFunc09(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         childType1 = LiteralSema(float)
-        childType2 = LiteralSema(str)
+        childType2 = LiteralValueSema('abc')
         type1 = TupleSema()
         type1.elems = [set()] + [{childType1}, {childType2}, {childType1}]
         type1.freeze()
@@ -1345,7 +1368,7 @@ class TestFunc16(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = ListSema()
-        type1.elems = [{LiteralSema(long)}, {LiteralSema(str)}]
+        type1.elems = [{LiteralSema(long)}, {LiteralValueSema('abc')}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
@@ -1360,7 +1383,7 @@ class TestFunc16(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = ListSema()
-        type1.elems = [{LiteralSema(complex)}, {LiteralSema(unicode)}]
+        type1.elems = [{LiteralSema(complex)}, {LiteralValueSema(u'abc')}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
@@ -1418,8 +1441,8 @@ class TestFunc23(unittest.TestCase):
         nodeType = freezeSet(node.link.nodeType)
         childType1 = LiteralSema(int)
         childType2 = LiteralSema(float)
-        childType3 = LiteralSema(str)
-        childType4 = LiteralSema(unicode)
+        childType3 = LiteralValueSema('abc')
+        childType4 = LiteralValueSema(u'abc')
         type1 = TupleSema()
         type1.elems = [set()] + [{childType3}, {childType1, childType2}]
         type1.freeze()
@@ -1571,7 +1594,7 @@ class TestObject01(unittest.TestCase):
                         'type is not an attribute')
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(long)
-        type2 = LiteralSema(str)
+        type2 = LiteralValueSema('abc')
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
                         any(type2 == elem for elem in nodeType),
@@ -1585,7 +1608,7 @@ class TestObject01(unittest.TestCase):
                         'type is not an attribute')
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(long)
-        type2 = LiteralSema(str)
+        type2 = LiteralValueSema('abc')
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
                         any(type2 == elem for elem in nodeType),
@@ -1699,7 +1722,7 @@ class TestObject04(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(types.NoneType)
-        type2 = LiteralSema(str)
+        type2 = LiteralValueSema('abc')
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
                         any(type2 == elem for elem in nodeType),

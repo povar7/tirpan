@@ -9,11 +9,15 @@ import sys
 from ti.sema import *
 
 typeInt = LiteralSema(int)
+typeStr = LiteralSema(str)
 
-def quasiGetsizeof1(scope):
+def quasiGetfilesystemencoding(params, **kwargs):
+    return {typeStr}
+
+def quasiGetsizeof1(params, **kwargs):
     return {typeInt}
 
-def quasiGetsizeof2(scope):
+def quasiGetsizeof2(params, **kwargs):
     return {typeInt}
 
 def quasiArgv():
@@ -45,8 +49,9 @@ def quasiBuiltinModuleNames():
     return {res}
 
 functions = [
-                ['getsizeof', quasiGetsizeof1, 1],
-                ['getsizeof', quasiGetsizeof2, 2],
+                ['getfilesystemencoding', quasiGetfilesystemencoding, 0],
+                ['getsizeof'            , quasiGetsizeof1,            1],
+                ['getsizeof'            , quasiGetsizeof2,            2],
             ]
 
 variables = [
