@@ -87,8 +87,6 @@ operatorNames = {
                     ast.UAdd     : '+' ,
                     ast.USub     : '-' ,
                     ast.Invert   : '~' ,
-                    ast.And      : '&&',
-                    ast.Or       : '||',
                     ast.Not      : '!' ,
                 }
 

@@ -306,6 +306,33 @@ def quasiPow(params, **kwargs):
 
     return quasiDiv(params, **kwargs)
 
+def quasiUplus(params, **kwargs):
+    oper = params[0]
+    if (not isinstance(oper, LiteralSema) or
+        oper.ltype in (str, unicode)):
+        return set()
+    if oper.ltype == bool:
+        oper = typeInt
+    return {oper}
+
+def quasiUminus(params, **kwargs):
+    oper = params[0]
+    if oper.ltype == int:
+        return {typeInt, typeLong}
+    return quasiUplus(params, **kwargs)
+
+def quasiInvert(params, **kwargs):
+    oper = params[0]
+    if (not isinstance(oper, LiteralSema) or
+        oper.ltype not in (bool, int, long)):
+        return set()
+    if oper.ltype == long:
+        return {typeLong}
+    return {typeInt}
+
+def quasiNot(params, **kwargs):
+    return {typeBool}
+
 functions = [
                 ['+'         , quasiAdd     , 2                     ],
                 ['-'         , quasiSub     , 2                     ],
@@ -318,6 +345,11 @@ functions = [
                 ['>>'        , quasiRShift  , 2                     ],
                 ['%'         , quasiMod     , 2                     ],
                 ['**'        , quasiPow     , 2                     ],
+
+                ['+'         , quasiUplus   , 1                     ],
+                ['-'         , quasiUminus  , 1                     ],
+                ['~'         , quasiInvert  , 1                     ],
+                ['!'         , quasiNot     , 1                     ],
 
                 ['execfile'  , quasiExecfile, 3, {'2' : {typeNone},
                                                   '3' : {typeNone} }],

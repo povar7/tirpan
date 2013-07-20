@@ -203,8 +203,9 @@ class Visitor(ast.NodeVisitor):
         node.link = ti.tgnode.FunctionCallTGNode(node)
 
     def visit_UnaryOp(self, node):
-        self.generic_visit(node)
-        node.link = ti.tgnode.UnknownTGNode(node)
+        self.visit(node.operand)
+        self.visit_Op(node.op)
+        node.link = ti.tgnode.FunctionCallTGNode(node)
         
     def visit_BoolOp(self, node):
         self.generic_visit(node)
