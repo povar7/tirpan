@@ -547,6 +547,9 @@ class FunctionCallTGNode(TGNode):
         elif isinstance(node, ast.UnaryOp):
             func = node.op.link
             args = [node.operand]
+        elif isinstance(node, ast.AugAssign):
+            func = node.op.link
+            args = [node.value]
 
         func.addEdge(EdgeType.FUNC, self)
         self.addEdge(EdgeType.REV_FUNC, func)

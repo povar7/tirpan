@@ -66,7 +66,15 @@ class Visitor(ast.NodeVisitor):
         node.link = node.value.link
 
     def visit_AugAssign(self, node):
-        self.generic_visit(node)
+        self.visit(node.value)
+        target = node.target
+        save   = self.leftPart
+        self.leftPart = True
+        self.visit(target)
+        self.leftPart = save
+        self.visit_Op(node.op)
+        node.link = ti.tgnode.FunctionCallTGNode(node)
+        node.link.addEdge(EdgeType.ASSIGN, target.link)
 
     def visit_List(self, node):
         self.generic_visit(node)
@@ -193,7 +201,7 @@ class Visitor(ast.NodeVisitor):
 
     def visit_Op(self, node):
         name = getOperatorName(node)
-        var  = config.data.currentScope.findOrAddName(name)
+        var  = config.data.currentScope.findName(name)
         node.link = var
 
     def visit_BinOp(self, node):
