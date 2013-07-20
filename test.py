@@ -291,6 +291,89 @@ class TestBuiltin03(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'foo', 'name is not "foo"')
 
+class TestBuiltin04(unittest.TestCase):
+    
+    ast = tirpan.run('tests/builtin04.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=3, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = ListSema()
+        type1.elems = [set()]
+        for elem in os.listdir('tests/import03'):
+            type1.elems.append({LiteralValueSema(elem)})
+        type1.freeze()
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
+class TestBuiltin05(unittest.TestCase):
+    
+    ast = tirpan.run('tests/builtin05.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=4, col=11, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        types = set()
+        for x, y, z in os.walk(tests.const.DIR_FOR_BUILTIN05):
+            types.add(LiteralValueSema(x))
+        self.assertTrue(len(nodeType) == len(types) and
+                        all(any(atype == elem for elem in nodeType)
+                            for atype in types),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
+    def test_y(self):
+        node = utils.findNode(self.ast, line=4, col=14, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        types = set()
+        for x, y, z in os.walk(tests.const.DIR_FOR_BUILTIN05):
+            childType = ListSema()
+            childType.elems = [set()]
+            for elem in y:
+                childType.elems.append({LiteralValueSema(elem)})
+            childType.freeze()
+            types.add(childType)
+        self.assertTrue(len(nodeType) == len(types) and
+                        all(any(atype == elem for elem in nodeType)
+                            for atype in types),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'y', 'name is not "y"')
+
+    def test_z(self):
+        node = utils.findNode(self.ast, line=4, col=17, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        types = set()
+        for x, y, z in os.walk(tests.const.DIR_FOR_BUILTIN05):
+            childType = ListSema()
+            childType.elems = [set()]
+            for elem in z:
+                childType.elems.append({LiteralValueSema(elem)})
+            childType.freeze()
+            types.add(childType)
+        self.assertTrue(len(nodeType) == len(types) and
+                        all(any(atype == elem for elem in nodeType)
+                            for atype in types),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'z', 'name is not "z"')
+
 class TestBuiltin06(unittest.TestCase):
     
     ast = tirpan.run('tests/builtin06.py')
