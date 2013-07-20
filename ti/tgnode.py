@@ -541,28 +541,31 @@ class FunctionCallTGNode(TGNode):
         if isinstance(node, ast.Call):
             func = node.func.link
             args = node.args
-        else:
-            func = None
+        elif isinstance(node, ast.BinOp):
+            func = node.op.link
+            args = [node.left, node.right]
+
         func.addEdge(EdgeType.FUNC, self)
         self.addEdge(EdgeType.REV_FUNC, func)
 
         index = 0
-        for arg in node.args:
+        for arg in args:
             link = arg.link
             link.addEdge(EdgeType.ARGUMENT, self)
             self.addEdge(EdgeType.REV_ARGUMENT, link, index)
             index += 1
         self.argsNum = index
 
-        for pair in node.keywords:
-            link = pair.value.link
-            link.addEdge(EdgeType.KWARGUMENT, self)
-            self.addEdge(EdgeType.REV_KWARGUMENT, link, pair.arg)
+        if isinstance(node, ast.Call):
+            for pair in node.keywords:
+                link = pair.value.link
+                link.addEdge(EdgeType.KWARGUMENT, self)
+                self.addEdge(EdgeType.REV_KWARGUMENT, link, pair.arg)
 
-        if node.starargs:
-            link = node.starargs.link
-            link.addEdge(EdgeType.LISTARGUMENT, self)
-            self.addEdge(EdgeType.REV_LISTARGUMENT, link)
+            if node.starargs:
+                link = node.starargs.link
+                link.addEdge(EdgeType.LISTARGUMENT, self)
+                self.addEdge(EdgeType.REV_LISTARGUMENT, link)
 
         self._isLocked = False
 

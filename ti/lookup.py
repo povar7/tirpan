@@ -4,6 +4,7 @@ Created on 15.06.2013
 @author: bronikkk
 '''
 
+import ast
 import copy
 
 from ti.builtin import getBaseStringClass, getListClass
@@ -69,4 +70,27 @@ def lookupVariable(obj, attr, setValue = False, createNew = False):
     elif isinstance(obj, ModuleSema):
         lookupScope = obj.getBody()
         var = lookupScope.findNameHere(attr)
-    return var 
+    return var
+
+operatorNames = {
+                    ast.Add      : '+' ,
+                    ast.BitAnd   : '&' ,
+                    ast.BitOr    : '|' ,
+                    ast.Div      : '/' ,
+                    ast.FloorDiv : '//',
+                    ast.LShift   : '<<',
+                    ast.Mult     : '*' ,
+                    ast.Mod      : '%' ,
+                    ast.RShift   : '>>',
+                    ast.Sub      : '-' ,
+                    ast.Pow      : '**',
+                    ast.UAdd     : '+' ,
+                    ast.USub     : '-' ,
+                    ast.Invert   : '~' ,
+                    ast.And      : '&&',
+                    ast.Or       : '||',
+                    ast.Not      : '!' ,
+                }
+
+def getOperatorName(node):
+    return operatorNames[node.__class__]

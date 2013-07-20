@@ -10,6 +10,7 @@ import config
 import ti.tgnode
 import ti.sema
 
+from ti.lookup import getOperatorName
 from ti.tgnode import EdgeType
 from ti.skips  import *
 
@@ -190,9 +191,16 @@ class Visitor(ast.NodeVisitor):
         for stmt in node.body:
             self.visit(stmt)
 
+    def visit_Op(self, node):
+        name = getOperatorName(node)
+        var  = config.data.currentScope.findOrAddName(name)
+        node.link = var
+
     def visit_BinOp(self, node):
-        self.generic_visit(node)
-        node.link = ti.tgnode.UnknownTGNode(node)
+        self.visit(node.left)
+        self.visit(node.right)
+        self.visit_Op(node.op)
+        node.link = ti.tgnode.FunctionCallTGNode(node)
 
     def visit_UnaryOp(self, node):
         self.generic_visit(node)
