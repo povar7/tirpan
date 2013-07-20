@@ -9,5 +9,5 @@ elif 'nt' in _names:
 elif 'os2' in _names:
     import os2emxpath as path
 
-x = path.__file__
+x = path
 print x

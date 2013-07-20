@@ -1,4 +1,4 @@
-c = 'Igor'
+c = 'abc'
 d = 3.14
 import __main__
 

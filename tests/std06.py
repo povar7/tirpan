@@ -1,5 +1,5 @@
 def foo():
-    for i in [(1, 'str'), (3.14, u'str')]:
+    for i in [(1, 'abc'), (3.14, u'abc')]:
         yield i
 
 for (a, b) in foo():

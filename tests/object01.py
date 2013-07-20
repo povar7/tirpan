@@ -9,7 +9,7 @@ class B(A):
         self.t = t
 
 a   = 3l
-a   = 'str'
+a   = 'abc'
 b   = B(a, a)
 print B.x
 print b.x

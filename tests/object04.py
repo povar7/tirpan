@@ -10,7 +10,7 @@ a2 = A()
 a3 = A()
 b  = 1
 b  = 3.14
-c  = 'str'
+c  = 'abc'
 foo(a1, b)
 foo(a2, b)
 foo(a3, c)
