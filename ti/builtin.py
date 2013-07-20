@@ -49,3 +49,10 @@ def getListClass():
     var = config.data.currentScope.findName(getListClassName())
     assert(len(var.nodeType) == 1)
     return list(var.nodeType)[0]
+
+def getBaseStringClass():
+    import config
+    from   std.builtin_ import getBaseStringClassName
+    var = config.data.currentScope.findName(getBaseStringClassName())
+    assert(len(var.nodeType) == 1)
+    return list(var.nodeType)[0]

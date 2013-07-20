@@ -6,21 +6,24 @@ Created on 15.06.2013
 
 import copy
 
-from ti.builtin import getListClass
+from ti.builtin import getBaseStringClass, getListClass
 from ti.sema    import *
 
 def replaceStandardCollections(obj):
     if isinstance(obj, ListSema):
         return getListClass()
+    elif (isinstance(obj, LiteralSema) and
+          obj.ltype in (str, unicode)):
+        return getBaseStringClass()
     else:
-        return obj
+        return None
 
 def lookupTypes(obj, attr):
     res = set()
     var = lookupVariable(obj, attr)
     if var is None:
         return set()
-    if isinstance(obj, (CollectionSema, InstanceSema)):
+    if isinstance(obj, (CollectionSema, LiteralSema, InstanceSema)):
         for elem in var.nodeType:
             if isinstance(elem, FunctionSema):
                 elemCopy = copy.copy(elem)
@@ -35,9 +38,10 @@ def lookupTypes(obj, attr):
 def lookupVariable(obj, attr, setValue = False, createNew = False):
     from ti.tgnode import VariableTGNode
     var = None
-    if isinstance(obj, CollectionSema):
-        if isinstance(obj, ListSema):
-            lookupScope = replaceStandardCollections(obj)
+    if (isinstance(obj, CollectionSema) or
+        isinstance(obj, LiteralSema)):
+        lookupScope = replaceStandardCollections(obj)
+        if lookupScope:
             var = lookupScope.findNameHere(attr)
     elif isinstance(obj, ClassSema):
         lookupScope = obj.getBody()

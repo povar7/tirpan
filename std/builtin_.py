@@ -4,6 +4,7 @@ Created on 05.06.2013
 @author: bronikkk
 '''
 
+import ast
 import types
 
 from ti.sema import *
@@ -19,21 +20,25 @@ def quasiAppend(params, **kwargs):
         params[0].addElementsAtIndex(None, {params[1]})
     return {typeNone}
 
+def quasiEncode(params, **kwargs):
+    res = params[0]
+    return {res}
+
 def quasiExecfile(params, **kwargs):
     filename = params[0].value
     if filename is not None:
         import config
-        from ti.parser import parser
+        from ti.parser import Parser
         from ti.tgnode import UsualModuleTGNode
         try:
-            parser = TIParser(filename)
+            parser = Parser(filename)
             tree   = parser.getAST()
         except IOError:
             return {typeNone}
         importer  = config.data.importer
         oldNumber = kwargs['FILE_NUMBER']
-        oldScope  = importer.getScope(oldNumber) 
-        module    = UsualModuleTypeGraphNode(tree, filename, None, oldScope)
+        oldScope  = importer.getFileScope(oldNumber) 
+        module    = UsualModuleTGNode(tree, filename, None, oldScope)
         newNumber = importer.putIdent(module)
         tree.link = module
         for node in ast.walk(tree):
@@ -63,7 +68,21 @@ def quasiUnicode(params, **kwargs):
         res = LiteralValueSema(unicode(params[0].value))
         return {res}
     except AttributeError:
-        return {typeUnicode} 
+        return {typeUnicode}
+
+baseStringClassName = str(basestring)
+
+def getBaseStringClassName():
+    return baseStringClassName
+
+baseStringClass = (
+                      baseStringClassName,
+                      [
+                          ['encode', quasiEncode, 2],
+                      ],
+                      [
+                      ]
+                  )
 
 listClassName = str(type([]))
 
@@ -101,6 +120,7 @@ modules   = [
             ]
 
 classes   = [
+                baseStringClass,
                 listClass,
             ]
 

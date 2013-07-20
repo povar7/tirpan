@@ -91,7 +91,9 @@ def matchCall(function, isInit, argumentNodes, KWArgumentNodes):
         parent   = function
 
     if (isinstance(parent, ti.sema.ClassSema) and isInit or
-        isinstance(parent, (ti.sema.CollectionSema, ti.sema.InstanceSema))):
+        isinstance(parent, (ti.sema.CollectionSema,
+                            ti.sema.LiteralSema, 
+                            ti.sema.InstanceSema))):
         paramIndex = 1
         firstParam = parent
     else:
@@ -212,14 +214,16 @@ def processProductElement(function, isInit, tgnode, productElement, kwKeys):
             if not origin.name:
                 astCopy[0].link.addEdge(ti.tgnode.EdgeType.ASSIGN, template)
         elif isinstance(origin, ti.tgnode.ExternalFunctionDefinitionTGNode):
-            unsorted = [var for var in params.variables.values() if var.number]
-            sortParams = ti.tgnode.FunctionDefinitionTGNode.sortParams
+            fileNumber   = tgnode.node.fileno
+            unsorted     = [var for var in params.variables.values()
+                            if var.number]
+            sortParams   = ti.tgnode.FunctionDefinitionTGNode.sortParams
             sortedParams = sorted(unsorted, sortParams)
             types = []
             for param in sortedParams:
                 assert(len(param.nodeType) == 1)
                 types.append(list(param.nodeType)[0])
-            template.nodeType = origin.quasi(types)
+            template.nodeType = origin.quasi(types, FILE_NUMBER=fileNumber)
             template.walkEdges()
 
 def processFunc(node, functionNode, argumentNodes, KWArgumentNodes,

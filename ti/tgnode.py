@@ -10,7 +10,7 @@ import types
 
 from ti.sema import *
 
-classes = (CollectionSema, ClassSema, InstanceSema, ModuleSema)
+classes = (CollectionSema, LiteralSema, ClassSema, InstanceSema, ModuleSema)
 
 class EdgeType(object):
 
@@ -534,6 +534,7 @@ class FunctionCallTGNode(TGNode):
 
     def __init__(self, node):
         super(FunctionCallTGNode, self).__init__()
+        self.node = node
 
         self._isLocked = True
 
