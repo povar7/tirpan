@@ -64,8 +64,8 @@ variables = [
 modules   = [
             ]
 
-objects   = [
+classes   = [
             ]
 
 def getAll():
-    return (functions, variables, modules, objects)
+    return (functions, variables, modules, classes)

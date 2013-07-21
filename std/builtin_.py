@@ -26,6 +26,11 @@ def quasiAppend(params, **kwargs):
         params[0].addElementsAtIndex(None, {params[1]})
     return {typeNone}
 
+def quasiInsert(params, **kwargs):
+    if isinstance(params[0], ListSema):
+        params[0].addElementsAtIndex(None, {params[2]})
+    return {typeNone}
+
 def quasiEncode(params, **kwargs):
     res = params[0]
     return {res}
@@ -105,6 +110,7 @@ listClass = (
                 listClassName,
                 [
                     ['append', quasiAppend, 2],
+                    ['insert', quasiInsert, 3],
                 ],
                 [
                 ]

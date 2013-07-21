@@ -9,6 +9,7 @@ Created on 01.06.2013
 import ast
 import datetime
 import os
+import re
 import sys
 import types
 import unittest
@@ -3713,6 +3714,43 @@ class TestBuiltin09(unittest.TestCase):
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'z', 'name is not "z"')
+
+class TestBuiltin10(unittest.TestCase):
+    
+    ast = tirpan.run('tests/builtin10.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=8, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        pymod = re.compile(r"^(.*)\.py$")
+        match = pymod.match(tests.const.WEBSTUFF_PYTHON_FN)
+        type1 = LiteralValueSema(match.groups()[0])
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
+    def test_y(self):
+        node = utils.findNode(self.ast, line=14, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = ListSema()
+        type1.elems  = [{LiteralValueSema(tests.const.WEBSTUFF_PYTHON_DR)}]
+        type1.elems += [{LiteralValueSema(os.path.abspath('tests'))}]
+        for elem in sys.path[1:]:
+            type1.elems.append({LiteralValueSema(elem)})
+        type1.freeze()
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
 class TestBuiltin13(unittest.TestCase):
     
