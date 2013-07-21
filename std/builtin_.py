@@ -388,6 +388,7 @@ variables = [
             ]
 
 modules   = [
+                ['logging'  ],
                 ['posixpath'],
                 ['os'       ],
                 ['re'       ],

@@ -103,7 +103,7 @@ class EdgeType(object):
         # Remove simple loops in type variables graph
         try:
             if (left, ()) in right.edges[EdgeType.ASSIGN]:
-                right.removeEdge(EdgeType.Assign, left)
+                right.removeEdge(EdgeType.ASSIGN, left)
         except KeyError:
             pass
 
