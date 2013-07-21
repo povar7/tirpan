@@ -6,6 +6,7 @@ Created on 05.06.2013
 
 import ast
 import copy
+import itertools
 import types
 
 from ti.sema import *
@@ -279,10 +280,23 @@ def quasiMod(params, **kwargs):
     left  = params[0]
     right = params[1]
 
-    if isinstance(left, LiteralSema) and left.ltype == str:
-        return {typeStr}
-    if isinstance(left, LiteralSema) and left.ltype == unicode:
-        return {typeUnicode}
+    if isinstance(left, LiteralSema) and left.ltype in (str, unicode):
+        res = set()
+        if isinstance(right, TupleSema):
+            elems = right.elems[1:]
+        else:
+            elems = [{right}]
+        for atom in itertools.product(*elems):
+            try:
+                tmp  = tuple([elem.value for elem in atom])
+                part = left.value % tmp
+                res.add(LiteralValueSema(part))
+            except:
+                if left.ltype == str:
+                    res.add(typeStr)
+                elif left.ltype == unicode:
+                    res.add(typeUnicode)
+        return res
 
     return quasiDiv(params, **kwargs)
 
