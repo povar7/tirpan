@@ -388,6 +388,7 @@ variables = [
             ]
 
 modules   = [
+                ['glib'     ],
                 ['logging'  ],
                 ['posixpath'],
                 ['os'       ],

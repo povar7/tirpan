@@ -29,6 +29,9 @@ class Sema(object):
     def getElementsAtIndex(self, index):
         return set()
 
+    def getNumberOfElements(self):
+        return 0
+
 class LiteralSema(Sema):
 
     def __init__(self, ltype):
@@ -79,6 +82,9 @@ class ListOrTupleSema(CollectionSema):
             return self.elems[index + 1]
         except:
             return self.getElements()
+
+    def getNumberOfElements(self):
+        return max(0, len(self.elems) - 1)
 
     def addElements(self, values):
         for elem in self.elems:

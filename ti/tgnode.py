@@ -517,18 +517,29 @@ class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
 class ExternalFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
-    def __init__(self, num, quasi, name, scope, defaults):
+    def __init__(self, num, quasi, name, scope, defaults, listArgs, dictArgs):
         super(ExternalFunctionDefinitionTGNode, self).__init__(name,
                                                                scope,
                                                                defaults)
 
         self.quasi = quasi
 
+        number = 0
         for index in range(num):
             number = index + 1
             param = VariableTGNode(str(number))
             param.setNumber(number)
             self.params.addVariable(param)
+
+        if listArgs:
+            number += 1
+            self.listParam = VariableTGNode('args')
+            self.listParam.setNumber(number)
+
+        if dictArgs:
+            number += 1
+            self.dictParam = VariableTGNode('kwargs')
+            self.dictParam.setNumber(number)
 
 class FunctionCallTGNode(TGNode):
 
@@ -538,10 +549,7 @@ class FunctionCallTGNode(TGNode):
 
         self._isLocked = True
 
-        if isinstance(node, ast.Call):
-            func = node.func.link
-            args = node.args
-        elif isinstance(node, ast.BinOp):
+        if isinstance(node, ast.BinOp):
             func = var
             args = [node.left, node.right]
         elif isinstance(node, ast.UnaryOp):
@@ -550,6 +558,9 @@ class FunctionCallTGNode(TGNode):
         elif isinstance(node, ast.AugAssign):
             func = var
             args = [node.value]
+        else:
+            func = node.func.link
+            args = node.args
 
         func.addEdge(EdgeType.FUNC, self)
         self.addEdge(EdgeType.REV_FUNC, func)

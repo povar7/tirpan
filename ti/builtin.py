@@ -4,9 +4,11 @@ Created on 15.06.2013
 @author: bronikkk
 '''
 
-def initBuiltinFunction(scope, name, quasi, num, defaults = None):
+def initBuiltinFunction(scope, name, quasi, num,
+                        defaults = None, listArgs = False, dictArgs = False):
     from ti.tgnode import ExternalFunctionDefinitionTGNode, EdgeType
-    func = ExternalFunctionDefinitionTGNode(num, quasi, name, scope, defaults)
+    func = ExternalFunctionDefinitionTGNode(num, quasi, name, scope,
+                                            defaults, listArgs, dictArgs)
     var  = scope.findOrAddName(name)
     func.addEdge(EdgeType.ASSIGN, var)
     scope.addVariable(var)
