@@ -216,8 +216,11 @@ class Visitor(ast.NodeVisitor):
         node.link = ti.tgnode.FunctionCallTGNode(node)
         
     def visit_BoolOp(self, node):
-        self.generic_visit(node)
-        node.link = ti.tgnode.UnknownTGNode(node)
+        link = ti.tgnode.BooleanOperationTGNode(node.op)
+        for value in node.values:
+            self.visit(value)
+            value.link.addEdge(EdgeType.ASSIGN, link)
+        node.link = link
 
     def visit_Compare(self, node):
         self.generic_visit(node)

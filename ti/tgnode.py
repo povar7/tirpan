@@ -748,6 +748,15 @@ class ExternalModuleTGNode(ModuleTGNode):
     def __init__(self, name, parentScope):
         super(ExternalModuleTGNode, self).__init__(name, parentScope, None)
 
+class BooleanOperationTGNode(TGNode):
+
+    def __init__(self, op):
+        super(BooleanOperationTGNode, self).__init__()
+        self.isAnd = isinstance(op, ast.And)
+
+    def process(self):
+        pass
+
 class UnknownTGNode(TGNode):
 
     def __init__(self, node):
