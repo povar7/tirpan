@@ -56,12 +56,18 @@ def quasiRange1(params, **kwargs):
     return quasiRange3(params + [typeInt, typeInt])
 
 def quasiRange3(params, **kwargs):
-    if params[0] == typeInt and params[1] == typeInt and params[2] == typeInt:
-        listType = ListSema(0)
-        listType.addElementsAtIndex(None, {typeInt})
-        return {listType}
-    else:
+    if (not isinstance(params[0], LiteralSema) or
+        params[0].ltype not in (int, long)):
         return set()
+    if (not isinstance(params[1], LiteralSema) or
+        params[1].ltype not in (int, long)):
+        return set()
+    listType = ListSema(0)
+    if params[0].ltype == long or params[1].ltype == long:
+        listType.addElementsAtIndex(None, {typeInt, typeLong})
+    else:
+        listType.addElementsAtIndex(None, {typeInt})
+    return {listType}
 
 def quasiType(params, **kwargs):
     return {typeType}
@@ -384,6 +390,7 @@ variables = [
 modules   = [
                 ['posixpath'],
                 ['os'       ],
+                ['re'       ],
                 ['sys'      ],
             ]
 

@@ -13,6 +13,11 @@ import ti.sema
 import ti.tgnode
 import ti.visitor
 
+def copyParam(param):
+    paramCopy = copy.copy(param)
+    paramCopy.nodeType = param.nodeType.copy()
+    return paramCopy
+
 def getFunctions(functionNode):
     for elem in functionNode.nodeType:
         if isinstance(elem, ti.sema.FunctionSema):
@@ -44,7 +49,7 @@ def linkCall(function, isInit, kwKeys,
     
     index = 0
     for param in params:
-        paramCopy = copy.deepcopy(param)
+        paramCopy = copyParam(param)
         try:
             argType = argsTypes[index]
             if isInit and index == 0:
@@ -58,7 +63,7 @@ def linkCall(function, isInit, kwKeys,
         index += 1
 
     if listParam:
-        listParamCopy = copy.deepcopy(listParam)
+        listParamCopy = copyParam(listParam)
         tupleType = ti.sema.TupleSema(0)
         for elem in listArgsTypes:
             tupleType.elems.append({elem})
@@ -67,7 +72,7 @@ def linkCall(function, isInit, kwKeys,
 
     index = 0
     if dictParam:
-        dictParamCopy = copy.deepcopy(dictParam)
+        dictParamCopy = copyParam(dictParam)
         dictType  = ti.sema.DictSema()
         for key in kwKeys:
             keyElement = ti.sema.LiteralValueSema(key)

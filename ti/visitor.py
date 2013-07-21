@@ -72,8 +72,8 @@ class Visitor(ast.NodeVisitor):
         self.leftPart = True
         self.visit(target)
         self.leftPart = save
-        self.visit_Op(node.op)
-        node.link = ti.tgnode.FunctionCallTGNode(node)
+        var = self.visit_Op(node.op)
+        node.link = ti.tgnode.FunctionCallTGNode(node, var)
         node.link.addEdge(EdgeType.ASSIGN, target.link)
 
     def visit_List(self, node):
@@ -201,19 +201,18 @@ class Visitor(ast.NodeVisitor):
 
     def visit_Op(self, node):
         name = getOperatorName(node)
-        var  = config.data.currentScope.findName(name)
-        node.link = var
+        return config.data.currentScope.findName(name)
 
     def visit_BinOp(self, node):
         self.visit(node.left)
         self.visit(node.right)
-        self.visit_Op(node.op)
-        node.link = ti.tgnode.FunctionCallTGNode(node)
+        var = self.visit_Op(node.op)
+        node.link = ti.tgnode.FunctionCallTGNode(node, var)
 
     def visit_UnaryOp(self, node):
         self.visit(node.operand)
-        self.visit_Op(node.op)
-        node.link = ti.tgnode.FunctionCallTGNode(node)
+        var = self.visit_Op(node.op)
+        node.link = ti.tgnode.FunctionCallTGNode(node, var)
         
     def visit_BoolOp(self, node):
         link = ti.tgnode.BooleanOperationTGNode(node.op)
@@ -285,7 +284,7 @@ class Visitor(ast.NodeVisitor):
 
     def visit_GeneratorExp(self, node):
         self.generic_visit(node)
-        node.link = ti.tgnode.UnknownTGNode()
+        node.link = ti.tgnode.UnknownTGNode(node)
 
     def visit_Global(self, node):
         config.data.currentScope.addGlobalNames(node.names)

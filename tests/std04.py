@@ -29,4 +29,6 @@ def solve(n):
         return solve2(n)
 
 for answer in solve(BOARD_SIZE):
-    print answer
+    print '==='
+    for x, y in answer:
+        print x, y

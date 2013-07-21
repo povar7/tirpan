@@ -532,7 +532,7 @@ class ExternalFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
 class FunctionCallTGNode(TGNode):
 
-    def __init__(self, node):
+    def __init__(self, node, var = None):
         super(FunctionCallTGNode, self).__init__()
         self.node = node
 
@@ -542,13 +542,13 @@ class FunctionCallTGNode(TGNode):
             func = node.func.link
             args = node.args
         elif isinstance(node, ast.BinOp):
-            func = node.op.link
+            func = var
             args = [node.left, node.right]
         elif isinstance(node, ast.UnaryOp):
-            func = node.op.link
+            func = var
             args = [node.operand]
         elif isinstance(node, ast.AugAssign):
-            func = node.op.link
+            func = var
             args = [node.value]
 
         func.addEdge(EdgeType.FUNC, self)
