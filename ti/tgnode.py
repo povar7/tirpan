@@ -17,6 +17,7 @@ class EdgeType(object):
     ARGUMENT         = 'Argument'
     ASSIGN           = 'Assign'
     ASSIGN_ELEMENT   = 'AssignElement'
+    ASSIGN_ITER      = 'AssignIter'
     ASSIGN_OBJECT    = 'AssignObject'
     ASSIGN_SLICE     = 'AssignSlice'
     ASSIGN_YIELD     = 'AssignYield'
@@ -38,6 +39,17 @@ class EdgeType(object):
         if len(types - right.nodeType) > 0:
             length = len(right.nodeType)
             right.nodeType |= types
+            if len(right.nodeType) > length:
+                right.process()
+                right.walkEdges()
+
+    @staticmethod
+    def updateRightWithCondition(right, types, condition):
+        if len(types - right.nodeType) > 0:
+            length = len(right.nodeType)
+            for elem in types:
+                if condition(elem):
+                    right.nodeType.add(elem)
             if len(right.nodeType) > length:
                 right.process()
                 right.walkEdges()
@@ -65,6 +77,17 @@ class EdgeType(object):
         index = args[0]
         types = left.getElementsTypes(index)
         EdgeType.updateRight(right, types)
+
+    @staticmethod
+    def processAssignIter(left, right, *args):
+        flag = args[0]
+        def condition(x):
+            try:
+                x.getElements()
+                return flag
+            except:
+                return not flag
+        EdgeType.updateRightWithCondition(right, left.nodeType, condition)
 
     @staticmethod
     def processAssignObject(left, right, *args):

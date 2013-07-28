@@ -97,3 +97,22 @@ def checkSkipIf(condition):
 
 def checkSkipElse(condition):
     return any(template(condition) for template in skipElseTemplates)
+
+
+def checkSkipNotIterable(stmt):
+    if not isinstance(stmt, ast.Expr):
+        return None
+    value = stmt.value
+    if not isinstance(value, ast.Call):
+        return None
+    func = value.func
+    if (not isinstance(func, ast.Name) or
+        func.id != 'iter'):
+        return None
+    args = value.args
+    if len(args) != 1:
+        return None
+    arg = args[0]
+    if not isinstance(arg, ast.Name):
+        return None
+    return arg.link

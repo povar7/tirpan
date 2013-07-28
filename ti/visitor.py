@@ -327,4 +327,30 @@ class Visitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_TryExcept(self, node):
-        self.generic_visit(node)
+        filtered = set()
+        save = config.data.currentScope
+        for stmt in node.body:
+            self.visit(stmt)
+            var = checkSkipNotIterable(stmt)
+            if var is not None:
+                filtered.add(var)
+                newVar   = ti.tgnode.VariableTGNode(var.name)
+                newScope = ti.sema.ScopeSema(config.data.currentScope)
+                newScope.addVariable(newVar)
+                var.addEdge(EdgeType.ASSIGN_ITER, newVar, True)
+                newVar.addEdge(EdgeType.ASSIGN, var)
+                config.data.currentScope = newScope
+        config.data.currentScope = ti.sema.ScopeSema(save)
+        newScope = config.data.currentScope
+        for var in filtered:
+            if var is not None:
+                newVar   = ti.tgnode.VariableTGNode(var.name)
+                newScope.addVariable(newVar)
+                var.addEdge(EdgeType.ASSIGN_ITER, newVar, False)
+                newVar.addEdge(EdgeType.ASSIGN, var)
+        for handler in node.handlers:
+            for stmt in handler.body:
+                self.visit(stmt)
+        config.data.currentScope = save
+        for stmt in node.orelse:
+            self.visit(stmt)

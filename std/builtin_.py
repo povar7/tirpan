@@ -26,6 +26,13 @@ def quasiAppend(params, **kwargs):
         params[0].addElementsAtIndex(None, {params[1]})
     return {typeNone}
 
+def quasiExtend(params, **kwargs):
+    if (isinstance(params[0], ListSema) and
+        isinstance(params[1], ListSema)):
+        elements = params[1].getElements()
+        params[0].addElementsAtIndex(None, elements)
+    return {typeNone}
+
 def quasiInsert(params, **kwargs):
     if isinstance(params[0], ListSema):
         params[0].addElementsAtIndex(None, {params[2]})
@@ -56,6 +63,13 @@ def quasiExecfile(params, **kwargs):
             node.fileno = newNumber
         parser.walk()
     return {typeNone}
+
+def quasiIter(params, **kwargs):
+    param = params[0]
+    try:
+        return param.getElements()
+    except AttributeError:
+        return set()
 
 def quasiRange1(params, **kwargs):
     return quasiRange3(params + [typeInt, typeInt])
@@ -110,6 +124,7 @@ listClass = (
                 listClassName,
                 [
                     ['append', quasiAppend, 2],
+                    ['extend', quasiExtend, 2],
                     ['insert', quasiInsert, 3],
                 ],
                 [
@@ -383,6 +398,7 @@ functions = [
                 ['unicode'   , quasiUnicode , 3, {'2' : {typeStr },
                                                   '3' : {typeStr } }],
 
+                ['iter'      , quasiIter    , 1                     ],
                 ['range'     , quasiRange1  , 1                     ],
                 ['range'     , quasiRange3  , 3, {'3' : {typeInt}}  ],
                 ['type'      , quasiType    , 1                     ],

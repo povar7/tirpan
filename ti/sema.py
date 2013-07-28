@@ -162,6 +162,9 @@ class DictSema(CollectionSema):
         except:
             return set()
 
+    def getElements(self):
+        return self.getElementsAtIndex(None)
+
     def addElementsAtKey(self, key, values):
         try:
             oldValue = self.elems[key]
