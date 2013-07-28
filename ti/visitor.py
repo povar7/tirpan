@@ -347,8 +347,7 @@ class Visitor(ast.NodeVisitor):
                 var.addEdge(EdgeType.ASSIGN_ITER, newVar, True)
                 newVar.addEdge(EdgeType.ASSIGN, var)
                 config.data.currentScope = newScope
-        config.data.currentScope = ti.sema.ScopeSema(save)
-        newScope = config.data.currentScope
+        newScope = ti.sema.ScopeSema(save)
         for var in filtered:
             if var is not None:
                 newVar   = ti.tgnode.VariableTGNode(var.name)
@@ -356,6 +355,10 @@ class Visitor(ast.NodeVisitor):
                 var.addEdge(EdgeType.ASSIGN_ITER, newVar, False)
                 newVar.addEdge(EdgeType.ASSIGN, var)
         for handler in node.handlers:
+            if checkHandlerType(handler):
+                config.data.currentScope = newScope
+            else:
+                config.data.currentScope = save
             for stmt in handler.body:
                 self.visit(stmt)
         config.data.currentScope = save

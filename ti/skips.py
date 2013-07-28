@@ -117,6 +117,14 @@ def checkSkipNotIterable(stmt):
         return None
     return arg.link
 
+def checkHandlerType(handler):
+    if not handler.type:
+        return True
+    htype = handler.type
+    if not isinstance(htype, ast.Name):
+        return False
+    return htype.id == 'TypeError'
+
 def checkComprehension(ifs, target):
     if not isinstance(target, ast.Name):
         return None
