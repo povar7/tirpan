@@ -28,6 +28,7 @@ class EdgeType(object):
     LISTARGUMENT     = 'ListArgument'
     REV_ARGUMENT     = 'RevArgument'
     REV_ASSIGN       = 'RevAssign'
+    REV_ELEMENT      = 'RevElement'
     REV_FUNC         = 'RevFunc'
     REV_KWARGUMENT   = 'RevKWArgument'
     REV_LISTARGUMENT = 'RevListArgument'
@@ -130,26 +131,6 @@ class EdgeType(object):
         if len(right.nodeType) > length:
             right.walkEdges()
 
-    @staticmethod
-    def processRevArgument(left, right, *args):
-        pass
-
-    @staticmethod
-    def processRevAssign(left, right, *args):
-        pass
-
-    @staticmethod
-    def processRevFunc(left, right, *args):
-        pass
-
-    @staticmethod
-    def processRevKWArgument(left, right, *args):
-        pass
-
-    @staticmethod
-    def processRevListArgument(left, right, *args):
-        pass
-
 class TGNode(object):
 
     def __init__(self):
@@ -159,6 +140,8 @@ class TGNode(object):
     def addEdge(self, edgeType, node, *args):
         if edgeType == EdgeType.ASSIGN:
             node.addEdge(EdgeType.REV_ASSIGN, self)
+        elif edgeType == EdgeType.ELEMENT:
+            node.addEdge(EdgeType.REV_ELEMENT, self)
         if not edgeType in self.edges:
             self.edges[edgeType] = set()
         self.edges[edgeType].add((node, args))
@@ -168,11 +151,12 @@ class TGNode(object):
         self.edges[edgeType].discard((node, ()))
     
     def walkEdge(self, edgeType, node, *args):
-        getattr(EdgeType, 'process' + edgeType)(self, node, *args)
+        if not edgeType.startswith('Rev'):
+            getattr(EdgeType, 'process' + edgeType)(self, node, *args)
 
     def walkEdges(self):
-        for edgeType in self.edges:
-            for node, args in self.edges[edgeType]:
+        for edgeType, edgeValue in self.edges.items():
+            for node, args in edgeValue:
                 self.walkEdge(edgeType, node, *args)
 
     def getEdges(self, edgeType):
@@ -186,6 +170,32 @@ class TGNode(object):
         for singleType in self.nodeType:
             res |= singleType.getElementsAtIndex(index)
         return res
+
+    def getConstants(self, memo = None):
+        if memo is None:
+            memo = {self}
+        else:
+            if self in memo:
+                return
+            else:
+                memo.add(self)
+
+        self.processConstants()
+
+        for edgeType, edgeValue in self.edges.items():
+            if not edgeType.startswith('Rev'):
+                continue
+            for node, args in edgeValue:
+                node.getConstants(memo)
+
+    def processConstants(self):
+        pass
+
+    def __eq__(self, other):
+        return self is other
+
+    def __hash__(self):
+        return hash((self.__class__, id(self)))
 
 class ConstTGNode(TGNode):
 
@@ -208,6 +218,12 @@ class ConstTGNode(TGNode):
 
     def getValue(self):
         return self.value
+
+    def processConstants(self):
+        newType = LiteralValueSema(self.value)
+        if newType not in self.nodeType:
+            self.nodeType.add(newType)
+            self.walkEdges()
 
 class VariableTGNode(TGNode):
 

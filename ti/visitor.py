@@ -42,6 +42,8 @@ class Visitor(ast.NodeVisitor):
                                                               fileScope)
             else:
                 link = config.data.currentScope.findOrAddName(node.id)
+        if self.getValue and link is not None:
+            link.getConstants()
         node.link = link
        
     def visit_Assign(self, node):
@@ -204,8 +206,12 @@ class Visitor(ast.NodeVisitor):
         return config.data.currentScope.findName(name)
 
     def visit_BinOp(self, node):
+        save = self.getValue
         self.visit(node.left)
+        if isinstance(node.op, ast.Mod):
+            self.getValue = True
         self.visit(node.right)
+        self.getValue = save
         var = self.visit_Op(node.op)
         node.link = ti.tgnode.FunctionCallTGNode(node, var)
 
