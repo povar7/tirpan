@@ -194,7 +194,11 @@ class Visitor(ast.NodeVisitor):
         else:
             self.visit(target)
             self.leftPart = save
-            link.addEdge(EdgeType.ASSIGN_ELEMENT, target.link, None)
+            if isinstance(node, ast.comprehension):
+                test = checkComprehension(node.ifs, target)
+                link.addEdge(EdgeType.ASSIGN_CUSTOM , target.link, test)
+            else:
+                link.addEdge(EdgeType.ASSIGN_ELEMENT, target.link, None)
 
     def visit_For(self, node):
         self.visit_common_in(node)
@@ -271,7 +275,10 @@ class Visitor(ast.NodeVisitor):
         node.link = self.visit_common_subscript(node.value, index)
 
     def visit_ListComp(self, node):
-        self.generic_visit(node)
+        for elem in node.generators:
+            self.visit(elem)
+        self.visit(node.elt)
+        node.link = ti.tgnode.ListTGNode(node)
 
     def visit_IfExp(self, node):
         self.generic_visit(node)
@@ -324,7 +331,7 @@ class Visitor(ast.NodeVisitor):
         node.link = ti.tgnode.UnknownTGNode(node)
 
     def visit_comprehension(self, node):
-        self.generic_visit(node)
+        self.visit_common_in(node)
 
     def visit_TryExcept(self, node):
         filtered = set()

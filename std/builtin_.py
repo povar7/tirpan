@@ -88,6 +88,10 @@ def quasiRange3(params, **kwargs):
         listType.addElementsAtIndex(None, {typeInt})
     return {listType}
 
+def quasiSet(params, **kwargs):
+    param = params[0]
+    return {param}
+
 def quasiType(params, **kwargs):
     return {typeType}
 
@@ -401,6 +405,7 @@ functions = [
                 ['iter'      , quasiIter    , 1                     ],
                 ['range'     , quasiRange1  , 1                     ],
                 ['range'     , quasiRange3  , 3, {'3' : {typeInt}}  ],
+                ['set'       , quasiSet     , 1                     ],
                 ['type'      , quasiType    , 1                     ],
             ]
 

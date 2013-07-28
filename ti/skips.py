@@ -116,3 +116,29 @@ def checkSkipNotIterable(stmt):
     if not isinstance(arg, ast.Name):
         return None
     return arg.link
+
+def checkComprehension(ifs, target):
+    if not isinstance(target, ast.Name):
+        return None
+    if len(ifs) != 1:
+        return None
+    first = ifs[0]
+    if not isinstance(first, ast.Compare):
+        return None
+    comparators = first.comparators
+    if len(comparators) != 1:
+        return None
+    left = first.left
+    if not isinstance(left, ast.Attribute):
+        return None
+    value = left.value
+    if (not isinstance(value, ast.Name) or
+        value.id != target.id):
+        return None
+    ops = first.ops
+    if len(ops) != 1:
+        return None
+    op = ops[0]
+    if not isinstance(op, ast.Eq):
+        return None
+    return first

@@ -5,10 +5,12 @@ Created on 26.05.2013
 '''
 
 import ast
+import copy
 import os
 import types
 
-from ti.sema import *
+import ti.lookup
+from   ti.sema   import *
 
 classes = (CollectionSema, LiteralSema, ClassSema, InstanceSema, ModuleSema)
 
@@ -16,6 +18,7 @@ class EdgeType(object):
 
     ARGUMENT         = 'Argument'
     ASSIGN           = 'Assign'
+    ASSIGN_CUSTOM    = 'AssignCustom'
     ASSIGN_ELEMENT   = 'AssignElement'
     ASSIGN_ITER      = 'AssignIter'
     ASSIGN_OBJECT    = 'AssignObject'
@@ -71,6 +74,23 @@ class EdgeType(object):
             pass
 
         EdgeType.updateRight(right, left.nodeType)
+
+    @staticmethod
+    def processAssignCustom(left, right, *args):
+        from ti.visitor import Visitor 
+        test  = args[0]
+        types = left.getElementsTypes(None)
+        if test:
+            def condition(x):
+                visitor = Visitor(None)
+                astCopy = copy.deepcopy(test.comparators[0])
+                visitor.visit(astCopy)
+                rType = astCopy.link.nodeType 
+                lType = ti.lookup.lookupTypes(x, test.left.attr)
+                return lType.issuperset(rType)
+            EdgeType.updateRightWithCondition(right, types, condition)
+        else:
+            EdgeType.updateRight(right, types)
 
     @staticmethod
     def processAssignElement(left, right, *args):
@@ -285,7 +305,10 @@ class ListTGNode(TGNode):
                 link.addEdge(EdgeType.ELEMENT, self, index)
                 index += 1
         else:
-            node.elt.addEdge(EdgeType.ELEMENT, self)
+            link = node.elt.link
+            listSema = ListSema()
+            self.nodeType = {listSema}
+            link.addEdge(EdgeType.ELEMENT, self)
 
 class TupleTGNode(TGNode):
 
