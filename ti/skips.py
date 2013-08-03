@@ -6,8 +6,18 @@ Created on 06.07.2013
 
 import ast
 
+import config
+import ti.tgnode
 import ti.sema
 import utils
+
+def addSubvariable(var, edgeType, flag):
+    scope  = ti.sema.ScopeSema(config.data.currentScope)
+    newVar = ti.tgnode.VariableTGNode(var.name)
+    scope.addVariable(newVar)
+    var.addEdge(edgeType, newVar, flag)
+    newVar.addEdge(ti.tgnode.EdgeType.ASSIGN, var)
+    config.data.currentScope = scope
 
 def checkSkipNotMain(condition):
     if not isinstance(condition, ast.Compare):
@@ -150,3 +160,6 @@ def checkComprehension(ifs, target):
     if not isinstance(op, ast.Eq):
         return None
     return first
+
+def checkFilteringCondition(condition):
+    return isinstance(condition, (ast.Name, ast.BoolOp))

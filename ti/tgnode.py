@@ -23,6 +23,7 @@ class EdgeType(object):
     ASSIGN_ITER      = 'AssignIter'
     ASSIGN_OBJECT    = 'AssignObject'
     ASSIGN_SLICE     = 'AssignSlice'
+    ASSIGN_TRUE      = 'AssignTrue'
     ASSIGN_YIELD     = 'AssignYield'
     ATTR_SLICE       = 'AttrSlice'
     ATTR_OBJECT      = 'AttrObject'
@@ -116,6 +117,25 @@ class EdgeType(object):
     @staticmethod
     def processAssignSlice(left, right, *args):
         pass
+
+    @staticmethod
+    def processAssignTrue(left, right, *args):
+        flag = args[0]
+        def condition(x):
+            try:
+                return flag if x.value else not flag
+            except AttributeError:
+                pass
+            try:
+                return flag if x.ltype != types.NoneType else not flag
+            except AttributeError:
+                pass
+            try:
+                return flag if len(x.getElements()) > 0 else not flag
+            except AttributeError:
+                pass
+            return flag
+        EdgeType.updateRightWithCondition(right, left.nodeType, condition)
 
     @staticmethod
     def processAssignYield(left, right, *args):

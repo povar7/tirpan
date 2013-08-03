@@ -17,9 +17,10 @@ from ti.skips  import *
 class Visitor(ast.NodeVisitor):
 
     def __init__(self, filename):
-        self.filename = filename
-        self.leftPart = False
-        self.getValue = False
+        self.filename  = filename
+        self.filtering = False
+        self.leftPart  = False
+        self.getValue  = False
 
     def visit_Num(self, node):
         node.link = ti.tgnode.ConstTGNode(node, self.getValue)
@@ -45,6 +46,10 @@ class Visitor(ast.NodeVisitor):
         if self.getValue and link is not None:
             link.getConstants()
         node.link = link
+        if self.filtering:
+            if link is not None:
+                addSubvariable(link, EdgeType.ASSIGN_TRUE, True)
+
        
     def visit_Assign(self, node):
         self.visit(node.value)
@@ -226,9 +231,12 @@ class Visitor(ast.NodeVisitor):
         
     def visit_BoolOp(self, node):
         link = ti.tgnode.BooleanOperationTGNode(node.op)
+        save = self.filtering
         for value in node.values:
+            self.filtering = isinstance(value, ast.Name)
             self.visit(value)
             value.link.addEdge(EdgeType.ASSIGN, link)
+        self.filtering = save
         node.link = link
 
     def visit_Compare(self, node):
@@ -284,13 +292,18 @@ class Visitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_If(self, node):
+        saveScope = config.data.currentScope
         condition = node.test
+        save = self.filtering
+        self.filtering = checkFilteringCondition(condition)
         self.visit(condition)
+        self.filtering = save
         skipIf   = checkSkipIf  (condition)
         skipElse = checkSkipElse(condition)
         if not skipIf:
             for stmt in node.body:
                 self.visit(stmt)
+        config.data.currentScope = saveScope
         if not skipElse:
             for stmt in node.orelse:
                 self.visit(stmt)
@@ -341,22 +354,15 @@ class Visitor(ast.NodeVisitor):
             var = checkSkipNotIterable(stmt)
             if var is not None:
                 filtered.add(var)
-                newVar   = ti.tgnode.VariableTGNode(var.name)
-                newScope = ti.sema.ScopeSema(config.data.currentScope)
-                newScope.addVariable(newVar)
-                var.addEdge(EdgeType.ASSIGN_ITER, newVar, True)
-                newVar.addEdge(EdgeType.ASSIGN, var)
-                config.data.currentScope = newScope
-        newScope = ti.sema.ScopeSema(save)
+                addSubvariable(var, EdgeType.ASSIGN_ITER, True)
+        config.data.currentScope = save
         for var in filtered:
             if var is not None:
-                newVar   = ti.tgnode.VariableTGNode(var.name)
-                newScope.addVariable(newVar)
-                var.addEdge(EdgeType.ASSIGN_ITER, newVar, False)
-                newVar.addEdge(EdgeType.ASSIGN, var)
+                addSubvariable(var, EdgeType.ASSIGN_ITER, False)
+        scope = config.data.currentScope
         for handler in node.handlers:
             if checkHandlerType(handler):
-                config.data.currentScope = newScope
+                config.data.currentScope = scope
             else:
                 config.data.currentScope = save
             for stmt in handler.body:
