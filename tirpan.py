@@ -15,7 +15,9 @@ def run(filename):
     config.initialize(filename)
     importer = config.data.importer
     mainModule = importer.getIdent(0)
-    return mainModule.getAST()
+    ast = mainModule.getAST()
+    defects = config.data.defectsHandler.getDefects()
+    return ast, defects
 
 if __name__ == '__main__':
     argParser = argparse.ArgumentParser()

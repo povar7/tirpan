@@ -1,3 +1,4 @@
+from ti.checkers import *
 from ti.builtin  import initBuiltins
 from ti.importer import Importer
 from ti.sema     import ScopeSema
@@ -5,9 +6,10 @@ from ti.sema     import ScopeSema
 class Config(object):
 
     def __init__(self, filename):
-        self.globalScope  = ScopeSema(None)
-        self.currentScope = self.globalScope
-        self.importer     = Importer(filename, self)
+        self.defectsHandler = DefectsHandler()
+        self.globalScope    = ScopeSema(None)
+        self.currentScope   = self.globalScope
+        self.importer       = Importer(filename, self)
 
 data = None
 

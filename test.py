@@ -25,7 +25,7 @@ import tests.const
 
 class TestAssign01(unittest.TestCase):
     
-    ast = tirpan.run('tests/assign01.py')
+    ast, defects = tirpan.run('tests/assign01.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=2, kind=ast.Name)
@@ -90,7 +90,7 @@ class TestAssign01(unittest.TestCase):
 
 class TestAssign02(unittest.TestCase):
     
-    ast = tirpan.run('tests/assign02.py')
+    ast, defects = tirpan.run('tests/assign02.py')
         
     def test_el(self):
         node = utils.findNode(self.ast, line=2, kind=ast.Name)
@@ -111,7 +111,7 @@ class TestAssign02(unittest.TestCase):
 
 class TestAssign03(unittest.TestCase):
     
-    ast = tirpan.run('tests/assign03.py')
+    ast, defects = tirpan.run('tests/assign03.py')
         
     def test_el(self):
         node = utils.findNode(self.ast, line=2, kind=ast.Name)
@@ -130,7 +130,7 @@ class TestAssign03(unittest.TestCase):
 
 class TestAssign04(unittest.TestCase):
     
-    ast = tirpan.run('tests/assign04.py')
+    ast, defects = tirpan.run('tests/assign04.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=1, kind=ast.Name)
@@ -149,7 +149,7 @@ class TestAssign04(unittest.TestCase):
 
 class TestBinop01(unittest.TestCase):
 
-    ast = tirpan.run('tests/binop01.py')
+    ast, defects = tirpan.run('tests/binop01.py')
 
     tBool    = LiteralSema(bool)
     tInt     = LiteralSema(int)
@@ -3311,7 +3311,7 @@ class TestBinop01(unittest.TestCase):
 
 class TestBinop02(unittest.TestCase):
     
-    ast = tirpan.run('tests/binop02.py')
+    ast, defects = tirpan.run('tests/binop02.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=1, kind=ast.Name)
@@ -3330,7 +3330,7 @@ class TestBinop02(unittest.TestCase):
 
 class TestBoolop01(unittest.TestCase):
     
-    ast = tirpan.run('tests/boolop01.py')
+    ast, defects = tirpan.run('tests/boolop01.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=4, kind=ast.Name)
@@ -3379,7 +3379,7 @@ class TestBoolop01(unittest.TestCase):
 
 class TestBuiltin01(unittest.TestCase):
     
-    ast = tirpan.run('tests/builtin01.py')
+    ast, defects = tirpan.run('tests/builtin01.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=4, kind=ast.Name)
@@ -3428,7 +3428,7 @@ class TestBuiltin01(unittest.TestCase):
 
 class TestBuiltin02(unittest.TestCase):
     
-    ast = tirpan.run('tests/builtin02.py')
+    ast, defects = tirpan.run('tests/builtin02.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=1, kind=ast.Name)
@@ -3460,7 +3460,7 @@ class TestBuiltin02(unittest.TestCase):
 
 class TestBuiltin03(unittest.TestCase):
     
-    ast = tirpan.run('tests/builtin03.py')
+    ast, defects = tirpan.run('tests/builtin03.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=1, kind=ast.Name)
@@ -3526,7 +3526,7 @@ class TestBuiltin03(unittest.TestCase):
 
 class TestBuiltin04(unittest.TestCase):
     
-    ast = tirpan.run('tests/builtin04.py')
+    ast, defects = tirpan.run('tests/builtin04.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=3, kind=ast.Name)
@@ -3547,7 +3547,7 @@ class TestBuiltin04(unittest.TestCase):
 
 class TestBuiltin05(unittest.TestCase):
     
-    ast = tirpan.run('tests/builtin05.py')
+    ast, defects = tirpan.run('tests/builtin05.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=4, col=11, kind=ast.Name)
@@ -3609,7 +3609,7 @@ class TestBuiltin05(unittest.TestCase):
 
 class TestBuiltin06(unittest.TestCase):
     
-    ast = tirpan.run('tests/builtin06.py')
+    ast, defects = tirpan.run('tests/builtin06.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=1, col=1, kind=ast.Name)
@@ -3626,7 +3626,7 @@ class TestBuiltin06(unittest.TestCase):
 
 class TestBuiltin07(unittest.TestCase):
     
-    ast = tirpan.run('tests/builtin07.py')
+    ast, defects = tirpan.run('tests/builtin07.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=13, kind=ast.Name)
@@ -3644,7 +3644,7 @@ class TestBuiltin07(unittest.TestCase):
 
 class TestBuiltin08(unittest.TestCase):
     
-    ast = tirpan.run('tests/builtin08.py')
+    ast, defects = tirpan.run('tests/builtin08.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=4, kind=ast.Name)
@@ -3674,7 +3674,7 @@ class TestBuiltin08(unittest.TestCase):
 
 class TestBuiltin09(unittest.TestCase):
     
-    ast = tirpan.run('tests/builtin09.py')
+    ast, defects = tirpan.run('tests/builtin09.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=4, kind=ast.Name)
@@ -3717,7 +3717,7 @@ class TestBuiltin09(unittest.TestCase):
 
 class TestBuiltin10(unittest.TestCase):
     
-    ast = tirpan.run('tests/builtin10.py')
+    ast, defects = tirpan.run('tests/builtin10.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=8, kind=ast.Name)
@@ -3754,7 +3754,7 @@ class TestBuiltin10(unittest.TestCase):
 
 class TestBuiltin13(unittest.TestCase):
     
-    ast = tirpan.run('tests/builtin13.py')
+    ast, defects = tirpan.run('tests/builtin13.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=4, kind=ast.Name)
@@ -3783,7 +3783,7 @@ class TestBuiltin13(unittest.TestCase):
 
 class TestBuiltin14(unittest.TestCase):
     
-    ast = tirpan.run('tests/builtin14.py')
+    ast, defects = tirpan.run('tests/builtin14.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=4, kind=ast.Name)
@@ -3800,7 +3800,7 @@ class TestBuiltin14(unittest.TestCase):
 
 class TestImport01_1(unittest.TestCase):
     
-    ast = tirpan.run('tests/import01_1.py')
+    ast, defects = tirpan.run('tests/import01_1.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=6, col=1, kind=ast.Name)
@@ -3838,7 +3838,7 @@ class TestImport01_1(unittest.TestCase):
 
 class TestImport02(unittest.TestCase):
     
-    ast = tirpan.run('tests/import02.py')
+    ast, defects = tirpan.run('tests/import02.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=12, kind=ast.Name)
@@ -3899,7 +3899,7 @@ class TestImport02(unittest.TestCase):
 
 class TestImport03_1(unittest.TestCase):
     
-    ast = tirpan.run('tests/import03_1.py')
+    ast, defects = tirpan.run('tests/import03_1.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=3, col=1, kind=ast.Name)
@@ -3916,7 +3916,7 @@ class TestImport03_1(unittest.TestCase):
 
 class TestImport03_2(unittest.TestCase):
     
-    ast = tirpan.run('tests/import03_2.py')
+    ast, defects = tirpan.run('tests/import03_2.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=3, col=1, kind=ast.Name)
@@ -3946,7 +3946,7 @@ class TestImport03_2(unittest.TestCase):
 
 class TestImport03_3(unittest.TestCase):
     
-    ast = tirpan.run('tests/import03_3.py')
+    ast, defects = tirpan.run('tests/import03_3.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=3, col=1, kind=ast.Name)
@@ -3963,7 +3963,7 @@ class TestImport03_3(unittest.TestCase):
 
 class TestImport04(unittest.TestCase):
     
-    ast = tirpan.run('tests/import04_1.py')
+    ast, defects = tirpan.run('tests/import04_1.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=8, kind=ast.Name)
@@ -3995,7 +3995,7 @@ class TestImport04(unittest.TestCase):
 
 class TestImport05_1(unittest.TestCase):
     
-    ast = tirpan.run('tests/import05_1.py')
+    ast, defects = tirpan.run('tests/import05_1.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=14, col=1, kind=ast.Name)
@@ -4018,7 +4018,7 @@ class TestImport05_1(unittest.TestCase):
 
 class TestImport06_1(unittest.TestCase):
     
-    ast = tirpan.run('tests/import06_1.py')
+    ast, defects = tirpan.run('tests/import06_1.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=4, col=1, kind=ast.Name)
@@ -4035,7 +4035,7 @@ class TestImport06_1(unittest.TestCase):
 
 class TestImport07_1(unittest.TestCase):
    
-    ast = tirpan.run('tests/import07_1.py')
+    ast, defects = tirpan.run('tests/import07_1.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=3, col=1, kind=ast.Name)
@@ -4052,7 +4052,7 @@ class TestImport07_1(unittest.TestCase):
 
 class TestImport08_1(unittest.TestCase):
     
-    ast = tirpan.run('tests/import08_1.py')
+    ast, defects = tirpan.run('tests/import08_1.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=3, col=1, kind=ast.Name)
@@ -4069,7 +4069,7 @@ class TestImport08_1(unittest.TestCase):
 
 class TestStd01(unittest.TestCase):
     
-    ast = tirpan.run('tests/std01.py')
+    ast, defects = tirpan.run('tests/std01.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=1, kind=ast.Name)
@@ -4123,7 +4123,7 @@ class TestStd01(unittest.TestCase):
 
 class TestStd02(unittest.TestCase):
     
-    ast = tirpan.run('tests/std02.py')
+    ast, defects = tirpan.run('tests/std02.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=1, kind=ast.Name)
@@ -4219,7 +4219,7 @@ class TestStd02(unittest.TestCase):
 
 class TestStd03(unittest.TestCase):
     
-    ast = tirpan.run('tests/std03.py')
+    ast, defects = tirpan.run('tests/std03.py')
         
     def test_True(self):
         node = utils.findNode(self.ast, line=1, kind=ast.Name)
@@ -4253,7 +4253,7 @@ class TestStd03(unittest.TestCase):
 
 class TestStd04(unittest.TestCase):
     
-    ast = tirpan.run('tests/std04.py')
+    ast, defects = tirpan.run('tests/std04.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=34, col=15, kind=ast.Name)
@@ -4287,7 +4287,7 @@ class TestStd04(unittest.TestCase):
 
 class TestStd05(unittest.TestCase):
     
-    ast = tirpan.run('tests/std05.py')
+    ast, defects = tirpan.run('tests/std05.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=4, col=1, kind=ast.Name)
@@ -4347,7 +4347,7 @@ class TestStd05(unittest.TestCase):
 
 class TestStd06(unittest.TestCase):
     
-    ast = tirpan.run('tests/std06.py')
+    ast, defects = tirpan.run('tests/std06.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=5, col=6, kind=ast.Name)
@@ -4381,7 +4381,7 @@ class TestStd06(unittest.TestCase):
 
 class TestStd07(unittest.TestCase):
     
-    ast = tirpan.run('tests/std07.py')
+    ast, defects = tirpan.run('tests/std07.py')
         
     def test_y(self):
         node = utils.findNode(self.ast, line=26, kind=ast.Name)
@@ -4400,7 +4400,7 @@ class TestStd07(unittest.TestCase):
 
 class TestStd08(unittest.TestCase):
     
-    ast = tirpan.run('tests/std08.py')
+    ast, defects = tirpan.run('tests/std08.py')
         
     def test_z(self):
         node = utils.findNode(self.ast, line=37, kind=ast.Name)
@@ -4417,7 +4417,7 @@ class TestStd08(unittest.TestCase):
 
 class TestFunc01(unittest.TestCase):
     
-    ast = tirpan.run('tests/func01.py')
+    ast, defects = tirpan.run('tests/func01.py')
         
     def test_z(self):
         node = utils.findNode(self.ast, line=4, col=1, kind=ast.Name)
@@ -4438,7 +4438,7 @@ class TestFunc01(unittest.TestCase):
 
 class TestFunc02(unittest.TestCase):
     
-    ast = tirpan.run('tests/func02.py')
+    ast, defects = tirpan.run('tests/func02.py')
         
     def test_z(self):
         node = utils.findNode(self.ast, line=10, col=1, kind=ast.Name)
@@ -4468,7 +4468,7 @@ class TestFunc02(unittest.TestCase):
 
 class TestFunc03(unittest.TestCase):
     
-    ast = tirpan.run('tests/func03.py')
+    ast, defects = tirpan.run('tests/func03.py')
         
     def test_z(self):
         node = utils.findNode(self.ast, line=12, col=1, kind=ast.Name)
@@ -4522,7 +4522,7 @@ class TestFunc03(unittest.TestCase):
 
 class TestFunc04(unittest.TestCase):
     
-    ast = tirpan.run('tests/func04.py')
+    ast, defects = tirpan.run('tests/func04.py')
         
     def test_z(self):
         node = utils.findNode(self.ast, line=7, col=1, kind=ast.Name)
@@ -4541,7 +4541,7 @@ class TestFunc04(unittest.TestCase):
 
 class TestFunc05(unittest.TestCase):
     
-    ast = tirpan.run('tests/func05.py')
+    ast, defects = tirpan.run('tests/func05.py')
         
     def test_u(self):
         node = utils.findNode(self.ast, line=25, col=1, kind=ast.Name)
@@ -4596,7 +4596,7 @@ class TestFunc05(unittest.TestCase):
 
 class TestFunc06(unittest.TestCase):
     
-    ast = tirpan.run('tests/func06.py')
+    ast, defects = tirpan.run('tests/func06.py')
         
     def test_z(self):
         node = utils.findNode(self.ast, line=4, col=1, kind=ast.Name)
@@ -4613,7 +4613,7 @@ class TestFunc06(unittest.TestCase):
 
 class TestFunc07(unittest.TestCase):
     
-    ast = tirpan.run('tests/func07.py')
+    ast, defects = tirpan.run('tests/func07.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=4, col=1, kind=ast.Name)
@@ -4643,7 +4643,7 @@ class TestFunc07(unittest.TestCase):
 
 class TestFunc08(unittest.TestCase):
     
-    ast = tirpan.run('tests/func08.py')
+    ast, defects = tirpan.run('tests/func08.py')
         
     def test_c(self):
         node = utils.findNode(self.ast, line=7, col=1, kind=ast.Name)
@@ -4673,7 +4673,7 @@ class TestFunc08(unittest.TestCase):
 
 class TestFunc09(unittest.TestCase):
     
-    ast = tirpan.run('tests/func09.py')
+    ast, defects = tirpan.run('tests/func09.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=4, col=1, kind=ast.Name)
@@ -4711,7 +4711,7 @@ class TestFunc09(unittest.TestCase):
 
 class TestFunc10(unittest.TestCase):
     
-    ast = tirpan.run('tests/func10.py')
+    ast, defects = tirpan.run('tests/func10.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=4, col=1, kind=ast.Name)
@@ -4747,7 +4747,7 @@ class TestFunc10(unittest.TestCase):
 
 class TestFunc11(unittest.TestCase):
     
-    ast = tirpan.run('tests/func11.py')
+    ast, defects = tirpan.run('tests/func11.py')
 
     def test_x(self):
         node = utils.findNode(self.ast, line=5, col=1, kind=ast.Name)
@@ -4781,7 +4781,7 @@ class TestFunc11(unittest.TestCase):
 
 class TestFunc12(unittest.TestCase):
     
-    ast = tirpan.run('tests/func12.py')
+    ast, defects = tirpan.run('tests/func12.py')
 
     def test_foo(self):
         node = utils.findNode(self.ast, line=1, kind=ast.FunctionDef)
@@ -4829,7 +4829,7 @@ class TestFunc12(unittest.TestCase):
 
 class TestFunc13(unittest.TestCase):
     
-    ast = tirpan.run('tests/func13.py')
+    ast, defects = tirpan.run('tests/func13.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=7, col=1, kind=ast.Name)
@@ -4863,7 +4863,7 @@ class TestFunc13(unittest.TestCase):
 
 class TestFunc14(unittest.TestCase):
     
-    ast = tirpan.run('tests/func14.py')
+    ast, defects = tirpan.run('tests/func14.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=6, col=1, kind=ast.Name)
@@ -4880,7 +4880,7 @@ class TestFunc14(unittest.TestCase):
 
 class TestFunc15(unittest.TestCase):
     
-    ast = tirpan.run('tests/func15.py')
+    ast, defects = tirpan.run('tests/func15.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=7, col=1, kind=ast.Name)
@@ -4897,7 +4897,7 @@ class TestFunc15(unittest.TestCase):
 
 class TestFunc16(unittest.TestCase):
     
-    ast = tirpan.run('tests/func16.py')
+    ast, defects = tirpan.run('tests/func16.py')
         
     def test_y(self):
         node = utils.findNode(self.ast, line=9, col=1, kind=ast.Name)
@@ -4931,7 +4931,7 @@ class TestFunc16(unittest.TestCase):
 
 class TestFunc17(unittest.TestCase):
     
-    ast = tirpan.run('tests/func17.py')
+    ast, defects = tirpan.run('tests/func17.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=11, kind=ast.Name)
@@ -4948,7 +4948,7 @@ class TestFunc17(unittest.TestCase):
 
 class TestFunc18(unittest.TestCase):
     
-    ast = tirpan.run('tests/func18.py')
+    ast, defects = tirpan.run('tests/func18.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=5, col=1, kind=ast.Name)
@@ -4967,7 +4967,7 @@ class TestFunc18(unittest.TestCase):
 
 class TestFunc19(unittest.TestCase):
     
-    ast = tirpan.run('tests/func19.py')
+    ast, defects = tirpan.run('tests/func19.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=12, kind=ast.Name)
@@ -4985,7 +4985,7 @@ class TestFunc19(unittest.TestCase):
 
 class TestFunc20(unittest.TestCase):
     
-    ast = tirpan.run('tests/func20.py')
+    ast, defects = tirpan.run('tests/func20.py')
         
     def test_y(self):
         node = utils.findNode(self.ast, line=8, col=1, kind=ast.Name)
@@ -5004,7 +5004,7 @@ class TestFunc20(unittest.TestCase):
 
 class TestFunc21(unittest.TestCase):
     
-    ast = tirpan.run('tests/func21.py')
+    ast, defects = tirpan.run('tests/func21.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=4, col=1, kind=ast.Name)
@@ -5038,7 +5038,7 @@ class TestFunc21(unittest.TestCase):
 
 class TestFunc22(unittest.TestCase):
     
-    ast = tirpan.run('tests/func22.py')
+    ast, defects = tirpan.run('tests/func22.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=19, kind=ast.Name)
@@ -5057,7 +5057,7 @@ class TestFunc22(unittest.TestCase):
 
 class TestFunc23(unittest.TestCase):
     
-    ast = tirpan.run('tests/func23.py')
+    ast, defects = tirpan.run('tests/func23.py')
         
     def test_z(self):
         node = utils.findNode(self.ast, line=8, col=1, kind=ast.Name)
@@ -5084,7 +5084,7 @@ class TestFunc23(unittest.TestCase):
 
 class TestGlobal01(unittest.TestCase):
     
-    ast = tirpan.run('tests/global01.py')
+    ast, defects = tirpan.run('tests/global01.py')
         
     def test_res(self):
         node = utils.findNode(self.ast, line=1, col=1, kind=ast.Name)
@@ -5105,7 +5105,7 @@ class TestGlobal01(unittest.TestCase):
 
 class TestGlobal02(unittest.TestCase):
     
-    ast = tirpan.run('tests/global02.py')
+    ast, defects = tirpan.run('tests/global02.py')
         
     def test_res(self):
         node = utils.findNode(self.ast, line=1, col=1, kind=ast.Name)
@@ -5122,7 +5122,7 @@ class TestGlobal02(unittest.TestCase):
 
 class TestGlobal03(unittest.TestCase):
     
-    ast = tirpan.run('tests/global03.py')
+    ast, defects = tirpan.run('tests/global03.py')
         
     def test_res1(self):
         node = utils.findNode(self.ast, line=1, kind=ast.Name)
@@ -5154,7 +5154,7 @@ class TestGlobal03(unittest.TestCase):
 
 class TestGlobal04(unittest.TestCase):
     
-    ast = tirpan.run('tests/global04.py')
+    ast, defects = tirpan.run('tests/global04.py')
         
     def test_res(self):
         node = utils.findNode(self.ast, line=8, col=1, kind=ast.Name)
@@ -5175,7 +5175,7 @@ class TestGlobal04(unittest.TestCase):
 
 class TestMisc01(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc01.py')
+    ast, defects = tirpan.run('tests/misc01.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=123, col=15, kind=ast.Name)
@@ -5209,7 +5209,7 @@ class TestMisc01(unittest.TestCase):
 
 class TestMisc02(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc02.py')
+    ast, defects = tirpan.run('tests/misc02.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=47, kind=ast.Name)
@@ -5226,7 +5226,7 @@ class TestMisc02(unittest.TestCase):
 
 class TestMisc03(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc03.py')
+    ast, defects = tirpan.run('tests/misc03.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=16, kind=ast.Name)
@@ -5243,7 +5243,7 @@ class TestMisc03(unittest.TestCase):
 
 class TestMisc04(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc04.py')
+    ast, defects = tirpan.run('tests/misc04.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=7, kind=ast.Name)
@@ -5260,7 +5260,7 @@ class TestMisc04(unittest.TestCase):
 
 class TestMisc05(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc05.py')
+    ast, defects = tirpan.run('tests/misc05.py')
         
     def test_d(self):
         node = utils.findNode(self.ast, line=16, kind=ast.Name)
@@ -5277,7 +5277,7 @@ class TestMisc05(unittest.TestCase):
 
 class TestMisc06(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc06.py')
+    ast, defects = tirpan.run('tests/misc06.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=59, kind=ast.Name)
@@ -5294,7 +5294,7 @@ class TestMisc06(unittest.TestCase):
 
 class TestMisc07(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc07.py')
+    ast, defects = tirpan.run('tests/misc07.py')
         
     def test_b(self):
         node = utils.findNode(self.ast, line=3, kind=ast.Name)
@@ -5325,7 +5325,7 @@ class TestMisc08(unittest.TestCase):
 
 class TestMisc09(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc09.py')
+    ast, defects = tirpan.run('tests/misc09.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=3, kind=ast.Name)
@@ -5344,7 +5344,7 @@ class TestMisc09(unittest.TestCase):
 
 class TestMisc10(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc10.py')
+    ast, defects = tirpan.run('tests/misc10.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=31, kind=ast.Name)
@@ -5361,7 +5361,7 @@ class TestMisc10(unittest.TestCase):
 
 class TestMisc11(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc11.py')
+    ast, defects = tirpan.run('tests/misc11.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=4, kind=ast.Name)
@@ -5378,7 +5378,7 @@ class TestMisc11(unittest.TestCase):
 
 class TestMisc12(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc12.py')
+    ast, defects = tirpan.run('tests/misc12.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=2, kind=ast.Name)
@@ -5395,7 +5395,7 @@ class TestMisc12(unittest.TestCase):
 
 class TestMisc13(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc13.py')
+    ast, defects = tirpan.run('tests/misc13.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=3, kind=ast.Name)
@@ -5425,7 +5425,7 @@ class TestMisc13(unittest.TestCase):
 
 class TestMisc14(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc14.py')
+    ast, defects = tirpan.run('tests/misc14.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=14, kind=ast.Name)
@@ -5462,7 +5462,7 @@ class TestMisc14(unittest.TestCase):
 
 class TestMisc15(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc15.py')
+    ast, defects = tirpan.run('tests/misc15.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=14, kind=ast.Name)
@@ -5499,7 +5499,7 @@ class TestMisc15(unittest.TestCase):
 
 class TestMisc16(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc16.py')
+    ast, defects = tirpan.run('tests/misc16.py')
         
     def test_x(self):
         node = utils.findNode(self.ast, line=17, kind=ast.Name)
@@ -5534,7 +5534,7 @@ class TestMisc16(unittest.TestCase):
 
 class TestMisc17(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc17.py')
+    ast, defects = tirpan.run('tests/misc17.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=7, kind=ast.Name)
@@ -5553,7 +5553,7 @@ class TestMisc17(unittest.TestCase):
 
 class TestMisc18(unittest.TestCase):
     
-    ast = tirpan.run('tests/misc18.py')
+    ast, defects = tirpan.run('tests/misc18.py')
         
     def test_a(self):
         node = utils.findNode(self.ast, line=8, kind=ast.Name)
@@ -5570,9 +5570,57 @@ class TestMisc18(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'a', 'name is not "a"')
 
+class TestMisc19(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc19.py')
+        
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 1,
+                         'there must be a defect')
+
+class TestMisc20(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc20.py')
+        
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 0,
+                         'there must be no defects')
+
+class TestMisc21(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc21.py')
+        
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 0,
+                         'there must be no defects')
+
+class TestMisc22(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc22.py')
+        
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 1,
+                         'there must be a defect')
+
+class TestMisc23(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc23.py')
+        
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 2,
+                         'there must be exactly 2 defects')
+
+class TestMisc24(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc24.py')
+        
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 3,
+                         'there must be exactly 3 defects')
+
 class TestObject01(unittest.TestCase):
     
-    ast = tirpan.run('tests/object01.py')
+    ast, defects = tirpan.run('tests/object01.py')
         
     def test_B_x(self):
         node = utils.findNode(self.ast, line=14, kind=ast.Attribute)
@@ -5653,7 +5701,7 @@ class TestObject01(unittest.TestCase):
 
 class TestObject02(unittest.TestCase):
     
-    ast = tirpan.run('tests/object02.py')
+    ast, defects = tirpan.run('tests/object02.py')
 
     def test_b(self):
         node = utils.findNode(self.ast, line=9, kind=ast.Name)
@@ -5672,7 +5720,7 @@ class TestObject02(unittest.TestCase):
 
 class TestObject03(unittest.TestCase):
     
-    ast = tirpan.run('tests/object03.py')
+    ast, defects = tirpan.run('tests/object03.py')
 
     def test_x(self):
         node = utils.findNode(self.ast, line=12, kind=ast.Name)
@@ -5702,7 +5750,7 @@ class TestObject03(unittest.TestCase):
 
 class TestObject04(unittest.TestCase):
     
-    ast = tirpan.run('tests/object04.py')
+    ast, defects = tirpan.run('tests/object04.py')
 
     def test_d1(self):
         node = utils.findNode(self.ast, line=17, col=1, kind=ast.Name)
@@ -5755,7 +5803,7 @@ class TestObject04(unittest.TestCase):
 
 class TestObject05(unittest.TestCase):
     
-    ast = tirpan.run('tests/object05.py')
+    ast, defects = tirpan.run('tests/object05.py')
 
     def test_x(self):
         node = utils.findNode(self.ast, line=14, kind=ast.Name)
@@ -5776,7 +5824,7 @@ class TestObject05(unittest.TestCase):
 
 class TestObject06(unittest.TestCase):
     
-    ast = tirpan.run('tests/object06.py')
+    ast, defects = tirpan.run('tests/object06.py')
 
     def test_x(self):
         node = utils.findNode(self.ast, line=17, kind=ast.Name)
@@ -5810,7 +5858,7 @@ class TestObject06(unittest.TestCase):
 
 class TestObject07(unittest.TestCase):
     
-    ast = tirpan.run('tests/object07.py')
+    ast, defects = tirpan.run('tests/object07.py')
 
     def test_x(self):
         node = utils.findNode(self.ast, line=17, kind=ast.Name)
@@ -5857,7 +5905,7 @@ class TestObject07(unittest.TestCase):
 
 class TestObject08(unittest.TestCase):
     
-    ast = tirpan.run('tests/object08.py')
+    ast, defects = tirpan.run('tests/object08.py')
 
     def test_x(self):
         node = utils.findNode(self.ast, line=17, kind=ast.Name)
@@ -5876,7 +5924,7 @@ class TestObject08(unittest.TestCase):
 
 class TestObject09(unittest.TestCase):
     
-    ast = tirpan.run('tests/object09.py')
+    ast, defects = tirpan.run('tests/object09.py')
 
     def test_x(self):
         node = utils.findNode(self.ast, line=10, kind=ast.Name)
@@ -5895,7 +5943,7 @@ class TestObject09(unittest.TestCase):
 
 class TestObject10(unittest.TestCase):
     
-    ast = tirpan.run('tests/object10.py')
+    ast, defects = tirpan.run('tests/object10.py')
 
     def test_x(self):
         node = utils.findNode(self.ast, line=12, kind=ast.Name)
@@ -5912,7 +5960,7 @@ class TestObject10(unittest.TestCase):
 
 class TestObject11(unittest.TestCase):
     
-    ast = tirpan.run('tests/object11.py')
+    ast, defects = tirpan.run('tests/object11.py')
 
     def test_x(self):
         node = utils.findNode(self.ast, line=15, kind=ast.Name)
@@ -5955,7 +6003,7 @@ class TestObject11(unittest.TestCase):
 
 class TestObject15(unittest.TestCase):
     
-    ast = tirpan.run('tests/object15.py')
+    ast, defects = tirpan.run('tests/object15.py')
 
     def test_x(self):
         node = utils.findNode(self.ast, line=17, kind=ast.Name)
@@ -5972,7 +6020,7 @@ class TestObject15(unittest.TestCase):
 
 class TestUnop01(unittest.TestCase):
 
-    ast = tirpan.run('tests/unop01.py')
+    ast, defects = tirpan.run('tests/unop01.py')
 
     tBool    = LiteralSema(bool)
     tInt     = LiteralSema(int)

@@ -23,6 +23,9 @@ class Sema(object):
     def __hash__(self):
         return hash((self.__class__, self.getInstanceHash()))
 
+    def copy(self):
+        return self
+
     def freeze(self):
         pass
 
@@ -116,6 +119,11 @@ class ListOrTupleSema(CollectionSema):
         else:
             return id(self)
 
+    def copy(self):
+        res = copy.copy(self)
+        res.elems = [elem.copy() for elem in self.elems]
+        return res
+
     def freeze(self):
         res = []
         for atom in self.elems:
@@ -171,6 +179,12 @@ class DictSema(CollectionSema):
         except:
             oldValue = self.elems[key] = set()
         oldValue |= values
+
+    def copy(self):
+        res = DictSema()
+        for key, val in self.elems.items():
+            res.elems[key] = val.copy()
+        return res
 
     def freeze(self):
         self.elems = freezeDict(self.elems)
