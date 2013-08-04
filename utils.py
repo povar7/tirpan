@@ -6,6 +6,17 @@ Created on 26.05.2013
 
 import ast
 
+class QuasiNode(object):
+
+    def __init__(self, link):
+        self.link = link
+
+class QuasiCall(object):
+
+    def __init__(self, func, args):
+        self.func = func
+        self.args = args
+
 def findFirstNode(tree, callback):
     for node in ast.walk(tree):
         if callback(node):

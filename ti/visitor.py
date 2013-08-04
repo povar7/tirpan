@@ -9,6 +9,7 @@ import ast
 import config
 import ti.tgnode
 import ti.sema
+import utils
 
 from ti.checkers import *
 from ti.lookup   import getOperatorName
@@ -161,13 +162,10 @@ class Visitor(ast.NodeVisitor):
     def visit_FunctionDef(self, node):
         save = config.data.currentScope
         name = node.name
-        link = ti.tgnode.UsualFunctionDefinitionTGNode(node, name, save)
+        link = ti.tgnode.UsualFunctionDefinitionTGNode(node, name, save, self)
         var  = save.findOrAddName(name)
-        node.link = link
-        config.data.currentScope = link.getParams()
-        self.visit_arguments(node.args, link, save)
-        config.data.currentScope = save
         link.addEdge(EdgeType.ASSIGN, var)
+        node.link = link
 
     def visit_Call(self, node):
         for arg in node.args:
@@ -180,16 +178,19 @@ class Visitor(ast.NodeVisitor):
             self.visit(pair.value)
         self.visit(node.func)
         node.link = ti.tgnode.FunctionCallTGNode(node)
-        checkBasenameCall(node) 
+        checkBasenameCall(node)
 
-    def visit_common_in(self, node):
+    def visit_common_iter(self, node):
         self.visit(node.iter)
-        link   = node.iter.link
-        target = node.target
-        save   = self.leftPart
+        link = node.iter.link
+        var  = ti.tgnode.VariableTGNode(None)
+        link.addEdge(EdgeType.ASSIGN_ELEMENT, var, None)
+        return var
+
+    def visit_common_target(self, var, target, ifs = None):
+        save = self.leftPart
         self.leftPart = True
         if isinstance(target, ast.Tuple):
-            var = ti.tgnode.VariableTGNode(None)
             for elem in target.elts:
                 self.visit(elem)
             self.leftPart = save
@@ -197,20 +198,22 @@ class Visitor(ast.NodeVisitor):
             for elem in target.elts:
                 var.addEdge(EdgeType.ASSIGN_ELEMENT, elem.link, index)
                 index += 1
-            link.addEdge(EdgeType.ASSIGN_ELEMENT, var, None)
         else:
             self.visit(target)
             self.leftPart = save
-            if isinstance(node, ast.comprehension):
-                test = checkComprehension(node.ifs, target)
-                link.addEdge(EdgeType.ASSIGN_CUSTOM , target.link, test)
+            if ifs:
+                test = checkComprehension(ifs, target)
+                var.addEdge(EdgeType.ASSIGN_CUSTOM, target.link, test)
             else:
-                link.addEdge(EdgeType.ASSIGN_ELEMENT, target.link, None)
+                var.addEdge(EdgeType.ASSIGN, target.link)
 
     def visit_For(self, node):
-        self.visit_common_in(node)
-        for stmt in node.body:
-            self.visit(stmt)
+        scope = config.data.currentScope
+        var   = self.visit_common_iter(node)
+        args  = [QuasiNode(var)]
+        func  = QuasiNode(ti.tgnode.ForFunctionDefinitionTGNode(node, scope))
+        quasiCall = QuasiCall(func, args)
+        ti.tgnode.FunctionCallTGNode(quasiCall)
 
     def visit_Op(self, node):
         name = getOperatorName(node)
@@ -262,11 +265,8 @@ class Visitor(ast.NodeVisitor):
 
     def visit_Lambda(self, node):
         save = config.data.currentScope
-        link = ti.tgnode.UsualFunctionDefinitionTGNode(node, None, save)
+        link = ti.tgnode.UsualFunctionDefinitionTGNode(node, None, save, self)
         node.link = link
-        config.data.currentScope = link.getParams()   
-        self.visit_arguments(node.args, link, save)
-        config.data.currentScope = save
 
     def visit_Attribute(self, node):
         save = self.leftPart
@@ -346,7 +346,8 @@ class Visitor(ast.NodeVisitor):
         node.link = ti.tgnode.UnknownTGNode(node)
 
     def visit_comprehension(self, node):
-        self.visit_common_in(node)
+        var = self.visit_common_iter(node)
+        self.visit_common_target(var, node.target, node.ifs)
 
     def visit_TryExcept(self, node):
         filtered = set()

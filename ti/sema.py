@@ -346,15 +346,26 @@ class TemplateSema(Sema, ScopeInterface):
         return scope.getVariables()
 
     def hasGlobals(self):
+        from ti.tgnode import ForFunctionDefinitionTGNode
+        if isinstance(self.origin.function, ForFunctionDefinitionTGNode):
+            return False
         return True
 
     def connectReturn(self, node):
-        from ti.tgnode import EdgeType
-        node.link.addEdge(EdgeType.ASSIGN, self.origin)
+        from ti.tgnode import EdgeType, ForFunctionDefinitionTGNode
+        origin = self.origin
+        if isinstance(origin.function, ForFunctionDefinitionTGNode):
+            origin.parent.connectReturn(node)
+        else:
+            node.link.addEdge(EdgeType.ASSIGN, origin)
 
     def connectYield(self, node):
-        from ti.tgnode import EdgeType
-        node.link.addEdge(EdgeType.ASSIGN_YIELD, self.origin)
+        from ti.tgnode import EdgeType, ForFunctionDefinitionTGNode
+        origin = self.origin
+        if isinstance(origin.function, ForFunctionDefinitionTGNode):
+            origin.parent.connectYield(node)
+        else:
+            node.link.addEdge(EdgeType.ASSIGN_YIELD, origin)
 
 class ModuleSema(Sema, ScopeInterface):
 

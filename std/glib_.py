@@ -7,19 +7,9 @@ Created on 21.07.2013
 import types
 
 from ti.sema import *
+from utils   import *
 
 typeNone = LiteralSema(types.NoneType)
-
-class QuasiNode(object):
-
-    def __init__(self, link):
-        self.link = link
-
-class QuasiCall(object):
-
-    def __init__(self, func, args):
-        self.func = func
-        self.args = args
 
 def quasiTimeout_Add(params, **kwargs):
     from ti.tgnode import FunctionCallTGNode, VariableTGNode

@@ -207,12 +207,17 @@ def processProductElement(function, isInit, tgnode, productElement, kwKeys):
         template.addEdge(ti.tgnode.EdgeType.ASSIGN, tgnode)
     if newTemplate:
         templates[key] = template
-        if isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode):
+        if (isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode) or
+            isinstance(origin, ti.tgnode.ForFunctionDefinitionTGNode)):
             astCopy = copy.deepcopy(origin.ast)
             visitor = ti.visitor.Visitor(None)
             save = config.data.currentScope
             templateScope = template.getScope()
             config.data.currentScope = ti.sema.ScopeSema(templateScope)
+            if isinstance(origin, ti.tgnode.ForFunctionDefinitionTGNode):
+                var = params.findName(origin.ITER_NAME)
+                targetCopy = copy.deepcopy(origin.target)
+                visitor.visit_common_target(var, targetCopy)
             for stmt in astCopy:
                 visitor.visit(stmt)
             config.data.currentScope = save

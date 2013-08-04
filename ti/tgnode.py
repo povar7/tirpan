@@ -9,6 +9,7 @@ import copy
 import os
 import types
 
+import config
 import ti.lookup
 from   ti.sema   import *
 
@@ -80,7 +81,7 @@ class EdgeType(object):
     def processAssignCustom(left, right, *args):
         from ti.visitor import Visitor 
         test  = args[0]
-        types = left.getElementsTypes(None)
+        types = left.nodeType
         if test:
             def condition(x):
                 visitor = Visitor(None)
@@ -565,7 +566,7 @@ class FunctionDefinitionTGNode(TGNode):
 
 class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
-    def __init__(self, node, name, scope):
+    def __init__(self, node, name, scope, visitor):
         super(UsualFunctionDefinitionTGNode, self).__init__(name, scope, None)
 
         if isinstance(node, ast.Lambda):
@@ -580,6 +581,11 @@ class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
         if node.args.kwarg:
             self.dictParam = VariableTGNode(node.args.kwarg)
+
+        save = config.data.currentScope
+        config.data.currentScope = self.getParams()
+        visitor.visit_arguments(node.args, self, save)
+        config.data.currentScope = save
 
     def hasDefaultReturn(self):
         return self.defaultReturn
@@ -620,6 +626,23 @@ class ExternalFunctionDefinitionTGNode(FunctionDefinitionTGNode):
             number += 1
             self.dictParam = VariableTGNode('kwargs')
             self.dictParam.setNumber(number)
+
+class ForFunctionDefinitionTGNode(FunctionDefinitionTGNode):
+
+    FUNC_NAME = '#func'
+    ITER_NAME = '#iter'
+
+    def __init__(self, node, scope):
+        super(ForFunctionDefinitionTGNode, self).__init__(self.FUNC_NAME,
+                                                          scope,
+                                                          None)
+
+        self.ast    = node.body
+        self.target = node.target
+
+        param = VariableTGNode(self.ITER_NAME)
+        param.setNumber(1)
+        self.params.addVariable(param)
 
 class FunctionCallTGNode(TGNode):
 
