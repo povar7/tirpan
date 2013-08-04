@@ -9,7 +9,8 @@ import copy
 import itertools
 import types
 
-from ti.sema import *
+from ti.lookup import *
+from ti.sema   import *
 
 typeBool    = LiteralSema(bool)
 typeComplex = LiteralSema(complex)
@@ -91,6 +92,18 @@ def quasiRange3(params, **kwargs):
 def quasiSet(params, **kwargs):
     param = params[0]
     return {param}
+
+def quasiSetattr(params, **kwargs):
+    obj   = params[0]
+    attr  = params[1]
+    value = params[2]
+    try:
+        name   = str(attr.value)
+        values = {value}
+        setTypes(obj, name, values)
+    except:
+        pass
+    return {typeNone}
 
 def quasiType(params, **kwargs):
     return {typeType}
@@ -406,6 +419,7 @@ functions = [
                 ['range'     , quasiRange1  , 1                     ],
                 ['range'     , quasiRange3  , 3, {'3' : {typeInt}}  ],
                 ['set'       , quasiSet     , 1                     ],
+                ['setattr'   , quasiSetattr , 3                     ],
                 ['type'      , quasiType    , 1                     ],
             ]
 

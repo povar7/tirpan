@@ -377,10 +377,8 @@ class AttributeTGNode(TGNode):
 
     @staticmethod
     def setValuesWithAttr(obj, attr, values):
-        from ti.lookup import lookupVariable
-        var = lookupVariable(obj, attr, True, len(values) > 0)
-        if var is not None:
-            EdgeType.updateRight(var, values)
+        from ti.lookup import setTypes
+        setTypes(obj, attr, values)
 
     @staticmethod
     def setValues(objects, attr, values):
