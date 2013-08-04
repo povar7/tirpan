@@ -93,6 +93,15 @@ def quasiSet(params, **kwargs):
     param = params[0]
     return {param}
 
+def quasiGetattr(params, **kwargs):
+    obj  = params[0]
+    attr = params[1]
+    try:
+        name = str(attr.value)
+        return lookupTypes(obj, name)
+    except:
+        return set()
+
 def quasiSetattr(params, **kwargs):
     obj   = params[0]
     attr  = params[1]
@@ -419,8 +428,10 @@ functions = [
                 ['range'     , quasiRange1  , 1                     ],
                 ['range'     , quasiRange3  , 3, {'3' : {typeInt}}  ],
                 ['set'       , quasiSet     , 1                     ],
-                ['setattr'   , quasiSetattr , 3                     ],
                 ['type'      , quasiType    , 1                     ],
+
+                ['getattr'   , quasiGetattr , 2                     ],
+                ['setattr'   , quasiSetattr , 3                     ],
             ]
 
 variables = [

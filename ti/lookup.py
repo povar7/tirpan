@@ -9,6 +9,7 @@ import copy
 
 from ti.builtin import getBaseStringClass, getListClass
 from ti.sema    import *
+from utils      import *
 
 def replaceStandardCollections(obj):
     if isinstance(obj, ListSema):
@@ -42,8 +43,8 @@ def setTypes(obj, attr, values):
     if var is not None:
         EdgeType.updateRight(var, values)
 
-def lookupVariable(obj, attr, setValue = False, createNew = False):
-    from ti.tgnode import VariableTGNode
+def lookupVariable(obj, attr, setValue = False, createNew = False, aux = None):
+    from ti.tgnode import FunctionCallTGNode, VariableTGNode
     var = None
     if (isinstance(obj, CollectionSema) or
         isinstance(obj, LiteralSema)):
@@ -55,6 +56,18 @@ def lookupVariable(obj, attr, setValue = False, createNew = False):
         var = lookupScope.findNameHere(attr)
         if var:
             return var
+        if (aux is not None and attr != '__getattr__' and
+            not setValue and not createNew):
+            attrTypes = lookupTypes(aux, '__getattr__')
+        else:
+            attrTypes = set()
+        if len(attrTypes) > 0:
+            attrVar  = VariableTGNode(None, {LiteralValueSema(attr)})
+            args     = [QuasiNode(attrVar)]
+            attrFunc = VariableTGNode(None, attrTypes)
+            func     = QuasiNode(attrFunc)
+            quasiCall = QuasiCall(func, args)
+            return FunctionCallTGNode(quasiCall)
         for base in obj.origin.getBases():
             for elem in base.link.nodeType:
                 if not isinstance(elem, ClassSema):
@@ -72,7 +85,7 @@ def lookupVariable(obj, attr, setValue = False, createNew = False):
             lookupScope.addVariable(var)
             return var
         if not setValue:
-            var = lookupVariable(obj.getStub(), attr)
+            var = lookupVariable(obj.getStub(), attr, False, False, obj)
     elif isinstance(obj, ModuleSema):
         lookupScope = obj.getBody()
         var = lookupScope.findNameHere(attr)
