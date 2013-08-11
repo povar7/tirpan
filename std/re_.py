@@ -20,26 +20,24 @@ def findReClass(name):
     return list(var.nodeType)[0]
 
 def quasiCompile(params, **kwargs):
-    from ti.tgnode import InstanceSema
     try:
         pattern = re.compile(params[0].value)
         cls = findReClass(getPatternClassName())
         if not cls:
             return set()
-        res = InstanceSema(cls)
+        res = cls.getClassInstance()
         res.data = pattern
         return {res}
     except:
         return set()
 
 def quasiMatch(params, **kwargs):
-    from ti.tgnode import InstanceSema
     try:
         match = params[0].data.match(params[1].value)
         cls = findReClass(getMatchClassName())
         if not cls:
             return set()
-        res = InstanceSema(cls)
+        res = cls.getClassInstance()
         res.data = match
         return {res}
     except:

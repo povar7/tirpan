@@ -440,9 +440,11 @@ variables = [
             ]
 
 modules   = [
-                ['glib'     ],
-                ['logging'  ],
                 ['posixpath'],
+
+                ['glib'     ],
+                ['gtk'      ],
+                ['logging'  ],
                 ['os'       ],
                 ['re'       ],
                 ['sys'      ],
