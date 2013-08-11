@@ -12,6 +12,7 @@ import ti.lookup
 import ti.sema
 import ti.tgnode
 import ti.visitor
+import utils
 
 def copyParam(param):
     paramCopy = copy.copy(param)
@@ -209,8 +210,9 @@ def processProductElement(function, isInit, tgnode, productElement, kwKeys):
         templates[key] = template
         if (isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode) or
             isinstance(origin, ti.tgnode.ForFunctionDefinitionTGNode)):
-            astCopy = copy.deepcopy(origin.ast)
-            visitor = ti.visitor.Visitor(None)
+            astCopy  = copy.deepcopy(origin.ast)
+            filename = utils.getFileName(astCopy[0])
+            visitor  = ti.visitor.Visitor(filename)
             save = config.data.currentScope
             templateScope = template.getScope()
             config.data.currentScope = ti.sema.ScopeSema(templateScope)
