@@ -103,8 +103,8 @@ def quasiGtkMain(params, **kwargs):
         for actionTuple in inst._actions.getElements():
             if (isinstance(actionTuple, TupleSema) and
                 actionTuple.getNumberOfElements() == 6):
-                actions = actionTuple.getElementsAtIndex(5)
-                funcTypes |= actions
+                callbacks  = actionTuple.getElementsAtIndex(5)
+                funcTypes |= callbacks
 
     func = QuasiNode(VariableTGNode('func', funcTypes))
 
@@ -119,6 +119,26 @@ def quasiGtkMain(params, **kwargs):
     return {typeNone}
 
 def quasiRun(params, **kwargs):
+    obj = params[0]
+    buttons = obj._buttons
+
+    funcTypes = set()
+    for button in buttons.getElements():
+        handlers = button._handlers
+        for handler in handlers.getElements():
+            callbacks = handler.getElementsAtIndex(1)
+            funcTypes |= callbacks
+
+    func = QuasiNode(VariableTGNode('func', funcTypes))
+
+    args = []
+    argTypes = {typeNone}
+    arg = VariableTGNode('arg1', argTypes)
+    args.append(QuasiNode(arg))
+
+    quasiCall = QuasiCall(func, args)
+    FunctionCallTGNode(quasiCall)
+
     return {typeNone}
 
 def quasiResponseOk():
