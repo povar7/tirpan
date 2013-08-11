@@ -8,13 +8,14 @@ import gtk
 import types
 
 from ti.sema import *
+from utils   import *
 
 typeNone = LiteralSema(types.NoneType)
 
 def findGtkModule():
     import config
     importer = config.data.importer
-    return importer.importedFiles['re']
+    return importer.importedFiles['gtk']
 
 def findGtkClass(name):
     module = findGtkModule()
@@ -77,7 +78,7 @@ def quasiDialog(params, **kwargs):
 
 def quasiAddButton(params, **kwargs):
     type1 = params[0]
-    cls = findGtkclass(getButtonClassName())
+    cls = findGtkClass(getButtonClassName())
     if not cls:
         return {typeNone}
 
@@ -90,6 +91,31 @@ def quasiAddButton(params, **kwargs):
     return {button}
 
 def quasiGtkMain(params, **kwargs):
+    from ti.tgnode import FunctionCallTGNode, VariableTGNode
+
+    cls = findGtkClass(getActionGroupClassName())
+    if not cls:
+        return {typeNone}
+
+    funcTypes = set()
+    origin = cls.origin
+    for inst in origin.getInstances():
+        for actionTuple in inst._actions.getElements():
+            if (isinstance(actionTuple, TupleSema) and
+                actionTuple.getNumberOfElements() == 6):
+                actions = actionTuple.getElementsAtIndex(5)
+                funcTypes |= actions
+
+    func = QuasiNode(VariableTGNode('func', funcTypes))
+
+    args = []
+    argTypes = {typeNone}
+    arg = VariableTGNode('arg1', argTypes)
+    args.append(QuasiNode(arg))
+
+    quasiCall = QuasiCall(func, args)
+    FunctionCallTGNode(quasiCall)
+
     return {typeNone}
 
 def quasiRun(params, **kwargs):
@@ -123,7 +149,8 @@ actionGroupClass = (
                            ['add_actions', quasiAddActions , 2],
                        ],
                        [
-                       ]
+                       ],
+                       True
                    )
 
 def getButtonClassName():

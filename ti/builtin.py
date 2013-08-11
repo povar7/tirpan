@@ -20,9 +20,9 @@ def initBuiltinVariable(scope, name, typeFunction):
     ext.addEdge(EdgeType.ASSIGN, var)
     scope.addVariable(var)
 
-def initBuiltinClass(scope, name, methods, fields):
+def initBuiltinClass(scope, name, methods, fields, count = False):
     from ti.tgnode import ClassTGNode, EdgeType
-    cls = ClassTGNode(name, [], scope)
+    cls = ClassTGNode(name, [], scope, count)
     var = scope.findOrAddName(name)
     cls.addEdge(EdgeType.ASSIGN, var)
     scope.addVariable(var)

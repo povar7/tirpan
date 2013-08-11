@@ -284,7 +284,9 @@ class ClassSema(Sema, ScopeInterface):
         return self.origin.getBody()
 
     def getClassInstance(self):
-        return InstanceSema(self)
+        inst = InstanceSema(self)
+        self.origin.addInstance(inst)
+        return inst 
 
     def getGlobalNames(self):
         return set() 
