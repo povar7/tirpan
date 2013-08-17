@@ -3861,7 +3861,7 @@ class TestFunc02(unittest.TestCase):
     ast, defects = tirpan.run('tests/func02.py')
         
     def test_z(self):
-        node = utils.findNode(self.ast, line=10, col=1, kind=ast.Name)
+        node = utils.findNode(self.ast, line=12, col=1, kind=ast.Name)
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VariableTGNode),
@@ -3891,7 +3891,7 @@ class TestFunc03(unittest.TestCase):
     ast, defects = tirpan.run('tests/func03.py')
         
     def test_z(self):
-        node = utils.findNode(self.ast, line=12, col=1, kind=ast.Name)
+        node = utils.findNode(self.ast, line=14, col=1, kind=ast.Name)
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VariableTGNode),
@@ -3964,7 +3964,7 @@ class TestFunc05(unittest.TestCase):
     ast, defects = tirpan.run('tests/func05.py')
         
     def test_u(self):
-        node = utils.findNode(self.ast, line=25, col=1, kind=ast.Name)
+        node = utils.findNode(self.ast, line=27, col=1, kind=ast.Name)
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VariableTGNode),
@@ -5324,6 +5324,26 @@ class TestMisc25(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'a', 'name is not "a"')
 
+class TestMisc26(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc26.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=22, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = ListSema()
+        type1.elems[0].add(LiteralValueSema(u'webstuff.gpr.py'))
+        type1.elems[0].add(LiteralValueSema(u'fanchartview.gpr.py'))
+        type1.freeze()
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
 class TestObject01(unittest.TestCase):
     
     ast, defects = tirpan.run('tests/object01.py')
@@ -6266,7 +6286,7 @@ class TestUnop01(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = self.tInt
+        type1 = LiteralValueSema(-1)
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),

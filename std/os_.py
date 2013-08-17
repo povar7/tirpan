@@ -15,7 +15,7 @@ def quasiListdir(params, **kwargs):
         filenames = os.listdir(params[0].value)
         for elem in filenames:
             res.elems.append({LiteralValueSema(elem)})
-    except AttributeError:
+    except:
         pass
     return {res}
 

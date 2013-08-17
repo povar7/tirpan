@@ -18,6 +18,8 @@ from ti.skips    import *
 
 class Visitor(ast.NodeVisitor):
 
+    SKIP_NEXT = 'SKIP_NEXT'
+
     def __init__(self, filename):
         self.filename  = filename
         self.filtering = False
@@ -90,7 +92,7 @@ class Visitor(ast.NodeVisitor):
         node.link = ti.tgnode.ListTGNode(node)
 
     def visit_common_subscript(self, collection, index):
-        hasIndex = index is not None
+        hasIndex = not isinstance(index, ast.Slice)
         link = ti.tgnode.SubscriptTGNode(hasIndex)
         link.addEdge(EdgeType.ASSIGN_OBJECT, collection.link)
         collection.link.addEdge(EdgeType.ATTR_OBJECT, link)
@@ -99,8 +101,19 @@ class Visitor(ast.NodeVisitor):
             self.getValue = True
             self.visit(index)
             self.getValue = save
-            link.addEdge(EdgeType.ASSIGN_SLICE, index.link)
-            index.link.addEdge(EdgeType.ATTR_SLICE, link)
+            link.addEdge(EdgeType.ASSIGN_INDEX, index.link)
+            index.link.addEdge(EdgeType.ATTR_INDEX, link)
+        else:
+            self.visit(index)
+            if index.lower:
+                link.addEdge(EdgeType.ASSIGN_SLICE, index.lower.link, 0)
+                index.lower.link.addEdge(EdgeType.ATTR_SLICE, link)
+            if index.upper:
+                link.addEdge(EdgeType.ASSIGN_SLICE, index.upper.link, 1)
+                index.upper.link.addEdge(EdgeType.ATTR_SLICE, link)
+            if index.step:
+                link.addEdge(EdgeType.ASSIGN_SLICE, index.upper.link, 2)
+                index.step.link.addEdge(EdgeType.ATTR_SLICE, link)
         return link
         
     def visit_Dict(self, node):
@@ -258,10 +271,12 @@ class Visitor(ast.NodeVisitor):
     def visit_Return(self, node):
         self.visit_common_ret(node)
         config.data.currentScope.connectReturn(node)
+        return self.SKIP_NEXT
 
     def visit_Yield(self, node):
         self.visit_common_ret(node)
         config.data.currentScope.connectYield(node)
+        return self.SKIP_NEXT
 
     def visit_Lambda(self, node):
         save = config.data.currentScope
@@ -281,7 +296,7 @@ class Visitor(ast.NodeVisitor):
 
     def visit_Subscript(self, node):
         self.visit(node.value)
-        index = getattr(node.slice, 'value', None)
+        index = getattr(node.slice, 'value', node.slice)
         node.link = self.visit_common_subscript(node.value, index)
 
     def visit_ListComp(self, node):
@@ -304,11 +319,18 @@ class Visitor(ast.NodeVisitor):
         skipElse = checkSkipElse(condition)
         if not skipIf:
             for stmt in node.body:
-                self.visit(stmt)
+                res = self.visit(stmt)
+                if res == self.SKIP_NEXT:
+                    if checkSkipAfterIf(condition):
+                        return self.SKIP_NEXT
+                    else:
+                        break
         config.data.currentScope = saveScope
         if not skipElse:
             for stmt in node.orelse:
-                self.visit(stmt)
+                res = self.visit(stmt)
+                if res == self.SKIP_NEXT:
+                    break
 
     def visit_GeneratorExp(self, node):
         self.generic_visit(node)
@@ -353,11 +375,13 @@ class Visitor(ast.NodeVisitor):
         filtered = set()
         save = config.data.currentScope
         for stmt in node.body:
-            self.visit(stmt)
+            res = self.visit(stmt)
             var = checkSkipNotIterable(stmt)
             if var is not None:
                 filtered.add(var)
                 addSubvariable(var, EdgeType.ASSIGN_ITER, True)
+            if res == self.SKIP_NEXT:
+                break
         config.data.currentScope = save
         for var in filtered:
             if var is not None:
@@ -369,7 +393,17 @@ class Visitor(ast.NodeVisitor):
             else:
                 config.data.currentScope = save
             for stmt in handler.body:
-                self.visit(stmt)
+                res = self.visit(stmt)
+                if res == self.SKIP_NEXT:
+                    break
         config.data.currentScope = save
         for stmt in node.orelse:
-            self.visit(stmt)
+            res = self.visit(stmt)
+            if res == self.SKIP_NEXT:
+                break
+
+    def visit_Break(self, node):
+        return self.SKIP_NEXT
+
+    def visit_Continue(self, node):
+        return self.SKIP_NEXT

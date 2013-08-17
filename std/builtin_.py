@@ -72,6 +72,12 @@ def quasiIter(params, **kwargs):
     except AttributeError:
         return set()
 
+def quasiLen(params, **kwargs):
+    try:
+        return {LiteralValueSema(len(params[0].value))}
+    except AttributeError:
+        return {typeInt}
+
 def quasiRange1(params, **kwargs):
     return quasiRange3(params + [typeInt, typeInt])
 
@@ -384,6 +390,10 @@ def quasiUplus(params, **kwargs):
 
 def quasiUminus(params, **kwargs):
     oper = params[0]
+    try:
+        return {LiteralValueSema(-oper.value)}
+    except:
+        pass
     if oper.ltype == int:
         return {typeInt, typeLong}
     return quasiUplus(params, **kwargs)
@@ -425,6 +435,7 @@ functions = [
                                                   '3' : {typeStr } }],
 
                 ['iter'      , quasiIter    , 1                     ],
+                ['len'       , quasiLen     , 1                     ],
                 ['range'     , quasiRange1  , 1                     ],
                 ['range'     , quasiRange3  , 3, {'3' : {typeInt}}  ],
                 ['set'       , quasiSet     , 1                     ],
@@ -442,6 +453,7 @@ variables = [
 modules   = [
                 ['posixpath'],
 
+                ['getopt'   ],
                 ['glib'     ],
                 ['gtk'      ],
                 ['logging'  ],

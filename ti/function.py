@@ -221,7 +221,9 @@ def processProductElement(function, isInit, tgnode, productElement, kwKeys):
                 targetCopy = copy.deepcopy(origin.target)
                 visitor.visit_common_target(var, targetCopy)
             for stmt in astCopy:
-                visitor.visit(stmt)
+                res = visitor.visit(stmt)
+                if res == visitor.SKIP_NEXT:
+                    break
             config.data.currentScope = save
             if not origin.name:
                 astCopy[0].link.addEdge(ti.tgnode.EdgeType.ASSIGN, template)

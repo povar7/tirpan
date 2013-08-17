@@ -1,8 +1,10 @@
 foo = 10
 
 def foo(a, b):
-    return a
-    return b
+    if cond:
+        return a
+    else:
+        return b
 
 tmp = [1]
 x   = ['abc', tmp]

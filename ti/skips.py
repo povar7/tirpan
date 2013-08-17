@@ -163,3 +163,31 @@ def checkComprehension(ifs, target):
 
 def checkFilteringCondition(condition):
     return isinstance(condition, (ast.Name, ast.BoolOp))
+
+def checkSkipAfterIf(condition):
+    if not isinstance(condition, ast.UnaryOp):
+        return False
+    operand = condition.operand
+    if not isinstance(operand, ast.Compare):
+        return False
+    comparators = operand.comparators
+    if len(comparators) != 1:
+        return False
+    ops = operand.ops
+    if len(ops) != 1:
+        return False
+    op = ops[0]
+    if not isinstance(op, ast.Eq):
+        return False
+    type1 = operand.left.link.nodeType
+    if len(type1) != 1:
+        return False
+    elem1 = list(type1)[0]
+    type2 = comparators[0].link.nodeType
+    if len(type2) != 1:
+        return False
+    elem2 = list(type2)[0]
+    try:
+        return elem1.value != elem2.value
+    except:
+        return False

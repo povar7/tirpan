@@ -8,6 +8,7 @@ import ast
 import copy
 import os
 import types
+import itertools
 
 import config
 import ti.lookup
@@ -21,11 +22,13 @@ class EdgeType(object):
     ASSIGN           = 'Assign'
     ASSIGN_CUSTOM    = 'AssignCustom'
     ASSIGN_ELEMENT   = 'AssignElement'
+    ASSIGN_INDEX     = 'AssignIndex'
     ASSIGN_ITER      = 'AssignIter'
     ASSIGN_OBJECT    = 'AssignObject'
     ASSIGN_SLICE     = 'AssignSlice'
     ASSIGN_TRUE      = 'AssignTrue'
     ASSIGN_YIELD     = 'AssignYield'
+    ATTR_INDEX       = 'AttrIndex'
     ATTR_SLICE       = 'AttrSlice'
     ATTR_OBJECT      = 'AttrObject'
     ELEMENT          = 'Element'
@@ -101,6 +104,10 @@ class EdgeType(object):
         EdgeType.updateRight(right, types)
 
     @staticmethod
+    def processAssignIndex(left, right, *args):
+        pass
+
+    @staticmethod
     def processAssignIter(left, right, *args):
         flag = args[0]
         def condition(x):
@@ -146,11 +153,15 @@ class EdgeType(object):
         EdgeType.updateRight(right, types)
 
     @staticmethod
-    def processAttrSlice(left, right, *args):
+    def processAttrIndex(left, right, *args):
         right.process()
 
     @staticmethod
     def processAttrObject(left, right, *args):
+        right.process()
+
+    @staticmethod
+    def processAttrSlice(left, right, *args):
         right.process()
 
     @staticmethod
@@ -409,11 +420,11 @@ class SubscriptTGNode(TGNode):
         super(SubscriptTGNode, self).__init__()
         self.hasIndex = hasIndex
 
-    def getSlices(self):
-       slices = set()
-       for node, args in self.getEdges(EdgeType.ASSIGN_SLICE):
-           slices |= node.nodeType
-       return slices
+    def getIndices(self):
+       indices = set()
+       for node, args in self.getEdges(EdgeType.ASSIGN_INDEX):
+           indices |= node.nodeType
+       return indices
 
     def getRights(self):
        rights = set()
@@ -421,6 +432,28 @@ class SubscriptTGNode(TGNode):
            rights |= node.nodeType
        return rights
 
+    def getSlices(self):
+       lowers = set()
+       for node, args in self.getEdges(EdgeType.ASSIGN_SLICE):
+           if args[0] != 0:
+               continue
+           lowers |= node.nodeType
+       uppers = set()
+       for node, args in self.getEdges(EdgeType.ASSIGN_SLICE):
+           if args[0] != 1:
+               continue
+           uppers |= node.nodeType
+       if len(uppers) == 0:
+           uppers.add(None)
+       steps = set()
+       for node, args in self.getEdges(EdgeType.ASSIGN_SLICE):
+           if args[0] != 2:
+               continue
+           steps |= node.nodeType
+       if len(steps) == 0:
+           steps.add(None)
+       return (lowers, uppers, steps)
+           
     def getObjects(self):
        objects = set()
        for node, args in self.getEdges(EdgeType.ASSIGN_OBJECT):
@@ -430,9 +463,12 @@ class SubscriptTGNode(TGNode):
     def process(self):
        objects = self.getObjects()
        rights  = self.getRights()
-       slices  = self.getSlices()
-       self.setValues(objects, slices, rights, self.hasIndex)
-       self.nodeType = self.getValues(objects, slices, self.hasIndex)
+       if self.hasIndex:
+           indices = self.getIndices()
+       else:
+           indices = self.getSlices()
+       self.setValues(objects, indices, rights, self.hasIndex)
+       self.nodeType = self.getValues(objects, indices, self.hasIndex)
 
     @staticmethod
     def setValuesWithIndex(obj, slices, values):
@@ -454,12 +490,12 @@ class SubscriptTGNode(TGNode):
             obj.addElements(value.getElements())
 
     @staticmethod
-    def setValues(objects, slices, values, hasIndex):
+    def setValues(objects, indices, values, hasIndex):
         for obj in objects:
             if not isinstance(obj, CollectionSema):
                 continue
             if hasIndex:
-                SubscriptTGNode.setValuesWithIndex(obj, slices, values)
+                SubscriptTGNode.setValuesWithIndex(obj, indices, values)
             else:
                 SubscriptTGNode.setValuesWithoutIndex(obj, values)
 
@@ -488,15 +524,38 @@ class SubscriptTGNode(TGNode):
             return set()
             
     @staticmethod
-    def getValues(objects, slices, hasIndex):
+    def getValues(objects, indices, hasIndex):
         res = set()
         for obj in objects:
-            if not isinstance(obj, CollectionSema):
-                continue
             if hasIndex:
-                newTypes = SubscriptTGNode.getValuesWithIndex(obj, slices)
+                if isinstance(obj, CollectionSema):
+                    newTypes = SubscriptTGNode.getValuesWithIndex(obj, indices)
+                else:
+                    newTypes = set()
             else:
-                newTypes = SubscriptTGNode.getValuesWithoutIndex(obj)
+                if isinstance(obj, CollectionSema):
+                    newTypes = SubscriptTGNode.getValuesWithoutIndex(obj)
+                elif (isinstance(obj, LiteralSema) and
+                      obj.ltype in (str, unicode)):
+                    newTypes = set()
+                    for elem in itertools.product(*indices):
+                        try:
+                            value = obj.value
+                            lower = getattr(elem[0], 'value', None)
+                            upper = getattr(elem[1], 'value', None)
+                            if upper:
+                                step = getattr(elem[2], 'value', None)
+                                if step:
+                                    strSlice = value[lower:upper:step]
+                                else:
+                                    strSlice = value[lower:upper]
+                            else:
+                                strSlice = value[lower:]
+                            newTypes.add(LiteralValueSema(strSlice))
+                        except:
+                            pass
+                else:
+                    newTypes = set()
             res |= newTypes
         return res
 
