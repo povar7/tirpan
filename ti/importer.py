@@ -58,6 +58,8 @@ class Importer(object):
         module = ti.tgnode.UsualModuleTGNode(tree, filename, data.globalScope)
         tree.link = module
         fileno = self.putIdent(module)
+        if data.imports:
+            print '%d\t%s' % (fileno, module.name)
         for node in ast.walk(tree):
             node.fileno = fileno
         self.importedFiles[searchName] = tree.link

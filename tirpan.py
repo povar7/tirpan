@@ -11,8 +11,8 @@ import argparse
 import config
 from ti.parser import Parser
 
-def run(filename):
-    config.initialize(filename)
+def run(filename, imports = False):
+    config.initialize(filename, imports)
     importer = config.data.importer
     mainModule = importer.getIdent(0)
     ast = mainModule.getAST()
@@ -23,6 +23,8 @@ if __name__ == '__main__':
     argParser = argparse.ArgumentParser()
     argParser.add_argument('filename',
                            help='name of analyzed Python source file')
+    argParser.add_argument('-i', '--imports', action='store_true',
+                           help='print imports')
     args = argParser.parse_args()
 
-    run(args.filename)
+    run(args.filename, args.imports)

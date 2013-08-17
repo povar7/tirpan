@@ -5,17 +5,18 @@ from ti.sema     import ScopeSema
 
 class Config(object):
 
-    def __init__(self, filename):
+    def __init__(self, filename, imports):
         self.defectsHandler = DefectsHandler()
         self.globalScope    = ScopeSema(None)
         self.currentScope   = self.globalScope
+        self.imports        = imports
         self.importer       = Importer(filename, self)
 
 data = None
 
-def initialize(filename):
+def initialize(filename, imports):
     global data
-    data = Config(filename)
+    data = Config(filename, imports)
     importer = data.importer
     globalScope = data.globalScope
     initBuiltins(importer, globalScope)
