@@ -6165,20 +6165,21 @@ class TestStd07(unittest.TestCase):
     
     ast, defects = tirpan.run('tests/std07.py')
         
-    def test_y(self):
-        node = utils.findNode(self.ast, line=26, kind=ast.Name)
+    def test_x(self):
+        node = utils.findNode(self.ast, line=50, kind=ast.Name)
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = ListSema()
-        type1.elems = [{LiteralValueSema(tests.const.WEBSTUFF_PLUGIN_ID)}]
+        type1.elems[0].add(LiteralValueSema(tests.const.WEBSTUFF_PLUGIN_ID))
+        type1.elems[0].add(LiteralValueSema(tests.const.FANCHART_PLUGIN_ID))
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
-        self.assertEqual(node.link.name, 'y', 'name is not "y"')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
 class TestStd08(unittest.TestCase):
     

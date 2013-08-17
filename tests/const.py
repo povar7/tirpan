@@ -22,6 +22,9 @@ WEBSTUFF_PLUGIN_ID = 'system webstuff'
 WEBSTUFF_PYTHON_FN = 'webstuff.py'
 WEBSTUFF_PYTHON_DR = os.path.join(PLUGINS_DIR, 'webstuff')
 
+FANCHART_PLUGIN_ID = 'fanchartview'
+FANCHART_PYTHON_FN = 'fanchartview.py'
+
 REPORT_KEY = 'FamilySheet'
 REPORT_MENU_NAME = 'Family Sheet...'
 
