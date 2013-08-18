@@ -16,7 +16,7 @@ def findReModule():
 def findReClass(name):
     module = findReModule()
     var = module.getScope().findName(name)
-    assert(len(var.nodeType) == 1)
+    assert len(var.nodeType) == 1
     return list(var.nodeType)[0]
 
 def quasiCompile(params, **kwargs):

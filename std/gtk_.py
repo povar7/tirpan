@@ -20,7 +20,7 @@ def findGtkModule():
 def findGtkClass(name):
     module = findGtkModule()
     var = module.getScope().findName(name)
-    assert(len(var.nodeType) == 1)
+    assert len(var.nodeType) == 1
     return list(var.nodeType)[0]
 
 def quasiActionGroup(params, **kwargs):

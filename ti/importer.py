@@ -52,14 +52,14 @@ class Importer(object):
         try:
             parser = Parser(filename)
         except IOError:
-            print 'Cannot open "%s" file' % filename
+            print >> sys.stderr, 'Cannot open "%s" file' % filename
             exit(1)
         tree   = parser.getAST()
         module = ti.tgnode.UsualModuleTGNode(tree, filename, data.globalScope)
         tree.link = module
         fileno = self.putIdent(module)
         if data.imports:
-            print '%d\t%s' % (fileno, module.name)
+            print >> sys.stderr, '%d\t%s' % (fileno, module.name)
         for node in ast.walk(tree):
             node.fileno = fileno
         self.importedFiles[searchName] = tree.link
@@ -199,7 +199,7 @@ class Importer(object):
         for cls in classes:
             initBuiltinClass(scope, *cls)
 
-    def addStandardModule(self, globalScope, name):
-        module = ti.tgnode.ExternalModuleTGNode(name, globalScope)
+    def addStandardModule(self, globalScope, name, asname = None):
+        module = ti.tgnode.ExternalModuleTGNode(name, globalScope, asname)
         self.importStandardModule(module, globalScope)
         self.importedFiles[name] = module

@@ -1,5 +1,6 @@
-from ti.checkers import *
+from ti.btrace   import BackTrace
 from ti.builtin  import initBuiltins
+from ti.checkers import *
 from ti.importer import Importer
 from ti.sema     import ScopeSema
 
@@ -9,6 +10,7 @@ class Config(object):
         self.defectsHandler = DefectsHandler()
         self.globalScope    = ScopeSema(None)
         self.currentScope   = self.globalScope
+        self.backTrace      = BackTrace() 
         self.imports        = imports
         self.importer       = Importer(filename, self)
 

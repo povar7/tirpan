@@ -5,6 +5,7 @@ Created on 26.05.2013
 '''
 
 import copy
+import types
 
 class ScopeWrap(object):
 
@@ -35,6 +36,9 @@ class Sema(object):
     def getNumberOfElements(self):
         return 0
 
+    def getString(self):
+        return '?'
+
 class LiteralSema(Sema):
 
     def __init__(self, ltype):
@@ -46,6 +50,12 @@ class LiteralSema(Sema):
 
     def getInstanceHash(self):
         return hash(self.ltype)
+
+    def getString(self):
+        if self.ltype == types.NoneType:
+            return str(None)
+        else:
+            return '<%s value>' % str(self.ltype)
 
 class LiteralValueSema(LiteralSema):
 
@@ -59,6 +69,14 @@ class LiteralValueSema(LiteralSema):
 
     def getInstanceHash(self):
         return hash((self.ltype, self.value))
+
+    def getString(self):
+        if self.ltype == str:
+            return '\'' + str(self.value) + '\''
+        elif self.ltype == unicode:
+            return 'u\'' + str(self.value) + '\''
+        else:
+            return str(self.value)
 
 class CollectionSema(Sema):
 
@@ -94,7 +112,7 @@ class ListOrTupleSema(CollectionSema):
             elem |= values
 
     def addElementsAtIndex(self, index, values):
-        assert(not self.frozen)
+        assert not self.frozen
         try:
             self.elems[index + 1] |= values
         except:
@@ -107,7 +125,7 @@ class ListOrTupleSema(CollectionSema):
         return self.getElements()
 
     def isInstanceEqualTo(self, other):
-        assert(self.frozen == other.frozen)
+        assert self.frozen == other.frozen
         if self.frozen:
             return self.elems == other.elems
         else:
@@ -132,6 +150,25 @@ class ListOrTupleSema(CollectionSema):
         self.elems  = res
         self.frozen = True
 
+    def getString(self):
+        res = ''
+        if isinstance(self, TupleSema):
+            res += '('
+        else:
+            res += '['
+        first = True
+        for elem in self.getElements():
+            if not first:
+                res += ', '
+            else:
+                first = False
+            res += elem.getString()
+        if isinstance(self, TupleSema):
+            res += ')'
+        else:
+            res += ']'
+        return res
+
 class ListSema(ListOrTupleSema):
 
     def __init__(self, size = 0):
@@ -149,7 +186,7 @@ class DictSema(CollectionSema):
         self.elems = dict()
 
     def isInstanceEqualTo(self, other):
-        assert(self.frozen == other.frozen)
+        assert self.frozen == other.frozen
         if self.frozen:
             return self.elems == other.elems
         else:
@@ -202,6 +239,12 @@ class FunctionSema(Sema):
 
     def getInstanceHash(self):
         return id(self)
+
+    def getString(self):
+        if self.origin.name:
+            return self.origin.name
+        else:
+            return '<lambda>'
 
 class ScopeInterface(object):
 
@@ -274,6 +317,13 @@ class ScopeSema(Sema, ScopeInterface):
         if parent:
             parent.addGlobalNames(names)
 
+    def getString(self):
+        parent = self.getParent()
+        if parent:
+            return parent.getString()
+        else:
+            return '?'
+
 class ClassSema(Sema, ScopeInterface):
    
     def __init__(self, origin):
@@ -307,6 +357,9 @@ class ClassSema(Sema, ScopeInterface):
     def getInstanceHash(self):
         return id(self)
 
+    def getString(self):
+        return '<class %s>' % self.origin.name
+
 class InstanceSema(Sema, ScopeInterface):
 
     def __init__(self, stub):
@@ -326,6 +379,9 @@ class InstanceSema(Sema, ScopeInterface):
 
     def getInstanceHash(self):
         return id(self)
+
+    def getString(self):
+        return '<%s object>' % self.stub.origin.name
 
 class TemplateSema(Sema, ScopeInterface):
 
@@ -369,6 +425,13 @@ class TemplateSema(Sema, ScopeInterface):
         else:
             node.link.addEdge(EdgeType.ASSIGN_YIELD, origin)
 
+    def getString(self):
+        function = self.origin.function
+        if function.name:
+            return function.name
+        else:
+            return '<lambda>'
+
 class ModuleSema(Sema, ScopeInterface):
 
     def __init__(self, origin):
@@ -393,6 +456,9 @@ class ModuleSema(Sema, ScopeInterface):
 
     def hasGlobals(self):
         return False
+
+    def getString(self):
+        return '<module>'
 
 class UnknownSema(Sema):
 

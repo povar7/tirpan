@@ -1,0 +1,8 @@
+Tirpan traceback (most recent call last):
+  File "/home/bronikkk/asp/non_sync/repo/new/tirpan/tests/misc28.py", line 18, in <module>:
+    foo()
+  File "/home/bronikkk/asp/non_sync/repo/new/tirpan/tests/misc28.py", line 16, in foo:
+    <A object>.set_css_filename([])
+  File "/home/bronikkk/asp/non_sync/repo/new/tirpan/tests/misc28.py", line 8, in set_css_filename:
+    os.path.basename([])
+FUNC.ARG.WRONG: 'os.path.basename' expects <basestring object>, not [].

@@ -9,12 +9,11 @@ import ast
 import config
 import ti.tgnode
 import ti.sema
-import utils
 
-from ti.checkers import *
-from ti.lookup   import getOperatorName
-from ti.tgnode   import EdgeType
-from ti.skips    import *
+from ti.lookup import getOperatorName
+from ti.tgnode import EdgeType
+from ti.skips  import *
+from utils     import *
 
 class Visitor(ast.NodeVisitor):
 
@@ -191,7 +190,6 @@ class Visitor(ast.NodeVisitor):
             self.visit(pair.value)
         self.visit(node.func)
         node.link = ti.tgnode.FunctionCallTGNode(node)
-        checkBasenameCall(node)
 
     def visit_common_iter(self, node):
         self.visit(node.iter)

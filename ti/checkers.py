@@ -7,8 +7,9 @@ Created on 03.08.2013
 import ast
 import copy
 
-from ti.sema import *
-from utils   import *
+import config
+from   ti.sema import *
+from   utils   import *
 
 unknownSema = NoSema()
 
@@ -31,11 +32,12 @@ class Defect(object):
 
     def __init__(self, node):
         self._node  = node
+        self._msg   = None
         self._kind  = None
         self._descr = None
 
     def __repr__(self):
-        return '%s: %s' % (self._kind, self._descr)
+        return self._msg + self._kind + ': ' + self._descr
 
     def __eq__(self, other):
         return (self.__class__ == other.__class__ and
@@ -47,13 +49,15 @@ class Defect(object):
     def instance_hash(self):
         return hash(self._descr)
 
-class FuncArgDefect(Defect):
+class FuncArgWrongDefect(Defect):
 
     def __init__(self, node, arg):
-        super(FuncArgDefect, self).__init__(node)
-        self._kind  = 'FUNC.ARG'
+        super(FuncArgWrongDefect, self).__init__(node)
+        self._kind  = 'FUNC.ARG.WRONG'
         self._descr = '\'os.path.basename\' expects ' + \
-                      '<basestring object>, not %s.' % arg
+                      '<basestring object>, not %s.' % arg.getString()
+        self._msg   = 'Tirpan traceback (most recent call last):\n' + \
+                      config.data.backTrace.get()
 
         self._arg = arg.copy()
         self._arg.freeze()
@@ -65,13 +69,8 @@ class FuncArgDefect(Defect):
         pos  = (line, col, fno)
         return hash((pos, self._arg))
 
-def checkBasenameCall(node):
-    import config
-
-    if not isinstance(node, ast.Call):
-        return
-    
-    funcType = node.func.link.nodeType
+def checkBasenameCall(node, func, productElement):
+    args = productElement[0]
 
     def funcCondition(x):
         from ti.tgnode import ExternalFunctionDefinitionTGNode
@@ -82,12 +81,12 @@ def checkBasenameCall(node):
             return False
         return origin.name == 'basename'
 
-    if not any(funcCondition(elem) for elem in funcType):
+    if not funcCondition(func):
         return
 
     try:
-        argType = node.args[0].link.nodeType
-    except:
+        arg = args[0]
+    except IndexError:
         return
 
     def argCondition(x):
@@ -97,7 +96,6 @@ def checkBasenameCall(node):
             return False
         return True
 
-    for elem in argType:
-        if argCondition(elem):
-            defectsHandler = config.data.defectsHandler
-            defectsHandler.addDefect(FuncArgDefect(node, elem)) 
+    if argCondition(arg):
+        defectsHandler = config.data.defectsHandler
+        defectsHandler.addDefect(FuncArgWrongDefect(node, arg)) 

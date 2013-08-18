@@ -8,6 +8,7 @@ import copy
 import itertools
 
 import config
+import ti.checkers
 import ti.lookup
 import ti.sema
 import ti.tgnode
@@ -189,11 +190,12 @@ def getProductElements(listArgumentType,
                                   itertools.product(*dictResultTypes)):
         yield elem, kwKeys
 
-def processProductElement(function, isInit, tgnode, productElement, kwKeys):
+def processProductElement(function, isInit, tgNode, productElement, kwKeys):
+    btrace = config.data.backTrace
     origin = function.origin
 
     if isInit:
-        key = productElement, tgnode
+        key = productElement, tgNode
     else:
         key = productElement, None
 
@@ -204,40 +206,62 @@ def processProductElement(function, isInit, tgnode, productElement, kwKeys):
     if newTemplate:
         params, inst = linkCall(function, isInit, kwKeys, *productElement)
         template = ti.tgnode.FunctionTemplateTGNode(params, origin, inst)
-    if (tgnode, ()) not in template.edges:
-        template.addEdge(ti.tgnode.EdgeType.ASSIGN, tgnode)
+    if (tgNode, ()) not in template.edges:
+        template.addEdge(ti.tgnode.EdgeType.ASSIGN, tgNode)
     if newTemplate:
         templates[key] = template
+        save = config.data.currentScope
+
         if (isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode) or
             isinstance(origin, ti.tgnode.ForFunctionDefinitionTGNode)):
             astCopy  = copy.deepcopy(origin.ast)
             filename = utils.getFileName(astCopy[0])
             visitor  = ti.visitor.Visitor(filename)
-            save = config.data.currentScope
+            
             templateScope = template.getScope()
             config.data.currentScope = ti.sema.ScopeSema(templateScope)
-            if isinstance(origin, ti.tgnode.ForFunctionDefinitionTGNode):
+
+            if isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode):
+                usual = True
+            else:
+                usual = False
                 var = params.findName(origin.ITER_NAME)
                 targetCopy = copy.deepcopy(origin.target)
                 visitor.visit_common_target(var, targetCopy)
+
+            if usual:
+                btrace.addFrame(tgNode.node, save, function, productElement)
+
             for stmt in astCopy:
                 res = visitor.visit(stmt)
                 if res == visitor.SKIP_NEXT:
                     break
+
+            if usual:
+                btrace.deleteFrame()
+
             config.data.currentScope = save
+
             if not origin.name:
                 astCopy[0].link.addEdge(ti.tgnode.EdgeType.ASSIGN, template)
         elif isinstance(origin, ti.tgnode.ExternalFunctionDefinitionTGNode):
-            fileNumber   = tgnode.node.fileno
+            fileNumber   = tgNode.node.fileno
             unsorted     = [var for var in params.variables.values()
                             if var.number]
             sortParams   = ti.tgnode.FunctionDefinitionTGNode.sortParams
             sortedParams = sorted(unsorted, sortParams)
             types = []
             for param in sortedParams:
-                assert(len(param.nodeType) == 1)
+                assert len(param.nodeType) == 1
                 types.append(list(param.nodeType)[0])
+
+            btrace.addFrame(tgNode.node, save, function, productElement)
             template.nodeType = origin.quasi(types, FILE_NUMBER=fileNumber)
+            ti.checkers.checkBasenameCall(tgNode.node,
+                                          function,
+                                          productElement)
+            btrace.deleteFrame()
+
             template.walkEdges()
 
 def processFunc(node, functionNode, argumentNodes, KWArgumentNodes,

@@ -451,7 +451,7 @@ variables = [
             ]
 
 modules   = [
-                ['posixpath'],
+                ['posixpath', 'os.path'],
 
                 ['getopt'   ],
                 ['glib'     ],

@@ -284,7 +284,7 @@ class ConstTGNode(TGNode):
               isinstance(node, (ast.Return, ast.Yield)) and not node.value):
             value = None
         else:
-            assert(False)
+            assert False
         self.value = value
         if getValue:
             self.nodeType = {LiteralValueSema(value)}
@@ -761,7 +761,7 @@ class FunctionCallTGNode(TGNode):
 
     def getFunctionNode(self):
         edges = self.getEdges(EdgeType.REV_FUNC)
-        assert(len(edges) == 1)
+        assert len(edges) == 1
         for node, args in edges:
             return node
         return None
@@ -775,7 +775,7 @@ class FunctionCallTGNode(TGNode):
 
     def getListArgumentNode(self):
         edges = self.getEdges(EdgeType.REV_LISTARGUMENT)
-        assert(len(edges) <= 1)
+        assert len(edges) <= 1
         for node, args in edges:
             return node
         return None
@@ -872,6 +872,9 @@ class ClassTGNode(TGNode):
     def getBody(self):
         return self.body
 
+    def getName(self):
+        return self.name
+
     def getParent(self):
         return self.parent
 
@@ -932,8 +935,12 @@ class UsualModuleTGNode(ModuleTGNode):
 
 class ExternalModuleTGNode(ModuleTGNode):
 
-    def __init__(self, name, parentScope):
+    def __init__(self, name, parentScope, asname = None):
         super(ExternalModuleTGNode, self).__init__(name, parentScope, None)
+        self.asname = asname if asname else self.name
+
+    def getAliasName(self):
+        return self.asname
 
 class BooleanOperationTGNode(TGNode):
 
