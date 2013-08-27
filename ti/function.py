@@ -11,9 +11,21 @@ import config
 import ti.checkers
 import ti.lookup
 import ti.sema
+import ti.skips
 import ti.tgnode
 import ti.visitor
 import utils
+
+class Flags(object):
+
+    def __init__(self):
+        self._destructive = False
+
+    def isDestructive(self):
+        return self._destructive
+
+    def setDestructive(self):
+        self._destructive = True
 
 def copyParam(param):
     paramCopy = copy.copy(param)
@@ -194,7 +206,7 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
     btrace = config.data.backTrace
     origin = function.origin
 
-    if isInit:
+    if isInit or origin.isGlobalDestructive():
         key = productElement, tgNode
     else:
         key = productElement, None
@@ -208,6 +220,9 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
         template = ti.tgnode.FunctionTemplateTGNode(params, origin, inst)
     if (tgNode, ()) not in template.edges:
         template.addEdge(ti.tgnode.EdgeType.ASSIGN, tgNode)
+     
+    globalDestructive = False
+
     if newTemplate:
         templates[key] = template
         save = config.data.currentScope
@@ -244,6 +259,11 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
 
             if not origin.name:
                 astCopy[0].link.addEdge(ti.tgnode.EdgeType.ASSIGN, template)
+
+            try:
+                globalDestructive = origin.isGlobalDestructive()
+            except AttributeError:
+                pass
         elif isinstance(origin, ti.tgnode.ExternalFunctionDefinitionTGNode):
             fileNumber   = tgNode.node.fileno
             unsorted     = [var for var in params.variables.values()
@@ -256,13 +276,22 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
                 types.append(list(param.nodeType)[0])
 
             btrace.addFrame(tgNode.node, save, function, productElement)
-            template.nodeType = origin.quasi(types, FILE_NUMBER=fileNumber)
+            flags = Flags()
+            template.nodeType = origin.quasi(types,
+                                             FILE_NUMBER=fileNumber,
+                                             FLAGS=flags)
             ti.checkers.checkBasenameCall(tgNode.node,
                                           function,
                                           productElement)
             btrace.deleteFrame()
 
             template.walkEdges()
+
+            globalDestructive = ti.skips.checkGlobalDestructive(flags,
+                                                                tgNode.node)
+
+        if globalDestructive:
+            config.data.currentScope.setGlobalDestructive()
 
 def processFunc(node, functionNode, argumentNodes, KWArgumentNodes,
                 listArgumentType):

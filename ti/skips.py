@@ -191,3 +191,19 @@ def checkSkipAfterIf(condition):
         return elem1.value != elem2.value
     except:
         return False
+
+def checkGlobalDestructive(flags, node):
+    if not flags.isDestructive():
+        return False
+
+    try:
+        link = node.func.value.link
+        objects = link.commonRetrieve('objects',
+                                      ti.tgnode.EdgeType.isNotReverseAssign)
+    except AttributeError:
+        objects = set()
+
+    def callback(elem):
+        return isinstance(elem, ti.sema.InstanceSema) and elem.isSingleton()
+
+    return any(callback(elem) for elem in objects)

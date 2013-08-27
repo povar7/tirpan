@@ -206,6 +206,14 @@ class EdgeType(object):
         if len(right.nodeType) > length:
             right.walkEdges()
 
+    @staticmethod
+    def isNotReverse(edgeType):
+        return not edgeType.startswith('Rev')
+
+    @staticmethod
+    def isNotReverseAssign(edgeType):
+        return edgeType != EdgeType.REV_ASSIGN
+
 class TGNode(object):
 
     def __init__(self):
@@ -226,7 +234,7 @@ class TGNode(object):
         self.edges[edgeType].discard((node, ()))
     
     def walkEdge(self, edgeType, node, *args):
-        if not edgeType.startswith('Rev'):
+        if EdgeType.isNotReverse(edgeType):
             getattr(EdgeType, 'process' + edgeType)(self, node, *args)
 
     def walkEdges(self):
@@ -246,25 +254,31 @@ class TGNode(object):
             res |= singleType.getElementsAtIndex(index)
         return res
 
-    def getConstants(self, memo = None):
-        if memo is None:
-            memo = {self}
-        else:
-            if self in memo:
-                return
-            else:
-                memo.add(self)
+    def commonRetrieve(self, attr, condition):
+        memo   = set()
+        result = set()
 
-        self.processConstants()
+        data = (memo, result)
+        self._commonRetrieve(attr, condition, data)
+
+        return result
+
+    def _commonRetrieve(self, attr, condition, data):
+        memo, result = data
+        if self in memo:
+            return
+        else:
+            memo.add(self)
+
+        callback = getattr(self, attr + 'Callback', None)
+        if callback:
+            callback(result)
 
         for edgeType, edgeValue in self.edges.items():
-            if not edgeType.startswith('Rev'):
+            if condition(edgeType):
                 continue
             for node, args in edgeValue:
-                node.getConstants(memo)
-
-    def processConstants(self):
-        pass
+                node._commonRetrieve(attr, condition, data)
 
     def __eq__(self, other):
         return self is other
@@ -294,7 +308,7 @@ class ConstTGNode(TGNode):
     def getValue(self):
         return self.value
 
-    def processConstants(self):
+    def constantsCallback(self, result):
         newType = LiteralValueSema(self.value)
         if newType not in self.nodeType:
             self.nodeType.add(newType)
@@ -413,6 +427,9 @@ class AttributeTGNode(TGNode):
             newTypes = AttributeTGNode.getValuesWithAttr(obj, attr)
             res |= newTypes
         return res
+
+    def objectsCallback(self, result):
+        result |= self.getObjects()
 
 class SubscriptTGNode(TGNode):
 
@@ -577,6 +594,8 @@ class FunctionDefinitionTGNode(TGNode):
 
         self.defaults  = defaults if defaults else {}
 
+        self.globalDestructive = False
+
         self.globalNames = set()
 
     def isListParam(self, param):
@@ -622,6 +641,12 @@ class FunctionDefinitionTGNode(TGNode):
 
     def hasDefaultReturn(self):
         return False
+
+    def isGlobalDestructive(self):
+        return self.globalDestructive
+
+    def setGlobalDestructive(self):
+        self.globalDestructive = True 
 
 class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
@@ -861,6 +886,7 @@ class ClassTGNode(TGNode):
 
         self.templates = {}
 
+        self.instancesNumber = 0
         if count:
             self.instances = set()
         else:
@@ -889,9 +915,13 @@ class ClassTGNode(TGNode):
             self.instances.add(inst)
         except AttributeError:
             pass
+        self.instancesNumber += 1
 
     def getInstances(self):
         return self.instances
+
+    def getInstancesNumber(self):
+        return self.instancesNumber
 
 class ModuleTGNode(TGNode):
 

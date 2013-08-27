@@ -317,6 +317,11 @@ class ScopeSema(Sema, ScopeInterface):
         if parent:
             parent.addGlobalNames(names)
 
+    def setGlobalDestructive(self):
+        parent = self.getParent()
+        if parent:
+            parent.setGlobalDestructive()
+
     def getString(self):
         parent = self.getParent()
         if parent:
@@ -336,7 +341,10 @@ class ClassSema(Sema, ScopeInterface):
     def getClassInstance(self):
         inst = InstanceSema(self)
         self.origin.addInstance(inst)
-        return inst 
+        return inst
+
+    def getInstancesNumber(self):
+        return self.origin.getInstancesNumber()
 
     def getGlobalNames(self):
         return set() 
@@ -383,6 +391,10 @@ class InstanceSema(Sema, ScopeInterface):
     def getString(self):
         return '<%s object>' % self.stub.origin.name
 
+    def isSingleton(self):
+        stub = self.getStub()
+        return stub.getInstancesNumber() == 1
+
 class TemplateSema(Sema, ScopeInterface):
 
     def __init__(self, origin):
@@ -425,6 +437,10 @@ class TemplateSema(Sema, ScopeInterface):
         else:
             node.link.addEdge(EdgeType.ASSIGN_YIELD, origin)
 
+    def setGlobalDestructive(self):
+        function = self.origin.function
+        function.setGlobalDestructive()
+
     def getString(self):
         function = self.origin.function
         if function.name:
@@ -456,6 +472,9 @@ class ModuleSema(Sema, ScopeInterface):
 
     def hasGlobals(self):
         return False
+
+    def setGlobalDestructive(self):
+        pass
 
     def getString(self):
         return '<module>'

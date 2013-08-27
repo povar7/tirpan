@@ -47,7 +47,7 @@ class Visitor(ast.NodeVisitor):
             else:
                 link = config.data.currentScope.findOrAddName(node.id)
         if self.getValue and link is not None:
-            link.getConstants()
+            link.commonRetrieve('constants', EdgeType.isNotReverse) 
         node.link = link
         if self.filtering:
             if link is not None:

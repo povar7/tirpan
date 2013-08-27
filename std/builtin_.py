@@ -9,8 +9,9 @@ import copy
 import itertools
 import types
 
-from ti.lookup import *
-from ti.sema   import *
+from ti.function import Flags
+from ti.lookup   import *
+from ti.sema     import *
 
 typeBool    = LiteralSema(bool)
 typeComplex = LiteralSema(complex)
@@ -25,6 +26,8 @@ typeUnicode = LiteralSema(unicode)
 def quasiAppend(params, **kwargs):
     if isinstance(params[0], ListSema):
         params[0].addElementsAtIndex(None, {params[1]})
+        flags = kwargs['FLAGS']
+        flags.setDestructive()
     return {typeNone}
 
 def quasiExtend(params, **kwargs):
@@ -32,11 +35,15 @@ def quasiExtend(params, **kwargs):
         isinstance(params[1], ListSema)):
         elements = params[1].getElements()
         params[0].addElementsAtIndex(None, elements)
+        flags = kwargs['FLAGS']
+        flags.setDestructive()
     return {typeNone}
 
 def quasiInsert(params, **kwargs):
     if isinstance(params[0], ListSema):
         params[0].addElementsAtIndex(None, {params[2]})
+        flags = kwargs['FLAGS']
+        flags.setDestructive()
     return {typeNone}
 
 def quasiEncode(params, **kwargs):
