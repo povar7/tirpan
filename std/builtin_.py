@@ -7,7 +7,10 @@ Created on 05.06.2013
 import ast
 import copy
 import itertools
+import sys
 import types
+
+import config
 
 from ti.function import Flags
 from ti.lookup   import *
@@ -66,6 +69,8 @@ def quasiExecfile(params, **kwargs):
         oldScope  = importer.getFileScope(oldNumber) 
         module    = UsualModuleTGNode(tree, filename, None, oldScope)
         newNumber = importer.putIdent(module)
+        if config.data.imports:
+            print >> sys.stderr, '%d\t%s' % (newNumber, module.name)
         tree.link = module
         for node in ast.walk(tree):
             node.fileno = newNumber
