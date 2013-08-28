@@ -18,29 +18,30 @@ classes = (CollectionSema, LiteralSema, ClassSema, InstanceSema, ModuleSema)
 
 class EdgeType(object):
 
-    ARGUMENT         = 'Argument'
-    ASSIGN           = 'Assign'
-    ASSIGN_CUSTOM    = 'AssignCustom'
-    ASSIGN_ELEMENT   = 'AssignElement'
-    ASSIGN_INDEX     = 'AssignIndex'
-    ASSIGN_ITER      = 'AssignIter'
-    ASSIGN_OBJECT    = 'AssignObject'
-    ASSIGN_SLICE     = 'AssignSlice'
-    ASSIGN_TRUE      = 'AssignTrue'
-    ASSIGN_YIELD     = 'AssignYield'
-    ATTR_INDEX       = 'AttrIndex'
-    ATTR_SLICE       = 'AttrSlice'
-    ATTR_OBJECT      = 'AttrObject'
-    ELEMENT          = 'Element'
-    FUNC             = 'Func'
-    KWARGUMENT       = 'KWArgument'
-    LISTARGUMENT     = 'ListArgument'
-    REV_ARGUMENT     = 'RevArgument'
-    REV_ASSIGN       = 'RevAssign'
-    REV_ELEMENT      = 'RevElement'
-    REV_FUNC         = 'RevFunc'
-    REV_KWARGUMENT   = 'RevKWArgument'
-    REV_LISTARGUMENT = 'RevListArgument'
+    ARGUMENT           = 'Argument'
+    ASSIGN             = 'Assign'
+    ASSIGN_CUSTOM      = 'AssignCustom'
+    ASSIGN_ELEMENT     = 'AssignElement'
+    ASSIGN_INDEX       = 'AssignIndex'
+    ASSIGN_ITER        = 'AssignIter'
+    ASSIGN_OBJECT      = 'AssignObject'
+    ASSIGN_SLICE       = 'AssignSlice'
+    ASSIGN_TRUE        = 'AssignTrue'
+    ASSIGN_YIELD       = 'AssignYield'
+    ATTR_INDEX         = 'AttrIndex'
+    ATTR_SLICE         = 'AttrSlice'
+    ATTR_OBJECT        = 'AttrObject'
+    ELEMENT            = 'Element'
+    FUNC               = 'Func'
+    KWARGUMENT         = 'KWArgument'
+    LISTARGUMENT       = 'ListArgument'
+    REV_ARGUMENT       = 'RevArgument'
+    REV_ASSIGN         = 'RevAssign'
+    REV_ASSIGN_ELEMENT = 'RevAssignElement'
+    REV_ELEMENT        = 'RevElement'
+    REV_FUNC           = 'RevFunc'
+    REV_KWARGUMENT     = 'RevKWArgument'
+    REV_LISTARGUMENT   = 'RevListArgument'
 
     @staticmethod
     def updateRight(right, types):
@@ -360,10 +361,14 @@ class TupleTGNode(TGNode):
 
     def __init__(self, node):
         super(TupleTGNode, self).__init__()
-        elems = node.elts
+        if isinstance(node, ast.ClassDef):
+            elems = node.bases
+        else:
+            elems = node.elts
         tupleSema     = TupleSema(len(elems))
         self.nodeType = {tupleSema}
-        if isinstance(node, ast.Tuple):
+        if (isinstance(node, ast.Tuple) or
+            isinstance(node, ast.ClassDef)):
             index = 0
             for elem in elems:
                 link = elem.link

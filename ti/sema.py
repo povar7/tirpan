@@ -339,8 +339,11 @@ class ClassSema(Sema, ScopeInterface):
         return self.origin.getBody()
 
     def getClassInstance(self):
+        from ti.tgnode import VariableTGNode
         inst = InstanceSema(self)
         self.origin.addInstance(inst)
+        var = VariableTGNode('__class__', {self})
+        inst.getBody().addVariable(var)
         return inst
 
     def getInstancesNumber(self):

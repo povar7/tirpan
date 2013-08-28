@@ -169,6 +169,10 @@ def quasiUnicode(params, **kwargs):
     except AttributeError:
         return {typeUnicode}
 
+def quasiObjectClassBases():
+    res = TupleSema()
+    return {res}
+
 baseStringClassName = str(basestring)
 
 def getBaseStringClassName():
@@ -198,6 +202,20 @@ listClass = (
                 [
                 ]
             )
+
+objectClassName = 'object'
+
+def getObjectClassName():
+    return objectClassName
+
+objectClass = (
+                  objectClassName,
+                  [
+                  ],
+                  [
+                      ['__bases__', quasiObjectClassBases],
+                  ]
+              )
 
 def quasiAdd(params, **kwargs):
     left  = params[0]
@@ -507,6 +525,7 @@ modules   = [
 classes   = [
                 baseStringClass,
                 listClass,
+                objectClass,
             ]
 
 def getAll():

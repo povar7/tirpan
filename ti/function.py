@@ -35,7 +35,8 @@ def copyParam(param):
     return paramCopy
 
 def getNodeType(elem):
-    if len(elem.nodeType) > 0:
+    if (len(elem.nodeType) > 0 or
+        ti.tgnode.EdgeType.REV_ASSIGN_ELEMENT in elem.edges):
         return elem.nodeType
     else:
         return {None}

@@ -196,6 +196,7 @@ class Visitor(ast.NodeVisitor):
         link = node.iter.link
         var  = ti.tgnode.VariableTGNode(None)
         link.addEdge(EdgeType.ASSIGN_ELEMENT, var, None)
+        var.addEdge(EdgeType.REV_ASSIGN_ELEMENT, link)
         return var
 
     def visit_common_target(self, var, target, ifs = None):
@@ -346,6 +347,10 @@ class Visitor(ast.NodeVisitor):
         var  = save.findOrAddName(name)
         node.link = link
         config.data.currentScope = link.getScope()
+        basesVar  = ti.tgnode.VariableTGNode('__bases__')
+        tupleNode = ti.tgnode.TupleTGNode(node)
+        tupleNode.addEdge(EdgeType.ASSIGN, basesVar)
+        config.data.currentScope.addVariable(basesVar)
         for stmt in node.body:
             self.visit(stmt)
         config.data.currentScope = save

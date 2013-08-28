@@ -29,6 +29,8 @@ def initBuiltinClass(scope, name, methods, fields, count = False):
     classScope = cls.getScope()
     for method in methods:
         initBuiltinFunction(classScope, *method)
+    for field in fields:
+        initBuiltinVariable(classScope, *field)
 
 class QuasiModule(object):
 
