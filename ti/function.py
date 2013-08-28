@@ -16,6 +16,8 @@ import ti.tgnode
 import ti.visitor
 import utils
 
+COUNTER = 0
+
 class Flags(object):
 
     def __init__(self):
@@ -265,7 +267,6 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
             except AttributeError:
                 pass
         elif isinstance(origin, ti.tgnode.ExternalFunctionDefinitionTGNode):
-            fileNumber   = tgNode.node.fileno
             unsorted     = [var for var in params.variables.values()
                             if var.number]
             sortParams   = ti.tgnode.FunctionDefinitionTGNode.sortParams
@@ -278,7 +279,7 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
             btrace.addFrame(tgNode.node, save, function, productElement)
             flags = Flags()
             template.nodeType = origin.quasi(types,
-                                             FILE_NUMBER=fileNumber,
+                                             NODE=tgNode.node,
                                              FLAGS=flags)
             ti.checkers.checkBasenameCall(tgNode.node,
                                           function,

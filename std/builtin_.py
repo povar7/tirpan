@@ -53,19 +53,39 @@ def quasiEncode(params, **kwargs):
     res = params[0]
     return {res}
 
+class ExecutedFiles(object):
+
+    def __init__(self):
+        self._files = set()
+
+    def addFile(self, filename, node):
+        key = (unicode(filename), node)
+        self._files.add(key)
+
+    def hasFile(self, filename, node):
+        key = (unicode(filename), node)
+        return key in self._files
+
+executedFiles = ExecutedFiles()
+
 def quasiExecfile(params, **kwargs):
-    filename = params[0].value
+    filename = getattr(params[0], 'value', None)
     if filename is not None:
         import config
         from ti.parser import Parser
         from ti.tgnode import UsualModuleTGNode
+        node = kwargs['NODE']
+        if executedFiles.hasFile(filename, node):
+            return {typeNone}
+        else:
+            executedFiles.addFile(filename, node)
         try:
             parser = Parser(filename)
             tree   = parser.getAST()
         except IOError:
             return {typeNone}
         importer  = config.data.importer
-        oldNumber = kwargs['FILE_NUMBER']
+        oldNumber = node.fileno
         oldScope  = importer.getFileScope(oldNumber) 
         module    = UsualModuleTGNode(tree, filename, None, oldScope)
         newNumber = importer.putIdent(module)
