@@ -304,7 +304,7 @@ class Visitor(ast.NodeVisitor):
         node.link = ti.tgnode.ListTGNode(node)
 
     def visit_IfExp(self, node):
-        self.generic_visit(node)
+        node.link = ti.tgnode.UnknownTGNode(node)
 
     def visit_If(self, node):
         saveScope = config.data.currentScope
