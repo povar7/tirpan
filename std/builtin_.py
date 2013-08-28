@@ -462,6 +462,7 @@ modules   = [
 
                 ['getopt'   ],
                 ['glib'     ],
+                ['glob'     ],
                 ['gtk'      ],
                 ['logging'  ],
                 ['os'       ],
