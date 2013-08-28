@@ -34,6 +34,18 @@ def copyParam(param):
     paramCopy.nodeType = param.nodeType.copy()
     return paramCopy
 
+def getNodeType(elem):
+    if len(elem.nodeType) > 0:
+        return elem.nodeType
+    else:
+        return {None}
+
+def makeSet(elem):
+    if elem is not None:
+        return {elem}
+    else:
+        return set()
+
 def getFunctions(functionNode):
     for elem in functionNode.nodeType:
         if isinstance(elem, ti.sema.FunctionSema):
@@ -72,7 +84,7 @@ def linkCall(function, isInit, kwKeys,
                 inst = argType.getClassInstance()
                 paramCopy.nodeType = {inst}
             else:
-                paramCopy.nodeType = {argType}
+                paramCopy.nodeType = makeSet(argType)
         except IndexError:
             paramCopy.nodeType = set()
         scope.addVariable(paramCopy)
@@ -82,7 +94,7 @@ def linkCall(function, isInit, kwKeys,
         listParamCopy = copyParam(listParam)
         tupleType = ti.sema.TupleSema(0)
         for elem in listArgsTypes:
-            tupleType.elems.append({elem})
+            tupleType.elems.append(makeSet(elem))
         listParamCopy.nodeType = {tupleType}
         scope.addVariable(listParamCopy)
 
@@ -92,7 +104,7 @@ def linkCall(function, isInit, kwKeys,
         dictType  = ti.sema.DictSema()
         for key in kwKeys:
             keyElement = ti.sema.LiteralValueSema(key)
-            dictType.elems[keyElement] = {dictArgsTypes[index]}
+            dictType.elems[keyElement] = makeSet(dictArgsTypes[index])
             index += 1
         dictParamCopy.nodeType = {dictType}
         scope.addVariable(dictParamCopy)
@@ -179,7 +191,7 @@ def getProductElements(listArgumentType,
         if isinstance(elem, set):
             normResultTypes.append(elem)
         elif elem:
-            normResultTypes.append(elem.nodeType)
+            normResultTypes.append(getNodeType(elem))
         else:
             normResultTypes.append(listArgumentType[index])
             index += 1
@@ -188,7 +200,7 @@ def getProductElements(listArgumentType,
     # DON'T set index = 0
     for elem in listResult:
         if elem:
-            listResultTypes.append(elem.nodeType)
+            listResultTypes.append(getNodeType(elem))
         else:
             listResultTypes.append(listArgumentType[index])
             index += 1
@@ -197,7 +209,7 @@ def getProductElements(listArgumentType,
     dictResultTypes = []
     for pair in dictResult.items():
         kwKeys.append(pair[0])
-        dictResultTypes.append(pair[1].nodeType)
+        dictResultTypes.append(getNodeType(pair[1]))
 
     for elem in itertools.product(itertools.product(*normResultTypes),
                                   itertools.product(*listResultTypes),
@@ -273,8 +285,12 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
             sortedParams = sorted(unsorted, sortParams)
             types = []
             for param in sortedParams:
-                assert len(param.nodeType) == 1
-                types.append(list(param.nodeType)[0])
+                assert len(param.nodeType) <= 1
+                try:
+                    newType = list(param.nodeType)[0]
+                except IndexError:
+                    newType = None
+                types.append(newType)
 
             btrace.addFrame(tgNode.node, save, function, productElement)
             flags = Flags()
@@ -283,7 +299,7 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
                                              FLAGS=flags)
             ti.checkers.checkBasenameCall(tgNode.node,
                                           function,
-                                          productElement)
+                                          types)
             btrace.deleteFrame()
 
             template.walkEdges()

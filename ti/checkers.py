@@ -69,9 +69,7 @@ class FuncArgWrongDefect(Defect):
         pos  = (line, col, fno)
         return hash((pos, self._arg))
 
-def checkBasenameCall(node, func, productElement):
-    args = productElement[0]
-
+def checkBasenameCall(node, func, args):
     def funcCondition(x):
         from ti.tgnode import ExternalFunctionDefinitionTGNode
         if not isinstance(x, FunctionSema):
@@ -87,6 +85,9 @@ def checkBasenameCall(node, func, productElement):
     try:
         arg = args[0]
     except IndexError:
+        arg = None
+
+    if arg is None:
         return
 
     def argCondition(x):

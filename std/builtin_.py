@@ -12,7 +12,7 @@ import types
 
 import config
 
-from ti.function import Flags
+from ti.function import makeSet, Flags
 from ti.lookup   import *
 from ti.sema     import *
 
@@ -28,6 +28,8 @@ typeUnicode = LiteralSema(unicode)
 
 def quasiAppend(params, **kwargs):
     if isinstance(params[0], ListSema):
+        if params[1] is None:
+            return {typeNone}
         params[0].addElementsAtIndex(None, {params[1]})
         flags = kwargs['FLAGS']
         flags.setDestructive()
@@ -44,6 +46,8 @@ def quasiExtend(params, **kwargs):
 
 def quasiInsert(params, **kwargs):
     if isinstance(params[0], ListSema):
+        if params[2] is None:
+            return {typeNone}
         params[0].addElementsAtIndex(None, {params[2]})
         flags = kwargs['FLAGS']
         flags.setDestructive()
@@ -129,7 +133,7 @@ def quasiRange3(params, **kwargs):
 
 def quasiSet(params, **kwargs):
     param = params[0]
-    return {param}
+    return makeSet(param)
 
 def quasiGetattr(params, **kwargs):
     obj  = params[0]
@@ -426,7 +430,7 @@ def quasiUminus(params, **kwargs):
         return {LiteralValueSema(-oper.value)}
     except:
         pass
-    if oper.ltype == int:
+    if isinstance(oper, LiteralSema) and oper.ltype == int:
         return {typeInt, typeLong}
     return quasiUplus(params, **kwargs)
 
@@ -485,14 +489,19 @@ variables = [
 modules   = [
                 ['posixpath', 'os.path'],
 
+                ['copy'     ],
                 ['getopt'   ],
+                ['gettext'  ],
                 ['glib'     ],
                 ['glob'     ],
                 ['gtk'      ],
                 ['logging'  ],
                 ['os'       ],
+                ['pickle'   ],
                 ['re'       ],
                 ['sys'      ],
+
+                ['ConfigParser'],
             ]
 
 classes   = [
