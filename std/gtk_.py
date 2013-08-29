@@ -7,8 +7,9 @@ Created on 11.08.2013
 import gtk
 import types
 
-from ti.sema import *
-from utils   import *
+from ti.lookup import *
+from ti.sema   import *
+from utils     import *
 
 typeNone = LiteralSema(types.NoneType)
 
@@ -24,69 +25,69 @@ def findGtkClass(name):
     return list(var.nodeType)[0]
 
 def quasiActionGroup(params, **kwargs):
-    obj  = params[0]
-    name = params[1] 
-    if not hasattr(obj, '_actions'):
-        obj._actions = ListSema()
-    if not hasattr(obj, '_name'):
-        try:
-            obj._name = str(name.value)
-        except AttributeError:
-            obj._name = None
+    obj = params[0]
+    var = lookupVariable(obj, '_actions', True, True)
+    if var:
+        var.nodeType = {ListSema()}
     return {obj}
 
 def quasiAddActions(params, **kwargs):
-    obj     = params[0]
-    actions = params[1]
-    for action in actions.getElements():
+    obj = params[0]
+    var = lookupVariable(obj, '_actions')
+    if not var:
+        return {typeNone}
+    assert len(var.nodeType) == 1
+    actions = list(var.nodeType)[0]
+    for action in params[1].getElements():
         if isinstance(action, TupleSema):
-            obj._actions.addElementsAtIndex(None, {action})
+            actions.addElementsAtIndex(None, {action})
     return {typeNone}
 
 def quasiButton(params, **kwargs):
-    obj   = params[0]
-    label = params[1]
-    if not hasattr(obj, '_handlers'):
-        obj._handlers = ListSema()
-    if not hasattr(obj, '_label'):
-        try:
-            obj._label = str(label.value)
-        except AttributeError:
-            obj._label = None
+    obj = params[0]
+    var = lookupVariable(obj, '_handlers', True, True)
+    if var:
+        var.nodeType = {ListSema()}
     return {obj}
 
-def quasiConnect(scope, **kwargs):
-    type1 = params[0]
-    type2 = params[1]
-    type3 = params[3]
+def quasiConnect(params, **kwargs):
+    obj = params[0]
+    var = lookupVariable(obj, '_handlers')
+    if not var:
+        return {typeNone}
+    assert len(var.nodeType) == 1
+    handlers = list(var.nodeType)[0] 
     tupleType = TupleSema()
-    tupleType.elems += [{type2}, {type3}]
-    type1._handlers.addElementsAtIndex(None, {tupleType})
+    tupleType.elems += [{params[1]}, {params[2]}]
+    handlers.addElementsAtIndex(None, {tupleType})
     return {typeNone}
 
 def quasiDialog(params, **kwargs):
-    obj   = params[0]
-    title = params[1]
-    if not hasattr(obj, '_buttons'):
-        obj._buttons = ListSema()
-    if not hasattr(obj, '_title'):
-        try:
-            obj._title = str(title.value)
-        except AttributeError:
-            obj._title = None
+    obj = params[0]
+    var = lookupVariable(obj, '_buttons', True, True)
+    if var:
+        var.nodeType = {ListSema()}
     return {obj}
 
 def quasiAddButton(params, **kwargs):
-    type1 = params[0]
+    obj = params[0]
     cls = findGtkClass(getButtonClassName())
     if not cls:
         return {typeNone}
 
     button = cls.getClassInstance()
-    button._handlers = ListSema()
-    button._label    = None
+    
+    var1 = lookupVariable(button, '_handlers', True, True)
+    if not var1:
+        return {button}
+    var1.nodeType = {ListSema()}
 
-    type1._buttons.addElementsAtIndex(None, {button})
+    var2 = lookupVariable(obj, '_buttons')
+    if not var2:
+        return {button}
+    assert len(var2.nodeType) == 1
+    buttons = list(var2.nodeType)[0]
+    buttons.addElementsAtIndex(None, {button})
 
     return {button}
 
@@ -98,9 +99,15 @@ def quasiGtkMain(params, **kwargs):
         return {typeNone}
 
     funcTypes = set()
+
     origin = cls.origin
     for inst in origin.getInstances():
-        for actionTuple in inst._actions.getElements():
+        var = lookupVariable(inst, '_actions')
+        if not var:
+            continue
+        assert len(var.nodeType) == 1
+        actions = list(var.nodeType)[0]
+        for actionTuple in actions.getElements():
             if (isinstance(actionTuple, TupleSema) and
                 actionTuple.getNumberOfElements() == 6):
                 callbacks  = actionTuple.getElementsAtIndex(5)
@@ -120,11 +127,21 @@ def quasiGtkMain(params, **kwargs):
 
 def quasiRun(params, **kwargs):
     obj = params[0]
-    buttons = obj._buttons
+
+    var1 = lookupVariable(obj, '_buttons')
+    if not var1:
+        return {typeNone}
+    assert len(var1.nodeType) == 1
+    buttons = list(var1.nodeType)[0]
 
     funcTypes = set()
+
     for button in buttons.getElements():
-        handlers = button._handlers
+        var2 = lookupVariable(button, '_handlers')
+        if not var2:
+            continue
+        assert len(var2.nodeType) == 1
+        handlers = list(var2.nodeType)[0]
         for handler in handlers.getElements():
             callbacks = handler.getElementsAtIndex(1)
             funcTypes |= callbacks
