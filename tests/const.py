@@ -37,3 +37,5 @@ VERSION_DIR   = os.path.join(HOME_DIR,
 USER_PLUGINS  = os.path.join(VERSION_DIR, "plugins")
 
 CONST_PYTHON_FN = os.path.basename('../tests/const.py')
+
+PATH_FOR_MISC34_2 = os.path.join(ROOT_DIR, "misc34_2.py")

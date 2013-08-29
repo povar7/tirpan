@@ -7,13 +7,15 @@ Created on 15.06.2013
 import ast
 import copy
 
-from ti.builtin import getBaseStringClass, getListClass
+from ti.builtin import getBaseStringClass, getDictClass, getListClass
 from ti.sema    import *
 from utils      import *
 
 def replaceStandardCollections(obj):
     if isinstance(obj, ListSema):
         return getListClass()
+    elif isinstance(obj, DictSema):
+        return getDictClass()
     elif (isinstance(obj, LiteralSema) and
           obj.ltype in (str, unicode)):
         return getBaseStringClass()

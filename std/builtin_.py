@@ -77,7 +77,7 @@ def quasiExecfile(params, **kwargs):
     if filename is not None:
         import config
         from ti.parser import Parser
-        from ti.tgnode import UsualModuleTGNode
+        from ti.tgnode import VariableTGNode, UsualModuleTGNode
         node = kwargs['NODE']
         if executedFiles.hasFile(filename, node):
             return {typeNone}
@@ -96,9 +96,21 @@ def quasiExecfile(params, **kwargs):
         if config.data.imports:
             print >> sys.stderr, '%d\t%s' % (newNumber, module.name)
         tree.link = module
+        ourGlobals = params[1]
+        save = config.data.currentScope
+        newScope = ScopeSema(save)
+        config.data.currentScope = newScope
+        if isinstance(ourGlobals, DictSema):
+            for key, value in ourGlobals.elems.items():
+                if (isinstance(key, LiteralValueSema) and
+                    isinstance(key.value, str)):
+                    valueCopy = value.copy()
+                    var = VariableTGNode(key.value, valueCopy)
+                    newScope.addVariable(var)
         for node in ast.walk(tree):
             node.fileno = newNumber
         parser.walk()
+        config.data.currentScope = save
     return {typeNone}
 
 def quasiIter(params, **kwargs):
@@ -169,6 +181,15 @@ def quasiUnicode(params, **kwargs):
     except AttributeError:
         return {typeUnicode}
 
+def quasiUpdate(params, **kwargs):
+    if (isinstance(params[0], DictSema) and
+        isinstance(params[1], DictSema)):
+        for key, values in params[1].elems.items():
+            params[0].addElementsAtKey(key, values)
+        flags = kwargs['FLAGS']
+        flags.setDestructive()
+    return {typeNone}
+
 def quasiObjectClassBases():
     res = TupleSema()
     return {res}
@@ -198,6 +219,20 @@ listClass = (
                     ['append', quasiAppend, 2],
                     ['extend', quasiExtend, 2],
                     ['insert', quasiInsert, 3],
+                ],
+                [
+                ]
+            )
+
+dictClassName = str(type({}))
+
+def getDictClassName():
+    return dictClassName
+
+dictClass = (
+                dictClassName,
+                [
+                    ['update', quasiUpdate, 2],
                 ],
                 [
                 ]
@@ -525,6 +560,7 @@ modules   = [
 classes   = [
                 baseStringClass,
                 listClass,
+                dictClass,
                 objectClass,
             ]
 

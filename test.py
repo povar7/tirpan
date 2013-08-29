@@ -139,7 +139,7 @@ class TestAssign04(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         type2 = LiteralSema(types.NoneType)
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
@@ -3320,7 +3320,7 @@ class TestBinop02(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         type2 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
@@ -3339,7 +3339,7 @@ class TestBoolop01(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         type2 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
@@ -3354,7 +3354,7 @@ class TestBoolop01(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         type2 = LiteralSema(float)
         type3 = LiteralValueSema('abc')
         self.assertTrue(len(nodeType) == 3 and
@@ -3709,7 +3709,7 @@ class TestBuiltin09(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -3874,7 +3874,7 @@ class TestFunc02(unittest.TestCase):
         type1.elems = [set()] + [{LiteralValueSema('abc')}, {childType}]
         type1.freeze()
         type2 = LiteralSema(float)
-        type3 = LiteralSema(int)
+        type3 = LiteralValueSema(1)
         type4 = childType
         type5 = LiteralValueSema(u'abc')
         self.assertTrue(len(nodeType) == 5 and
@@ -3904,7 +3904,7 @@ class TestFunc03(unittest.TestCase):
         type1.elems = [set()] + [{LiteralValueSema('abc')}, {childType}]
         type1.freeze()
         type2 = LiteralSema(float)
-        type3 = LiteralSema(int)
+        type3 = LiteralValueSema(1)
         type4 = childType
         type5 = LiteralValueSema(u'abc')
         type6 = ListSema()
@@ -3977,7 +3977,7 @@ class TestFunc05(unittest.TestCase):
         type1.elems = [set()] + [{LiteralValueSema('abc')}, {childType}]
         type1.freeze()
         type2 = LiteralSema(float)
-        type3 = LiteralSema(int)
+        type3 = LiteralValueSema(1)
         type4 = childType
         type5 = LiteralValueSema(u'abc')
         type6 = ListSema()
@@ -4486,7 +4486,7 @@ class TestFunc23(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        childType1 = LiteralSema(int)
+        childType1 = LiteralValueSema(1)
         childType2 = LiteralSema(float)
         childType3 = LiteralValueSema('abc')
         childType4 = LiteralValueSema(u'abc')
@@ -4551,7 +4551,7 @@ class TestGlobal03(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         type2 = LiteralValueSema(True)
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
@@ -4566,7 +4566,7 @@ class TestGlobal03(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -4605,7 +4605,7 @@ class TestImport01(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = ListSema()
-        type1.elems  = [set()] + [{LiteralSema(int)}]
+        type1.elems  = [set()] + [{LiteralValueSema(1)}]
         type1.elems += [{LiteralValueSema('abc')}, {LiteralSema(float)}]
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
@@ -4768,7 +4768,7 @@ class TestImport04(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(types.NoneType)
-        type2 = LiteralSema(int)
+        type2 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
                         any(type2 == elem for elem in nodeType),
@@ -4822,7 +4822,7 @@ class TestImport06(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -4839,7 +4839,7 @@ class TestImport07(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -4873,11 +4873,13 @@ class TestMisc01(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
-        type2 = LiteralSema(long)
-        self.assertTrue(len(nodeType) == 2 and
+        type1 = LiteralValueSema(8)
+        type2 = LiteralSema(int)
+        type3 = LiteralSema(long)
+        self.assertTrue(len(nodeType) == 3 and
                         any(type1 == elem for elem in nodeType) and
-                        any(type2 == elem for elem in nodeType),
+                        any(type2 == elem for elem in nodeType) and
+                        any(type3 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
@@ -4907,7 +4909,7 @@ class TestMisc02(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -4924,7 +4926,7 @@ class TestMisc03(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -4941,7 +4943,7 @@ class TestMisc04(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -4958,7 +4960,7 @@ class TestMisc05(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -4975,7 +4977,7 @@ class TestMisc06(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -4992,7 +4994,7 @@ class TestMisc07(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -5042,7 +5044,7 @@ class TestMisc10(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -5059,7 +5061,7 @@ class TestMisc11(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -5076,7 +5078,7 @@ class TestMisc12(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -5232,7 +5234,7 @@ class TestMisc17(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         type2 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
@@ -5251,7 +5253,7 @@ class TestMisc18(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         type2 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
@@ -5318,7 +5320,7 @@ class TestMisc25(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -5393,7 +5395,7 @@ class TestMisc30(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -5429,7 +5431,7 @@ class TestMisc32(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -5446,11 +5448,45 @@ class TestMisc33(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'a', 'name is not "a"')
+
+class TestMisc34(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc34_1.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=31, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = ListSema()
+        type1.elems = [{LiteralValueSema(0)}]
+        type1.freeze()
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
+    def test_y(self):
+        node = utils.findNode(self.ast, line=32, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = ListSema()
+        type1.elems = [{LiteralValueSema('report')}]
+        type1.freeze()
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'y', 'name is not "y"')
 
 class TestObject01(unittest.TestCase):
     
@@ -5463,7 +5499,7 @@ class TestObject01(unittest.TestCase):
         self.assertTrue(isinstance(node.link, AttributeTGNode),
                         'type is not an attribute')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -5475,7 +5511,7 @@ class TestObject01(unittest.TestCase):
         self.assertTrue(isinstance(node.link, AttributeTGNode),
                         'type is not an attribute')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -5544,7 +5580,7 @@ class TestObject02(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         type2 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
@@ -5594,7 +5630,7 @@ class TestObject04(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(types.NoneType)
-        type2 = LiteralSema(int)
+        type2 = LiteralValueSema(1)
         type3 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 3 and
                         any(type1 == elem for elem in nodeType) and
@@ -5611,7 +5647,7 @@ class TestObject04(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(types.NoneType)
-        type2 = LiteralSema(int)
+        type2 = LiteralValueSema(1)
         type3 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 3 and
                         any(type1 == elem for elem in nodeType) and
@@ -5647,7 +5683,7 @@ class TestObject05(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(types.NoneType)
-        type2 = LiteralSema(int)
+        type2 = LiteralValueSema(1)
         type3 = LiteralSema(float)
         self.assertTrue(len(nodeType) == 3 and
                         any(type1 == elem for elem in nodeType) and
@@ -5668,7 +5704,7 @@ class TestObject06(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(types.NoneType)
-        type2 = LiteralSema(int)
+        type2 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
                         any(type2 == elem for elem in nodeType),
@@ -5749,7 +5785,7 @@ class TestObject08(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(types.NoneType)
-        type2 = LiteralSema(int)
+        type2 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
                         any(type2 == elem for elem in nodeType),
@@ -5768,7 +5804,7 @@ class TestObject09(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralSema(types.NoneType)
-        type2 = LiteralSema(int)
+        type2 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
                         any(type2 == elem for elem in nodeType),
@@ -5803,7 +5839,7 @@ class TestObject11(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
@@ -6118,7 +6154,7 @@ class TestStd03(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
+        type1 = LiteralValueSema(1)
         type2 = LiteralValueSema(True)
         self.assertTrue(len(nodeType) == 2 and
                         any(type1 == elem for elem in nodeType) and
@@ -6152,11 +6188,13 @@ class TestStd04(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralSema(int)
-        type2 = LiteralSema(long)
-        self.assertTrue(len(nodeType) == 2 and
+        type1 = LiteralValueSema(8)
+        type2 = LiteralSema(int)
+        type3 = LiteralSema(long)
+        self.assertTrue(len(nodeType) == 3 and
                         any(type1 == elem for elem in nodeType) and
-                        any(type2 == elem for elem in nodeType),
+                        any(type2 == elem for elem in nodeType) and
+                        any(type3 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 

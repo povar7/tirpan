@@ -55,7 +55,12 @@ class Visitor(ast.NodeVisitor):
 
        
     def visit_Assign(self, node):
+        saveValue = self.getValue
+        if (isinstance(node.value, ast.Num) and
+            isinstance(node.value.n, int)):
+            self.getValue = True
         self.visit(node.value)
+        self.getValue = saveValue
         target = node.targets[0]
         save   = self.leftPart
         self.leftPart = True

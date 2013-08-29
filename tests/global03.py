@@ -1,8 +1,8 @@
-res1 = 0
-res2 = 0
+res1 = 1
+res2 = 1
 
 def foo():
-    if 1 == 1:
+    if 0 == 0:
         global res1
     res1, res2 = [True, 'abc']
 

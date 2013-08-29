@@ -9,7 +9,7 @@ def initBuiltinFunction(scope, name, quasi, num,
     from ti.tgnode import ExternalFunctionDefinitionTGNode, EdgeType
     func = ExternalFunctionDefinitionTGNode(num, quasi, name, scope,
                                             defaults, listArgs, dictArgs)
-    var  = scope.findOrAddName(name)
+    var  = scope.findOrAddName(name, True)
     func.addEdge(EdgeType.ASSIGN, var)
     scope.addVariable(var)
 
@@ -17,7 +17,7 @@ def initBuiltinVariable(scope, name, typeFunction):
     from ti.tgnode import VariableTGNode, EdgeType 
     ext = VariableTGNode(None, typeFunction())
     var = scope.findOrAddName(name)
-    ext.addEdge(EdgeType.ASSIGN, var)
+    ext.addEdge(EdgeType.ASSIGN, var, True)
     scope.addVariable(var)
 
 def initBuiltinClass(scope, name, methods, fields, count = False):
@@ -46,6 +46,13 @@ def initBuiltins(importer, globalScope):
     builtinModule = QuasiModule('builtin', globalScope)
     importer.importStandardModule(builtinModule, globalScope)
     builtinModule.isLoaded = True
+
+def getDictClass():
+    import config
+    from   std.builtin_ import getDictClassName
+    var = config.data.currentScope.findName(getDictClassName())
+    assert len(var.nodeType) == 1
+    return list(var.nodeType)[0]
 
 def getListClass():
     import config

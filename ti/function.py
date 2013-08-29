@@ -16,8 +16,6 @@ import ti.tgnode
 import ti.visitor
 import utils
 
-COUNTER = 0
-
 class Flags(object):
 
     def __init__(self):

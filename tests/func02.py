@@ -4,10 +4,10 @@ def foo(a, b):
     else:
         return b
 
-tmp = [1]
+tmp = [7]
 x   = ['abc', tmp]
 x   = 3.0
 y   = tmp
 y   = u'abc'
 z   = foo(x, y)
-x   = 7
+x   = 1
