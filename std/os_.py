@@ -8,13 +8,18 @@ import os
 
 from ti.sema import *
 
+CHEAT_LIST = ('docgen', 'webstuff', 'FamilySheet')
+
 def quasiListdir(params, **kwargs):
+    import config
     res = ListSema()
     res.elems = [set()]
     try:
-        filenames = os.listdir(params[0].value)
-        for elem in filenames:
-            res.elems.append({LiteralValueSema(elem)})
+        dirname = params[0].value
+        if not config.data.cheat or dirname.endswith(CHEAT_LIST):
+            filenames = os.listdir(dirname)
+            for elem in filenames:
+                res.elems.append({LiteralValueSema(elem)})
     except:
         pass
     return {res}

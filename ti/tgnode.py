@@ -310,10 +310,11 @@ class ConstTGNode(TGNode):
         return self.value
 
     def constantsCallback(self, result):
-        newType = LiteralValueSema(self.value)
-        if newType not in self.nodeType:
-            self.nodeType.add(newType)
-            self.walkEdges()
+        if self.value is not None:
+            newType = LiteralValueSema(self.value)
+            if newType not in self.nodeType:
+                self.nodeType.add(newType)
+                self.walkEdges()
 
 class VariableTGNode(TGNode):
 

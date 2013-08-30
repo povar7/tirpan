@@ -125,6 +125,8 @@ def quasiLen(params, **kwargs):
         return {LiteralValueSema(len(params[0].value))}
     except AttributeError:
         return {typeInt}
+    except TypeError:
+        return {typeInt}
 
 def quasiRange1(params, **kwargs):
     return quasiRange3(params + [typeInt, typeInt])
