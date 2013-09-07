@@ -52,7 +52,6 @@ class Visitor(ast.NodeVisitor):
         if self.filtering:
             if link is not None:
                 addSubvariable(link, EdgeType.ASSIGN_TRUE, True)
-
        
     def visit_Assign(self, node):
         saveValue = self.getValue

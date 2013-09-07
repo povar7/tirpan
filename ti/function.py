@@ -29,7 +29,8 @@ class Flags(object):
 
 def copyParam(param):
     paramCopy = copy.copy(param)
-    paramCopy.nodeType = param.nodeType.copy()
+    paramCopy.edges = {}
+    paramCopy.nodeType = set()
     return paramCopy
 
 def getNodeType(elem):

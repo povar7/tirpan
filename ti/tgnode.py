@@ -72,12 +72,29 @@ class EdgeType(object):
 
     @staticmethod
     def processAssign(left, right, *args):
-        # Remove simple loops in type variables graph
+        # Remove simple loops in type variables graph (1)
         try:
             if (left, ()) in right.edges[EdgeType.ARGUMENT]:
                 right.removeEdge(EdgeType.ARGUMENT, left)
         except KeyError:
             pass
+        # Remove simple loops in type variables graph (2)
+        subs = set()
+        if isinstance(left, (TupleTGNode, ListTGNode)):
+            try:
+                for node, args in left.edges[EdgeType.REV_ELEMENT]:
+                    if isinstance(node, SubscriptTGNode):
+                        subs.add(node)
+            except KeyError:
+                pass
+        elif isinstance(left, SubscriptTGNode):
+            subs.add(left)
+        for sub in subs:
+            try:
+                if (right, ()) in sub.edges[EdgeType.ASSIGN_OBJECT]:
+                    sub.removeEdge(EdgeType.ASSIGN_OBJECT, right)
+            except KeyError:
+                pass
 
         EdgeType.updateRight(right, left.nodeType)
 
