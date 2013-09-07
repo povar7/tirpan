@@ -18,7 +18,7 @@ def findGtkModule():
     importer = config.data.importer
     return importer.importedFiles['gtk']
 
-def findGtkClass(name):
+def findGtkName(name):
     module = findGtkModule()
     var = module.getScope().findName(name)
     assert len(var.nodeType) == 1
@@ -71,7 +71,7 @@ def quasiDialog(params, **kwargs):
 
 def quasiAddButton(params, **kwargs):
     obj = params[0]
-    cls = findGtkClass(getButtonClassName())
+    cls = findGtkName(getButtonClassName())
     if not cls:
         return {typeNone}
 
@@ -94,7 +94,7 @@ def quasiAddButton(params, **kwargs):
 def quasiGtkMain(params, **kwargs):
     from ti.tgnode import FunctionCallTGNode, VariableTGNode
 
-    cls = findGtkClass(getActionGroupClassName())
+    cls = findGtkName(getActionGroupClassName())
     if not cls:
         return {typeNone}
 

@@ -11,6 +11,17 @@ from ti.sema import *
 typeInt = LiteralSema(int)
 typeStr = LiteralSema(str)
 
+def findSysModule():
+    import config
+    importer = config.data.importer
+    return importer.importedFiles['sys']
+
+def findSysName(name):
+    module = findSysModule()
+    var = module.getScope().findName(name)
+    assert len(var.nodeType) == 1
+    return list(var.nodeType)[0]
+
 def quasiGetfilesystemencoding(params, **kwargs):
     return {typeStr}
 

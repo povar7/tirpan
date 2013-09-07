@@ -11,13 +11,8 @@ import sys
 import ti.tgnode
 from   ti.builtin import *
 from   ti.parser  import Parser
-from   ti.sema    import LiteralValueSema
-
-class QuasiAlias(object):
-
-    def __init__(self, name):
-        self.name   = name
-        self.asname = None
+from   ti.sema    import ListSema, LiteralValueSema
+from   utils      import QuasiAlias
 
 class Importer(object):
 
@@ -34,8 +29,14 @@ class Importer(object):
         return module.getScope()
 
     def getPaths(self, origin):
-        paths = [os.path.dirname(origin), self.mainPath]
-        paths.extend(sys.path[1:])
+        paths = [os.path.dirname(origin)]
+        sysPathType = getSysPathType()
+        assert isinstance(sysPathType, ListSema)
+        for elem in sysPathType.elems:
+            for atom in elem:
+                value = getattr(atom, 'value', None)
+                if isinstance(value, basestring):
+                    paths.append(value)
         return paths
 
     def getIdent(self, index):

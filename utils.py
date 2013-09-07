@@ -6,6 +6,12 @@ Created on 26.05.2013
 
 import ast
 
+class QuasiAlias(object):
+
+    def __init__(self, name):
+        self.name    = name
+        self.asname  = None
+
 class QuasiNode(object):
 
     def __init__(self, link):

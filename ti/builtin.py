@@ -67,3 +67,7 @@ def getBaseStringClass():
     var = config.data.currentScope.findName(getBaseStringClassName())
     assert len(var.nodeType) == 1
     return list(var.nodeType)[0]
+
+def getSysPathType():
+    from std.sys_ import findSysName
+    return findSysName('path')

@@ -13,7 +13,7 @@ def findReModule():
     importer = config.data.importer
     return importer.importedFiles['re']
 
-def findReClass(name):
+def findReName(name):
     module = findReModule()
     var = module.getScope().findName(name)
     assert len(var.nodeType) == 1
@@ -22,7 +22,7 @@ def findReClass(name):
 def quasiCompile(params, **kwargs):
     try:
         pattern = re.compile(params[0].value)
-        cls = findReClass(getPatternClassName())
+        cls = findReName(getPatternClassName())
         if not cls:
             return set()
         res = cls.getClassInstance()
@@ -34,7 +34,7 @@ def quasiCompile(params, **kwargs):
 def quasiMatch(params, **kwargs):
     try:
         match = params[0].data.match(params[1].value)
-        cls = findReClass(getMatchClassName())
+        cls = findReName(getMatchClassName())
         if not cls:
             return set()
         res = cls.getClassInstance()

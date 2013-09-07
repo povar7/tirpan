@@ -1,11 +1,10 @@
-import gettext
 import os
 import re
 import sys
 
-from const import VERSION as GRAMPSVERSION, IMAGE_DIR, PLUGINS_DIR
+from gettext import gettext as _, translation
 
-_ = gettext.gettext
+from const import VERSION as GRAMPSVERSION, IMAGE_DIR, PLUGINS_DIR
 
 #a plugin is stable or unstable
 STABLE   = 0
@@ -54,13 +53,11 @@ REPORT_CAT          = [ CATEGORY_TEXT, CATEGORY_DRAW, CATEGORY_CODE,
                         CATEGORY_WEB, CATEGORY_BOOK, CATEGORY_GRAPHVIZ]
 #possible tool categories
 TOOL_DEBUG  = -1
-TOOL_ANAL   = 0
 TOOL_DBPROC = 1
 TOOL_DBFIX  = 2
 TOOL_REVCTL = 3
 TOOL_UTILS  = 4
-TOOL_CAT    = [ TOOL_DEBUG, TOOL_ANAL, TOOL_DBPROC, TOOL_DBFIX, TOOL_REVCTL,
-                TOOL_UTILS]
+TOOL_CAT    = [ TOOL_DEBUG, TOOL_DBPROC, TOOL_DBFIX, TOOL_REVCTL, TOOL_UTILS]
 
 #possible quickreport categories
 CATEGORY_QR_MISC       = -1
@@ -90,7 +87,7 @@ START = 1
 END   = 2
 
 def get_addon_translator(filename):
-    return gettext.translation(filename, None, None, None, True)
+    return translation(filename, None, None, None, True)
 
 class PluginData(object):
 
@@ -733,7 +730,6 @@ def make_environment(**kwargs):
         'CATEGORY_BOOK': CATEGORY_BOOK,
         'CATEGORY_GRAPHVIZ': CATEGORY_GRAPHVIZ,
         'TOOL_DEBUG': TOOL_DEBUG,
-        'TOOL_ANAL': TOOL_ANAL,
         'TOOL_DBPROC': TOOL_DBPROC,
         'TOOL_DBFIX': TOOL_DBFIX,
         'TOOL_REVCTL': TOOL_REVCTL,
@@ -960,8 +956,6 @@ class BasePluginManager(object):
                 sys.path.insert(0, pdata.fpath)
                 module = __import__(pdata.mod_name)
                 sys.path.pop(0)
-            else:
-                print "WARNING: module cannot be loaded"
         else:
             module = __import__(pdata.mod_name)
         return module

@@ -13,7 +13,7 @@ def findGettextModule():
     importer = config.data.importer
     return importer.importedFiles['gettext']
 
-def findGettextClass(name):
+def findGettextName(name):
     module = findGettextModule()
     var = module.getScope().findName(name)
     assert len(var.nodeType) == 1
@@ -27,7 +27,7 @@ def quasiGettextMethod(params, **kwargs):
     return quasiGettext(params[1:], **kwargs)
 
 def quasiTranslation(params, **kwargs):
-    cls = findGettextClass(getNullTranslationsClassName())
+    cls = findGettextName(getNullTranslationsClassName())
     if not cls:
         return set()
     instances = cls.origin.getInstances()

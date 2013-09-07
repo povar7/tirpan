@@ -9,6 +9,7 @@ import copy
 import itertools
 import sys
 import types
+import utils
 
 import config
 
@@ -112,6 +113,21 @@ def quasiExecfile(params, **kwargs):
         parser.walk()
         config.data.currentScope = save
     return {typeNone}
+
+def quasiImport(params, **kwargs):
+    filename = getattr(params[0], 'value', None)
+    node = kwargs['NODE']
+    origin = utils.getFileName(node)
+    if filename is not None and origin is not None:
+        try:
+            importer = config.data.importer
+            quasiAlias = QuasiAlias(filename)
+            module = importer.importFile(origin, quasiAlias)
+            res = module.getScope()
+            return {res}
+        except:
+            pass
+    return set()
 
 def quasiIter(params, **kwargs):
     param = params[0]
@@ -518,6 +534,8 @@ functions = [
                 ['-'         , quasiUminus  , 1                     ],
                 ['~'         , quasiInvert  , 1                     ],
                 ['!'         , quasiNot     , 1                     ],
+
+                ['__import__', quasiImport  , 1                     ],
 
                 ['execfile'  , quasiExecfile, 3, {'2' : {typeNone},
                                                   '3' : {typeNone} }],
