@@ -28,9 +28,11 @@ FANCHART_PYTHON_FN = 'fanchartview.py'
 REPORT_KEY = 'FamilySheet'
 REPORT_MENU_NAME = 'Family Sheet...'
 
+VERSION       = "3.3.0"
 VERSION_TUPLE = (3, 3, 0)
 USER_HOME     = os.environ['HOME']
 HOME_DIR      = os.path.join(USER_HOME, '.gramps')
+IMAGE_DIR     = os.path.join(ROOT_DIR, "images")
 VERSION_DIR   = os.path.join(HOME_DIR,
                              "gramps%s%s" % (VERSION_TUPLE[0],
                                              VERSION_TUPLE[1]))
