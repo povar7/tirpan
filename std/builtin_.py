@@ -165,6 +165,15 @@ def quasiSet(params, **kwargs):
     param = params[0]
     return makeSet(param)
 
+def quasiStrip(params, **kwargs):
+    param = params[0]
+    res   = None
+    try:
+        res = LiteralValueSema(param.value.strip())
+    except:
+        pass
+    return makeSet(res)
+
 def quasiGetattr(params, **kwargs):
     obj  = params[0]
     attr = params[1]
@@ -221,6 +230,7 @@ baseStringClass = (
                       baseStringClassName,
                       [
                           ['encode', quasiEncode, 2],
+                          ['strip' , quasiStrip , 1],
                       ],
                       [
                       ]
@@ -573,6 +583,7 @@ modules   = [
                 ['pickle'   ],
                 ['re'       ],
                 ['sys'      ],
+                ['urllib'   ],
 
                 ['ConfigParser'],
             ]

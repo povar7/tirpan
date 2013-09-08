@@ -62,9 +62,35 @@ def checkSkipSysFrozen(condition):
         return False 
     return True
 
+def checkSkipNonEqualNumbers(condition):
+    if not isinstance(condition, ast.Compare):
+        return False
+    left = condition.left
+
+    ops = condition.ops
+    if len(ops) != 1:
+        return False
+    op = ops[0]
+    if not isinstance(op, ast.Eq):
+        return False
+    comps = condition.comparators
+    if len(comps) != 1:
+        return False
+    comp = comps[0]
+    if not isinstance(comp, ast.Num):
+        return False
+    num = comp.n
+
+    def callback(x, value):
+        return isinstance(x, ti.sema.LiteralValueSema) and x.value != value
+
+    nodeType = left.link.nodeType
+    return any(callback(elem, num) for elem in nodeType)
+
 skipIfTemplates   = [
                         checkSkipNotMain,
                         checkSkipSysFrozen,
+                        checkSkipNonEqualNumbers,
                     ]
 
 def checkSkipNotPosix(condition):

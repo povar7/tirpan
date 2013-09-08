@@ -22,6 +22,7 @@ from ti.tgnode import AttributeTGNode
 from ti.tgnode import VariableTGNode, FunctionDefinitionTGNode
 
 import tests.const
+from   tests.ggettext import gettext as _
 
 class TestAssign01(unittest.TestCase):
     
@@ -3835,6 +3836,23 @@ class TestBuiltin14(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
+class TestBuiltin16(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/builtin16.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=7, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralValueSema(_('Progress Information'))
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
 class TestFunc01(unittest.TestCase):
     
     ast, defects = tirpan.run('tests/func01.py')
@@ -5539,6 +5557,23 @@ class TestMisc36(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'reg_plugins',
                          'name is not "reg_plugins"')
+
+class TestMisc37(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc37.py')
+        
+    def test_a(self):
+        node = utils.findNode(self.ast, line=4, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralValueSema(1)
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'a', 'name is not "a"')
 
 class TestObject01(unittest.TestCase):
     
