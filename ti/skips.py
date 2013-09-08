@@ -87,10 +87,35 @@ def checkSkipNonEqualNumbers(condition):
     nodeType = left.link.nodeType
     return any(callback(elem, num) for elem in nodeType)
 
+def checkSkipHasKey(condition):
+    if not isinstance(condition, ast.Call):
+        return False
+    func = condition.func
+    if not isinstance(func, ast.Attribute):
+        return False
+    value = func.value
+
+    attr = func.attr
+    if attr != 'has_key':
+        return False
+    args = condition.args
+    if len(args) != 1:
+        return False
+    arg = args[0]
+    if not isinstance(arg, ast.Str):
+        return False
+    nodeType = value.link.nodeType
+    if len(nodeType) != 1:
+        return False
+    theDict = list(nodeType)[0]
+    dictKey = ti.sema.LiteralValueSema(arg.s) 
+    return not theDict.elems.has_key(dictKey)
+                
 skipIfTemplates   = [
                         checkSkipNotMain,
                         checkSkipSysFrozen,
                         checkSkipNonEqualNumbers,
+                        checkSkipHasKey,
                     ]
 
 def checkSkipNotPosix(condition):

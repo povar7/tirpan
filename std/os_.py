@@ -49,7 +49,7 @@ def quasiWalk(params, **kwargs):
 def quasiEnviron():
     res = DictSema()
     for key, value in os.environ.items():
-        res.elems[LiteralValueSema(key)] = {LiteralValueSema(value)}
+        res.elems[LiteralValueSema(key)] = {LiteralValueSema(unicode(value))}
     return {res}
 
 def quasiPath():

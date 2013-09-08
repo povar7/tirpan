@@ -2435,7 +2435,7 @@ class TestBinop01(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = self.tStr
+        type1 = LiteralValueSema('1')
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
@@ -2449,7 +2449,7 @@ class TestBinop01(unittest.TestCase):
         self.assertTrue(isinstance(node.link, VariableTGNode),
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
-        type1 = self.tUnicode
+        type1 = LiteralValueSema(u'1')
         type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
@@ -3853,6 +3853,24 @@ class TestBuiltin16(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
+class TestBuiltin17(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/builtin17.py')
+
+    def test_foo(self):
+        node = utils.findNode(self.ast, line=3, kind=ast.FunctionDef)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, FunctionDefinitionTGNode),
+                        'type is not a function definition')
+        nodeType = freezeSet(node.link.nodeType)
+        isFunction = lambda x: (isinstance(x, FunctionSema) and
+                                len(x.origin.templates.keys()) == 1)
+        self.assertTrue(len(nodeType) == 1 and
+                        any(isFunction(elem) for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'foo', 'name is not "foo"')
+ 
 class TestFunc01(unittest.TestCase):
     
     ast, defects = tirpan.run('tests/func01.py')

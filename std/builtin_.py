@@ -463,15 +463,28 @@ def quasiMod(params, **kwargs):
         else:
             elems = [{right}]
         for atom in itertools.product(*elems):
+            added = None
+
             try:
-                tmp  = tuple([elem.value for elem in atom])
-                part = left.value % tmp
-                res.add(LiteralValueSema(part))
+                tmp   = tuple([elem.value for elem in atom])
+                part  = left.value % tmp
+                added = LiteralValueSema(part) 
             except:
-                if left.ltype == str:
-                    res.add(typeStr)
-                elif left.ltype == unicode:
-                    res.add(typeUnicode)
+                pass
+
+            if added:
+                res.add(added)
+                continue
+
+            try:
+                part  = left.value % ()
+                added = LiteralValueSema(part)
+            except:
+                pass
+
+            if added:
+                res.add(added)
+                continue
         return res
 
     return quasiDiv(params, **kwargs)

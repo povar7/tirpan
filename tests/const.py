@@ -30,8 +30,25 @@ REPORT_MENU_NAME = 'Family Sheet...'
 
 VERSION       = "3.3.0"
 VERSION_TUPLE = (3, 3, 0)
-USER_HOME     = os.environ['HOME']
-HOME_DIR      = os.path.join(USER_HOME, '.gramps')
+
+if os.environ.has_key('GRAMPSHOME'):
+    USER_HOME = os.environ['GRAMPSHOME'] 
+    HOME_DIR = os.path.join(USER_HOME, 'gramps')
+elif os.environ.has_key('USERPROFILE'):
+    USER_HOME = os.environ['USERPROFILE'] 
+    if os.environ.has_key('APPDATA'):
+        HOME_DIR = os.path.join(os.environ['APPDATA'], 'gramps')
+    else:
+        HOME_DIR = os.path.join(USER_HOME, 'gramps')
+else:
+    USER_HOME = os.environ['HOME']
+    HOME_DIR = os.path.join(USER_HOME, '.gramps')
+
+# Conversion of USER_HOME to unicode was needed to have better
+# support for non ASCII path names in Windows for the Gramps database.
+USER_HOME = unicode(USER_HOME, sys.getfilesystemencoding())
+HOME_DIR = unicode(HOME_DIR, sys.getfilesystemencoding())
+
 IMAGE_DIR     = os.path.join(ROOT_DIR, "images")
 VERSION_DIR   = os.path.join(HOME_DIR,
                              "gramps%s%s" % (VERSION_TUPLE[0],
