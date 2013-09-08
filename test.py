@@ -5510,7 +5510,7 @@ class TestMisc36(unittest.TestCase):
     ast, defects = tirpan.run('tests/misc36.py')
         
     def test_x(self):
-        node = utils.findNode(self.ast, line=999, kind=ast.Name)
+        node = utils.findNode(self.ast, line=1046, kind=ast.Name)
         self.assertTrue(node is not None, 'required node was not found')
         self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
         self.assertTrue(isinstance(node.link, VariableTGNode),
@@ -5524,6 +5524,21 @@ class TestMisc36(unittest.TestCase):
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
+    def test_reg_plugins(self):
+        node = utils.findNode(self.ast, line=899, kind=ast.FunctionDef)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, FunctionDefinitionTGNode),
+                        'type is not a function definition')
+        nodeType = freezeSet(node.link.nodeType)
+        isFunction = lambda x: (isinstance(x, FunctionSema) and
+                                len(x.origin.templates.keys()) == 1)
+        self.assertTrue(len(nodeType) == 1 and
+                        any(isFunction(elem) for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'reg_plugins',
+                         'name is not "reg_plugins"')
 
 class TestObject01(unittest.TestCase):
     

@@ -231,7 +231,8 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
 
     if newTemplate:
         params, inst = linkCall(function, isInit, kwKeys, *productElement)
-        template = ti.tgnode.FunctionTemplateTGNode(params, origin, inst)
+        template = ti.tgnode.FunctionTemplateTGNode(params, origin,
+                                                    inst  , tgNode)
     if (tgNode, ()) not in template.edges:
         template.addEdge(ti.tgnode.EdgeType.ASSIGN, tgNode)
      

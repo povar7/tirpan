@@ -665,11 +665,25 @@ class FunctionDefinitionTGNode(TGNode):
     def hasDefaultReturn(self):
         return False
 
+    def rehashTemplates(self):
+        newTemplates = {}
+        for key, value in self.templates.items():
+            productElement, oldNode = key
+            if oldNode:
+                newNode = oldNode
+            else:
+                newNode = value.tgNode
+            newKey = productElement, newNode
+            newTemplates[newKey] = value
+        self.templates = newTemplates
+
     def isGlobalDestructive(self):
         return self.globalDestructive
 
     def setGlobalDestructive(self):
-        self.globalDestructive = True 
+        if not self.globalDestructive:
+            self.rehashTemplates()
+            self.globalDestructive = True 
 
 class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
@@ -861,7 +875,7 @@ class FunctionCallTGNode(TGNode):
 
 class FunctionTemplateTGNode(TGNode):
 
-    def __init__(self, params, function, inst):
+    def __init__(self, params, function, inst, tgNode):
         super(FunctionTemplateTGNode, self).__init__()
 
         if isinstance(function, FunctionDefinitionTGNode):
@@ -880,6 +894,7 @@ class FunctionTemplateTGNode(TGNode):
             self.nodeType.add(inst)
 
         self.params = params
+        self.tgNode = tgNode
 
     def getParams(self):
         return self.params

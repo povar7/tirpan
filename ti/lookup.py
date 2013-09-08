@@ -31,7 +31,8 @@ def lookupTypes(obj, attr):
         for elem in var.nodeType:
             if isinstance(elem, FunctionSema):
                 elemCopy = copy.copy(elem)
-                elemCopy.parent = obj
+                if not isinstance(elemCopy.parent, InstanceSema):
+                    elemCopy.parent = obj
                 res.add(elemCopy)
             else:
                 res.add(elem)

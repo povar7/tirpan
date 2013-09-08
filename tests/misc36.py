@@ -992,8 +992,55 @@ class BasePluginManager(object):
             except:
                 retval.append(data)
         return retval
+
+class GuiPluginManager(object):
+    """ PluginManager is a Singleton which manages plugins. 
+    It is the gui implementation using a unique BasePluginmanager. 
+    This class adds the possibility to hide plugins in the GUI via a config 
+    setting
+    """
+    __instance = None
     
-basemgr = BasePluginManager.get_instance()
-basemgr.reg_plugins(PLUGINS_DIR, load_on_reg=True)
-x = basemgr.get_plugin_data('WEBSTUFF')
+    def get_instance():
+        """ Use this function to get the instance of the PluginManager """
+        if GuiPluginManager.__instance is None:
+            GuiPluginManager.__instance = 1 # Set to 1 for __init__()
+            GuiPluginManager.__instance = GuiPluginManager()
+        return GuiPluginManager.__instance
+    get_instance = staticmethod(get_instance)
+            
+    def __init__(self):
+        """ This function should only be run once by get_instance() """
+        if GuiPluginManager.__instance is not 1:
+            raise Exception("This class is a singleton. "
+                            "Use the get_instance() method")
+        
+        self.basemgr = BasePluginManager.get_instance()
+
+    def __getattr__(self, name):
+        return getattr(self.basemgr, name)
+
+class CLIManager(object):
+
+    def __init__(self):
+        self._pmgr = BasePluginManager.get_instance()
+
+    def do_reg_plugins(self):
+        self._pmgr.reg_plugins(PLUGINS_DIR, load_on_reg=True)
+
+class ViewManager(CLIManager):
+
+    def __init__(self):
+        CLIManager.__init__(self)
+        self._pmgr = GuiPluginManager.get_instance()
+
+    def do_reg_plugins(self):
+        CLIManager.do_reg_plugins(self)
+
+    def foo(self):
+        return self._pmgr.get_plugin_data('WEBSTUFF')
+
+vm = ViewManager()
+vm.do_reg_plugins()
+x = vm.foo()
 print x
