@@ -7,8 +7,13 @@ Created on 26.05.2013
 '''
 
 import argparse
+import signal
 
 import config
+
+def handle_pdb(sig, frame):
+    import pdb
+    pdb.set_trace()
 
 def run(filename, cheat = False, imports = False, verbose = False):
     config.initialize(filename, cheat, imports)
@@ -31,5 +36,10 @@ if __name__ == '__main__':
     argParser.add_argument('-V', '--verbose', action='store_true',
                            help='print defects')
     args = argParser.parse_args()
+
+    try:
+        signal.signal(signal.SIGUSR1, handle_pdb)
+    except ValueError:
+        pass
 
     run(args.filename, args.cheat, args.imports, args.verbose)
