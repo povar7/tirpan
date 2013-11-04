@@ -16,6 +16,8 @@ import ti.tgnode
 import ti.visitor
 import utils
 
+CHEAT_LIST = ('read_file',)
+
 class Flags(object):
 
     def __init__(self):
@@ -240,6 +242,11 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
 
     if newTemplate:
         templates[key] = template
+
+    if config.data.cheat and origin.name in CHEAT_LIST:
+        return
+
+    if newTemplate:
         save = config.data.currentScope
 
         if (isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode) or

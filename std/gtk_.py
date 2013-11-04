@@ -126,6 +126,8 @@ def quasiGtkMain(params, **kwargs):
     return {typeNone}
 
 def quasiRun(params, **kwargs):
+    from ti.tgnode import FunctionCallTGNode, VariableTGNode
+
     obj = params[0]
 
     var1 = lookupVariable(obj, '_buttons')
