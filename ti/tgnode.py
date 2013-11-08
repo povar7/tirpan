@@ -105,7 +105,7 @@ class EdgeType(object):
         types = left.nodeType
         if test:
             def condition(x):
-                visitor = Visitor(None)
+                visitor = Visitor(None, False)
                 astCopy = copy.deepcopy(test.comparators[0])
                 visitor.visit(astCopy)
                 rType = astCopy.link.nodeType 
@@ -172,15 +172,22 @@ class EdgeType(object):
 
     @staticmethod
     def processAttrIndex(left, right, *args):
-        right.process()
+        EdgeType.processCommon(left, right, args)
 
     @staticmethod
     def processAttrObject(left, right, *args):
-        right.process()
+        EdgeType.processCommon(left, right, args)
 
     @staticmethod
     def processAttrSlice(left, right, *args):
+        EdgeType.processCommon(left, right, args)
+
+    @staticmethod
+    def processCommon(left, right, *args):
+        length = len(right.nodeType)
         right.process()
+        if len(right.nodeType) > length:
+            right.walkEdges()
 
     @staticmethod
     def processElement(left, right, *args):

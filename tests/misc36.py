@@ -89,6 +89,27 @@ END   = 2
 def get_addon_translator(filename):
     return translation(filename, None, None, None, True)
 
+class Plugin(object):
+    """
+    This class serves as a base class for all plugins that can be registered
+    with the plugin manager
+    """
+    def __init__(self, name, description, module_name):
+        self.__name = name
+        self.__desc = description
+        self.__mod_name = module_name
+        
+class DocGenPlugin(Plugin):
+    """
+    This class represents a plugin for generating documents from Gramps
+    """
+    def __init__(self, name, description, basedoc, paper, style, extension):
+        Plugin.__init__(self, name, description, basedoc.__module__)
+        self.__basedoc = basedoc
+        self.__paper = paper
+        self.__style = style
+        self.__extension = extension
+
 class PluginData(object):
 
     def __init__(self):
@@ -858,6 +879,11 @@ class PluginRegister(object):
         return [self.get_plugin(id) for id in 
                 set([x.id for x in self.__plugindata if x.ptype == ptype])]
 
+    def docgen_plugins(self):
+        """Return a list of PluginData that are of type DOCGEN
+        """
+        return self.type_plugins(DOCGEN)
+
     def general_plugins(self, category=None):
         """Return a list of PluginData that are of type GENERAL
         """
@@ -894,6 +920,7 @@ class BasePluginManager(object):
                             "Use the get_instance() method")
 
         self.__pgr = PluginRegister.get_instance()
+        self.__docgen_plugins = []
         self.__loaded_plugins = {}
 
     def reg_plugins(self, direct, dbstate=None, uistate=None, 
@@ -966,6 +993,11 @@ class BasePluginManager(object):
         """
         return self.__pgr.get_plugin(id)
 
+    def get_reg_docgens(self):
+        """ Return list of registered docgen
+        """
+        return self.__pgr.docgen_plugins()
+ 
     def load_plugin_category(self, category):
         """
         Make sure all plugins of a type are loaded.
@@ -992,6 +1024,30 @@ class BasePluginManager(object):
             except:
                 retval.append(data)
         return retval
+
+    def get_docgen_plugins(self):
+        """
+        Get the list of docgen plugins.
+        
+        @return: [gen.plug.DocGenPlugin] (a list of DocGenPlugin instances)
+        """
+        ## TODO: would it not be better to return list of plugindata, and only
+        ##       import those docgen that will then actuallly be needed? 
+        ##       So, only do import when docgen.get_basedoc() is requested
+        if self.__docgen_plugins == []:
+            #The modules still need to be imported
+            for pdata in self.get_reg_docgens():
+                mod = self.load_plugin(pdata)
+                if mod:
+                    dgp = DocGenPlugin(name=pdata.name, 
+                            description = pdata.description,
+                            basedoc     = getattr(mod, pdata.basedocclass),
+                            paper       = pdata.paper,
+                            style       = pdata.style, 
+                            extension   = pdata.extension )
+                    self.__docgen_plugins.append(dgp)
+                
+        return self.__docgen_plugins
 
 class GuiPluginManager(object):
     """ PluginManager is a Singleton which manages plugins. 
@@ -1040,7 +1096,12 @@ class ViewManager(CLIManager):
     def foo(self):
         return self._pmgr.get_plugin_data('WEBSTUFF')
 
+    def bar(self):
+        return self._pmgr.get_docgen_plugins()
+
 vm = ViewManager()
 vm.do_reg_plugins()
 x = vm.foo()
 print x
+y = vm.bar()
+print y

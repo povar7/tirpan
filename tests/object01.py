@@ -8,9 +8,11 @@ class B(A):
         self.y = y
         self.t = t
 
-a   = 3l
-a   = 'abc'
-b   = B(a, a)
+if True:
+    a = 3l
+if True:
+    a = 'abc'
+b = B(a, a)
 print B.x
 print b.x
 print B.y

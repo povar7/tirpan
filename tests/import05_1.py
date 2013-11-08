@@ -9,7 +9,8 @@ class A:
     def foo(self, data):
         self.data = data
 
-locale = A()
+if True:
+    locale = A()
 locale.foo(6.28)
 x = locale.data
 print x

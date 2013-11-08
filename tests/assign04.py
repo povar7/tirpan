@@ -1,2 +1,4 @@
-x = 1
-x = None
+if True:
+    x = 1
+if True:
+    x = None

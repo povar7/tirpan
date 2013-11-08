@@ -253,10 +253,17 @@ class ScopeInterface(object):
         variables = self.getVariables()
         variables[var.name] = var
 
-    def findName(self, name, considerGlobals = False, scopeWrap = None):
+    def findName(self, name,
+                 considerGlobals = False,
+                 scopeWrap       = None ,
+                 loseName        = False):
         variables = self.getVariables()
         if name in variables:
-            return variables[name]
+            if loseName:
+                del variables[name]
+                return None
+            else:
+                return variables[name]
         if (considerGlobals and
             self.hasGlobals() and name not in self.getGlobalNames()):
             if scopeWrap:
@@ -264,12 +271,15 @@ class ScopeInterface(object):
             return None
         parent = self.getParent()
         if parent:
-            return parent.findName(name, considerGlobals, scopeWrap)
+            return parent.findName(name, considerGlobals, scopeWrap, loseName)
         return None
 
-    def findOrAddName(self, name, considerGlobals = False, fileScope = None):
+    def findOrAddName(self, name,
+                      considerGlobals = False,
+                      fileScope       = None ,
+                      loseName        = False):
         scopeWrap = ScopeWrap(fileScope)
-        res = self.findName(name, considerGlobals, scopeWrap)
+        res = self.findName(name, considerGlobals, scopeWrap, loseName)
         fileScope = scopeWrap.scope
         if not res:
             from ti.tgnode import VariableTGNode

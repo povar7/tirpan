@@ -1,0 +1,2 @@
+class AsciiDoc:
+    pass

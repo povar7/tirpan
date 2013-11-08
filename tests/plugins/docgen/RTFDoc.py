@@ -1,0 +1,2 @@
+class RTFDoc:
+    pass

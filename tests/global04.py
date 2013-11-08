@@ -5,4 +5,5 @@ def foo(x):
 foo(1)
 foo(3.14)
 
-res = None
+if True:
+    res = None

@@ -19,11 +19,13 @@ class Visitor(ast.NodeVisitor):
 
     SKIP_NEXT = 'SKIP_NEXT'
 
-    def __init__(self, filename):
+    def __init__(self, filename, isGlobal = True):
         self.filename  = filename
         self.filtering = False
-        self.leftPart  = False
         self.getValue  = False
+        self.leftPart  = False
+        self.loseName  = False
+        self.isGlobal  = isGlobal
 
     def visit_Num(self, node):
         node.link = ti.tgnode.ConstTGNode(node, self.getValue)
@@ -39,11 +41,14 @@ class Visitor(ast.NodeVisitor):
                 try:
                     importer  = config.data.importer
                     fileScope = importer.getFileScope(node.fileno)
+                    loseName  = self.loseName and self.isGlobal
                 except AttributeError:
                     fileScope = None
+                    loseName  = False
                 link = config.data.currentScope.findOrAddName(node.id,
                                                               True,
-                                                              fileScope)
+                                                              fileScope,
+                                                              loseName)
             else:
                 link = config.data.currentScope.findOrAddName(node.id)
         if self.getValue and link is not None:
@@ -65,7 +70,11 @@ class Visitor(ast.NodeVisitor):
         self.leftPart = True
         if isinstance(target, ast.Tuple):
             for ast_el in target.elts:
+                saveLose = self.loseName
+                if isinstance(ast_el, ast.Name):
+                    self.loseName = True
                 self.visit(ast_el)
+                self.loseName = saveLose
             self.leftPart = save
             index = 0
             for ast_el in target.elts:
@@ -74,7 +83,11 @@ class Visitor(ast.NodeVisitor):
                                         index)
                 index += 1
         else:
+            saveLose = self.loseName
+            if isinstance(target, ast.Name):
+                self.loseName = True
             self.visit(target)
+            self.loseName = saveLose
             self.leftPart = save
             node.value.link.addEdge(EdgeType.ASSIGN, target.link)
         node.link = node.value.link
@@ -315,6 +328,8 @@ class Visitor(ast.NodeVisitor):
         saveScope = config.data.currentScope
         condition = node.test
         save = self.filtering
+        saveGlobal = self.isGlobal
+        self.isGlobal = False
         self.filtering = checkFilteringCondition(condition)
         self.visit(condition)
         self.filtering = save
@@ -334,6 +349,7 @@ class Visitor(ast.NodeVisitor):
                 res = self.visit(stmt)
                 if res == self.SKIP_NEXT:
                     break
+        self.isGlobal = saveGlobal
 
     def visit_GeneratorExp(self, node):
         self.generic_visit(node)
@@ -347,6 +363,8 @@ class Visitor(ast.NodeVisitor):
             self.visit(base)
         name = node.name
         save = config.data.currentScope
+        saveGlobal = self.isGlobal
+        self.isGlobal = False
         link = ti.tgnode.ClassTGNode(name, node.bases, save)
         var  = save.findOrAddName(name)
         node.link = link
@@ -357,6 +375,7 @@ class Visitor(ast.NodeVisitor):
         config.data.currentScope.addVariable(basesVar)
         for stmt in node.body:
             self.visit(stmt)
+        self.isGlobal = saveGlobal
         config.data.currentScope = save
         link.addEdge(EdgeType.ASSIGN, var)
 
@@ -381,6 +400,8 @@ class Visitor(ast.NodeVisitor):
     def visit_TryExcept(self, node):
         filtered = set()
         save = config.data.currentScope
+        saveGlobal = self.isGlobal
+        self.isGlobal = False
         for stmt in node.body:
             res = self.visit(stmt)
             var = checkSkipNotIterable(stmt)
@@ -408,9 +429,24 @@ class Visitor(ast.NodeVisitor):
             res = self.visit(stmt)
             if res == self.SKIP_NEXT:
                 break
+        self.isGlobal = saveGlobal
 
     def visit_Break(self, node):
         return self.SKIP_NEXT
 
     def visit_Continue(self, node):
         return self.SKIP_NEXT
+
+    def visit_While(self, node):
+        self.visit(node.test)
+        saveGlobal = self.isGlobal
+        self.isGlobal = False
+        for stmt in node.body:
+            res = self.visit(stmt)
+            if res == self.SKIP_NEXT:
+                break
+        for stmt in node.orelse:
+            res = self.visit(stmt)
+            if res == self.SKIP_NEXT:
+                break
+        self.isGlobal = saveGlobal

@@ -1,4 +1,6 @@
-True = 1
+if 'abc':
+    True = 1
 print True
-False = 3.14
+if 'abc':
+    False = 3.14
 print False

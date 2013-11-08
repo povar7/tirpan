@@ -253,7 +253,7 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
             isinstance(origin, ti.tgnode.ForFunctionDefinitionTGNode)):
             astCopy  = copy.deepcopy(origin.ast)
             filename = utils.getFileName(astCopy[0])
-            visitor  = ti.visitor.Visitor(filename)
+            visitor  = ti.visitor.Visitor(filename, False)
             
             templateScope = template.getScope()
             config.data.currentScope = ti.sema.ScopeSema(templateScope)

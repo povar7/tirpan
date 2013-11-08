@@ -8,8 +8,10 @@ def foo(x, y):
 a1 = A()
 a2 = A()
 a3 = A()
-b  = 1
-b  = 3.14
+if True:
+    b = 1
+if True:
+    b = 3.14
 c  = 'abc'
 foo(a1, b)
 foo(a2, b)
