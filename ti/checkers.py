@@ -25,7 +25,12 @@ class DefectsHandler(object):
         return self._defects
 
     def printDefects(self):
+        first = True
         for defect in self._defects:
+            if first:
+                first = False
+            else:
+                print
             print defect
 
 class Defect(object):
