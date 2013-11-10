@@ -152,7 +152,11 @@ def matchCall(function, isInit, argumentNodes, KWArgumentNodes):
                 normResult.append(argumentNodes[argIndex])
                 argIndex += 1
             else:
-                normResult.append(defaults[param.name])
+                try:
+                    nameParam = KWArgumentNodes[param.name]
+                    normResult.append(nameParam)
+                except KeyError:
+                    normResult.append(defaults[param.name])
             paramIndex += 1
             continue
         elif origin.isListParam(param):
@@ -166,7 +170,6 @@ def matchCall(function, isInit, argumentNodes, KWArgumentNodes):
             if argIndex >= argNumber:
                 try:
                     nameParam = KWArgumentNodes[param.name]
-                    del KWArgumentNodes[param.name]
                     normResult.append(nameParam)
                     paramIndex += 1
                 except KeyError:

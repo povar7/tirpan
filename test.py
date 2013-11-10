@@ -5623,8 +5623,15 @@ class TestMisc36(unittest.TestCase):
         self.assertTrue(isinstance(node.link, FunctionDefinitionTGNode),
                         'type is not a function definition')
         nodeType = freezeSet(node.link.nodeType)
-        isFunction = lambda x: (isinstance(x, FunctionSema) and
-                                len(x.origin.templates.keys()) == 1)
+        def isFunction(x):
+            if not isinstance(x, FunctionSema):
+                return False
+            templates = x.origin.templates.keys()
+            if len(templates) != 1:
+                return False
+            flag = templates[0][0][0][-1]
+            return (isinstance(flag, LiteralValueSema) and
+                    flag.value == True)
         self.assertTrue(len(nodeType) == 1 and
                         any(isFunction(elem) for elem in nodeType),
                         'wrong types calculated')
