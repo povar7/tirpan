@@ -73,3 +73,6 @@ else:
 LINUX = ["Linux", "linux", "linux2"]
 MACOS = ["Darwin", "darwin"]
 WINDOWS = ["Windows", "win32"]
+
+URL_WIKISTRING  = "http://gramps-project.org/wiki/index.php?title="
+URL_MANUAL_PAGE = "Gramps_3.3_Wiki_Manual"

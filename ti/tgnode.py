@@ -72,6 +72,8 @@ class EdgeType(object):
 
     @staticmethod
     def processAssign(left, right, *args):
+        update_flag = True
+
         # Remove simple loops in type variables graph (1)
         try:
             if (left, ()) in right.edges[EdgeType.ARGUMENT]:
@@ -96,16 +98,30 @@ class EdgeType(object):
             except KeyError:
                 pass
         # Remove simple loops in type variables graph (3)
-        if isinstance(left, FunctionCallTGNode):
-            for index in range(left.argsNum):
-                arg = left.getArgumentNode(index)
-                try:
-                    if (right, ()) in arg.edges[EdgeType.ASSIGN_OBJECT]:
-                        arg.removeEdge(EdgeType.ASSIGN_OBJECT, right)
-                except KeyError:
-                    pass
+        opers = [left]
+        index = 0
+        while index < len(opers):
+            oper = opers[index]
+            
+            index += 1
+            
+            if isinstance(oper, FunctionCallTGNode):
+                for new_index in range(oper.getArgumentNodesNumber()):
+                    opers.append(oper.getArgumentNode(new_index))
+                continue
 
-        EdgeType.updateRight(right, left.nodeType)
+            if oper == right:
+                update_flag = False
+                break
+
+            try:
+                if (right, ()) in oper.edges[EdgeType.ASSIGN_OBJECT]:
+                    oper.removeEdge(EdgeType.ASSIGN_OBJECT, right)
+            except KeyError:
+                pass
+            
+        if update_flag:
+            EdgeType.updateRight(right, left.nodeType)
 
     @staticmethod
     def processAssignCustom(left, right, *args):
@@ -828,6 +844,9 @@ class FunctionCallTGNode(TGNode):
 
         self.processCall()
 
+    def getArgumentNodesNumber(self):
+        return self.argsNum
+
     def getArgumentNode(self, index):
         for node, args in self.getEdges(EdgeType.REV_ARGUMENT):
             try:
@@ -880,7 +899,7 @@ class FunctionCallTGNode(TGNode):
                     listArgumentTypes.append(oneType.elems[1:])
         else:
             listArgumentTypes = [[]]
-        for index in range(self.argsNum):
+        for index in range(self.getArgumentNodesNumber()):
             oldArgumentNodes.append(self.getArgumentNode(index))
         for listArgumentType in listArgumentTypes:
             argumentNodes = oldArgumentNodes[:]

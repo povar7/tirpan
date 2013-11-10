@@ -5702,6 +5702,23 @@ class TestMisc39(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'b', 'name is not "b"')
 
+class TestMisc40(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc40.py')
+        
+    def test_a(self):
+        node = utils.findNode(self.ast, line=57, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralValueSema(1)
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'a', 'name is not "a"')
+
 class TestObject01(unittest.TestCase):
     
     ast, defects = tirpan.run('tests/object01.py')
