@@ -16,7 +16,7 @@ import ti.tgnode
 import ti.visitor
 import utils
 
-CHEAT_LIST = ('read_file',)
+CHEAT_LIST = ('read_file', 'trav')
 
 class Flags(object):
 
