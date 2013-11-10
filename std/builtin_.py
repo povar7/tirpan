@@ -594,6 +594,7 @@ modules   = [
                 ['logging'  ],
                 ['os'       ],
                 ['pickle'   ],
+                ['platform' ],
                 ['re'       ],
                 ['sys'      ],
                 ['urllib'   ],
