@@ -19,9 +19,13 @@ class QuasiNode(object):
 
 class QuasiCall(object):
 
-    def __init__(self, func, args):
+    def __init__(self, func, args, node = None):
         self.func = func
         self.args = args
+        if hasattr(node, 'fileno'):
+            self.fileno = node.fileno
+        if hasattr(node, 'lineno'):
+            self.lineno = node.lineno
 
 def findFirstNode(tree, callback):
     for node in ast.walk(tree):

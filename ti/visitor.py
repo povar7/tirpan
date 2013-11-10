@@ -241,7 +241,7 @@ class Visitor(ast.NodeVisitor):
         var   = self.visit_common_iter(node)
         args  = [QuasiNode(var)]
         func  = QuasiNode(ti.tgnode.ForFunctionDefinitionTGNode(node, scope))
-        quasiCall = QuasiCall(func, args)
+        quasiCall = QuasiCall(func, args, node)
         ti.tgnode.FunctionCallTGNode(quasiCall)
 
     def visit_Op(self, node):

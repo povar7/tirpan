@@ -23,6 +23,7 @@ def quasiTimeout_Add(params, **kwargs):
         return {typeNone}
 
     funcTypes = vaarg.getElementsAtIndex(1)
+
     func = QuasiNode(VariableTGNode('func', funcTypes.copy()))
 
     args = []
@@ -31,7 +32,8 @@ def quasiTimeout_Add(params, **kwargs):
         arg = VariableTGNode('arg' + str(index), argTypes.copy())
         args.append(QuasiNode(arg))
 
-    quasiCall = QuasiCall(func, args)
+    node = kwargs['NODE']
+    quasiCall = QuasiCall(func, args, node)
     FunctionCallTGNode(quasiCall)
 
     return {typeNone}

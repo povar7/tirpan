@@ -120,7 +120,8 @@ def quasiGtkMain(params, **kwargs):
     arg = VariableTGNode('arg1', argTypes)
     args.append(QuasiNode(arg))
 
-    quasiCall = QuasiCall(func, args)
+    node = kwargs['NODE']
+    quasiCall = QuasiCall(func, args, node)
     FunctionCallTGNode(quasiCall)
 
     return {typeNone}
@@ -155,7 +156,8 @@ def quasiRun(params, **kwargs):
     arg = VariableTGNode('arg1', argTypes)
     args.append(QuasiNode(arg))
 
-    quasiCall = QuasiCall(func, args)
+    node = kwargs['NODE']
+    quasiCall = QuasiCall(func, args, node)
     FunctionCallTGNode(quasiCall)
 
     return {typeNone}
