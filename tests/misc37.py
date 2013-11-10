@@ -1,4 +1,4 @@
 import urllib
 
-urllib.urlopen('http://ispras.ru')
+urllib.urlopen('http://python.org')
 a = 1

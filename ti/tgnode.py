@@ -95,6 +95,15 @@ class EdgeType(object):
                     sub.removeEdge(EdgeType.ASSIGN_OBJECT, right)
             except KeyError:
                 pass
+        # Remove simple loops in type variables graph (3)
+        if isinstance(left, FunctionCallTGNode):
+            for index in range(left.argsNum):
+                arg = left.getArgumentNode(index)
+                try:
+                    if (right, ()) in arg.edges[EdgeType.ASSIGN_OBJECT]:
+                        arg.removeEdge(EdgeType.ASSIGN_OBJECT, right)
+                except KeyError:
+                    pass
 
         EdgeType.updateRight(right, left.nodeType)
 
