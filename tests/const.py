@@ -58,3 +58,18 @@ USER_PLUGINS  = os.path.join(VERSION_DIR, "plugins")
 CONST_PYTHON_FN = os.path.basename('../tests/const.py')
 
 PATH_FOR_MISC34_2 = os.path.join(ROOT_DIR, "misc34_2.py")
+
+if sys.platform == "win32":
+    if sys.prefix == os.path.dirname(os.getcwd()):
+        PREFIXDIR = sys.prefix
+        SYSCONFDIR = os.path.join(sys.prefix, "etc")
+elif  sys.platform == "darwin" and sys.prefix != sys.exec_prefix:
+    PREFIXDIR = sys.prefix
+    SYSCONFDIR = os.path.join(sys.prefix, "etc")
+else:
+    PREFIXDIR = "/usr/local"
+    SYSCONFDIR = "${prefix}/etc"
+
+LINUX = ["Linux", "linux", "linux2"]
+MACOS = ["Darwin", "darwin"]
+WINDOWS = ["Windows", "win32"]

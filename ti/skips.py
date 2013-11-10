@@ -110,13 +110,58 @@ def checkSkipHasKey(condition):
     theDict = list(nodeType)[0]
     dictKey = ti.sema.LiteralValueSema(arg.s) 
     return not theDict.elems.has_key(dictKey)
+
+def checkSkipWrongArch(condition):
+    if not isinstance(condition, ast.Compare):
+        return False
+    left = condition.left
+    leftType = left.link.nodeType
+    if len(leftType) != 1:
+        return False
+    type1 = list(leftType)[0]
+    if not isinstance(type1, ti.sema.LiteralValueSema):
+        return False
+    ops = condition.ops
+    if len(ops) != 1:
+        return False
+    op = ops[0]
+    if not isinstance(op, ast.In):
+        return False
+    comps = condition.comparators
+    if len(comps) != 1:
+        return False
+    comp = comps[0]
+    rightType = comp.link.nodeType
+    if len(rightType) != 1:
+        return False
+    type2 = list(rightType)[0]
+    if not isinstance(type2, ti.sema.ListSema):
+        return False
+    for elem in type2.getElements():
+        if not isinstance(elem, ti.sema.LiteralValueSema):
+            return False
+        if type1 == elem:
+            return False
+    return True
+
+def checkSkipFalseFunction(condition):
+    if not isinstance(condition, ast.Call):
+        return False
+    nodeType = condition.link.nodeType
+    if len(nodeType) != 1:
+        return False
+    type1 = list(nodeType)[0]
+    return isinstance(type1, ti.sema.LiteralValueSema) and not type1.value
                 
 skipIfTemplates   = [
                         checkSkipNotMain,
                         checkSkipSysFrozen,
                         checkSkipNonEqualNumbers,
                         checkSkipHasKey,
+                        checkSkipWrongArch,
+                        checkSkipFalseFunction,
                     ]
+
 
 def checkSkipNotPosix(condition):
     if not isinstance(condition, ast.Compare):
