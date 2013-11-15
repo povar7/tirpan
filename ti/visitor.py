@@ -25,6 +25,7 @@ class Visitor(ast.NodeVisitor):
         self.getValue  = False
         self.leftPart  = False
         self.loseName  = False
+        self.noFScope  = False
         self.isGlobal  = isGlobal
 
     def visit_Num(self, node):
@@ -39,12 +40,14 @@ class Visitor(ast.NodeVisitor):
         else:
             if self.leftPart:
                 try:
-                    importer  = config.data.importer
-                    fileScope = importer.getFileScope(node.fileno)
-                    loseName  = self.loseName and self.isGlobal
+                    importer = config.data.importer
+                    if self.noFScope:
+                        fileScope = None
+                    else:
+                        fileScope = importer.getFileScope(node.fileno)
                 except AttributeError:
                     fileScope = None
-                    loseName  = False
+                loseName = self.loseName and self.isGlobal
                 link = config.data.currentScope.findOrAddName(node.id,
                                                               True,
                                                               fileScope,
@@ -220,15 +223,21 @@ class Visitor(ast.NodeVisitor):
         save = self.leftPart
         self.leftPart = True
         if isinstance(target, ast.Tuple):
+            saveNo = self.noFScope
+            self.noFScope = True
             for elem in target.elts:
                 self.visit(elem)
+            self.noFScope = saveNo
             self.leftPart = save
             index = 0
             for elem in target.elts:
                 var.addEdge(EdgeType.ASSIGN_ELEMENT, elem.link, index)
                 index += 1
         else:
+            saveNo = self.noFScope
+            self.noFScope = True
             self.visit(target)
+            self.noFScope = saveNo
             self.leftPart = save
             if ifs:
                 test = checkComprehension(ifs, target)
@@ -353,7 +362,7 @@ class Visitor(ast.NodeVisitor):
 
     def visit_GeneratorExp(self, node):
         self.generic_visit(node)
-        node.link = ti.tgnode.UnknownTGNode(node)
+        node.link = ti.tgnode.ListTGNode(node)
 
     def visit_Global(self, node):
         config.data.currentScope.addGlobalNames(node.names)

@@ -71,3 +71,7 @@ def getBaseStringClass():
 def getSysPathType():
     from std.sys_ import findSysName
     return findSysName('path')
+
+def getPropertyClassName():
+    from std.builtin_ import getPropertyClassName as func
+    return func()

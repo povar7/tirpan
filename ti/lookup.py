@@ -8,8 +8,45 @@ import ast
 import copy
 
 from ti.builtin import getBaseStringClass, getDictClass, getListClass
+from ti.builtin import getPropertyClassName
 from ti.sema    import *
 from utils      import *
+
+def isProperty(obj):
+    if not isinstance(obj, InstanceSema):
+        return False
+    var = lookupVariable(obj, getPropertyClassName()) 
+    return var is not None
+
+def getProperty(var):
+    for elem in var.nodeType:
+        if isProperty(elem):
+            return elem
+    return None
+
+def lookupProperty(prop, aux):
+    from ti.tgnode import FunctionCallTGNode, VariableTGNode
+
+    attrTypes = set()
+
+    var = lookupVariable(prop, '_fget')
+    if not var:
+        return None
+
+    for elem in var.nodeType:
+        if (isinstance(elem, FunctionSema) and
+            not isinstance(elem.parent, InstanceSema)):
+            elemCopy = copy.copy(elem)
+            elemCopy.parent = aux
+            attrTypes.add(elemCopy)
+
+    args = []
+
+    attrFunc = VariableTGNode(None, attrTypes)
+    func     = QuasiNode(attrFunc)
+
+    quasiCall = QuasiCall(func, args)
+    return FunctionCallTGNode(quasiCall)
 
 def replaceStandardCollections(obj):
     if isinstance(obj, ListSema):
@@ -58,7 +95,11 @@ def lookupVariable(obj, attr, setValue = False, createNew = False, aux = None):
         lookupScope = obj.getBody()
         var = lookupScope.findNameHere(attr)
         if var:
-            return var
+            prop = getProperty(var)
+            if not prop:
+                return var
+            else:
+                return lookupProperty(prop, aux)
         if (aux is not None and attr != '__getattr__' and
             not setValue and not createNew):
             attrTypes = lookupTypes(aux, '__getattr__')

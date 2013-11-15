@@ -16,7 +16,8 @@ import ti.tgnode
 import ti.visitor
 import utils
 
-CHEAT_LIST = ('read_file', 'trav')
+CHEAT_LIST = ('add_user_options', 'get_relationship_calculator',
+              'read_file', 'trav')
 
 class Flags(object):
 

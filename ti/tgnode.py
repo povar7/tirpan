@@ -16,6 +16,10 @@ from   ti.sema   import *
 
 classes = (CollectionSema, LiteralSema, ClassSema, InstanceSema, ModuleSema)
 
+def isSafeCallLoop(tgNode):
+    return (isinstance(tgNode.node, ast.AugAssign) and
+            isinstance(tgNode.node.value, ast.Num))
+
 class EdgeType(object):
 
     ARGUMENT           = 'Argument'
@@ -77,7 +81,9 @@ class EdgeType(object):
         # Remove simple loops in type variables graph (1)
         try:
             if (left, ()) in right.edges[EdgeType.ARGUMENT]:
-                right.removeEdge(EdgeType.ARGUMENT, left)
+                if (isinstance(left, FunctionCallTGNode) and
+                    not isSafeCallLoop(left)):
+                    right.removeEdge(EdgeType.ARGUMENT, left)
         except KeyError:
             pass
         # Remove simple loops in type variables graph (2)
@@ -105,7 +111,8 @@ class EdgeType(object):
             
             index += 1
             
-            if isinstance(oper, FunctionCallTGNode):
+            if (isinstance(oper, FunctionCallTGNode) and
+                not isSafeCallLoop(oper)):
                 for new_index in range(oper.getArgumentNodesNumber()):
                     opers.append(oper.getArgumentNode(new_index))
                 continue
@@ -813,7 +820,7 @@ class FunctionCallTGNode(TGNode):
             args = [node.operand]
         elif isinstance(node, ast.AugAssign):
             func = var
-            args = [node.value]
+            args = [node.target, node.value]
         else:
             func = node.func.link
             args = node.args

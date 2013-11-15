@@ -144,6 +144,17 @@ def quasiLen(params, **kwargs):
     except TypeError:
         return {typeInt}
 
+def quasiProperty(params, **kwargs):
+    obj = params[0]
+    var1 = lookupVariable(obj, '_fget', True, True)
+    if var1:
+        var1.nodeType = {params[1]}
+    var2 = lookupVariable(obj, '_fset', True, True)
+    if var2:
+        var2.nodeType = {params[2]}
+    var3 = lookupVariable(obj, getPropertyClassName(), True, True)
+    return {obj}
+
 def quasiRange1(params, **kwargs):
     return quasiRange3(params + [typeInt, typeInt])
 
@@ -162,6 +173,10 @@ def quasiRange3(params, **kwargs):
     return {listType}
 
 def quasiSet(params, **kwargs):
+    param = params[0]
+    return makeSet(param)
+
+def quasiSorted(params, **kwargs):
     param = params[0]
     return makeSet(param)
 
@@ -279,6 +294,20 @@ objectClass = (
                       ['__bases__', quasiObjectClassBases],
                   ]
               )
+
+propertyClassName = '#property#'
+
+def getPropertyClassName():
+    return propertyClassName
+
+propertyClass = (
+                    'property',
+                    [
+                        ['__init__', quasiProperty, 3],
+                    ],
+                    [
+                    ]
+                )
 
 def quasiAdd(params, **kwargs):
     left  = params[0]
@@ -571,6 +600,7 @@ functions = [
                 ['range'     , quasiRange1  , 1                     ],
                 ['range'     , quasiRange3  , 3, {'3' : {typeInt}}  ],
                 ['set'       , quasiSet     , 1                     ],
+                ['sorted'    , quasiSorted  , 1                     ],
                 ['type'      , quasiType    , 1                     ],
 
                 ['getattr'   , quasiGetattr , 2                     ],
@@ -585,20 +615,21 @@ variables = [
 modules   = [
                 ['posixpath', 'os.path'],
 
-                ['copy'      ],
-                ['getopt'    ],
-                ['gettext'   ],
-                ['glib'      ],
-                ['glob'      ],
-                ['gtk'       ],
-                ['logging'   ],
-                ['os'        ],
-                ['pickle'    ],
-                ['platform'  ],
-                ['re'        ],
-                ['subprocess'],
-                ['sys'       ],
-                ['urllib'    ],
+                ['collections'],
+                ['copy'       ],
+                ['getopt'     ],
+                ['gettext'    ],
+                ['glib'       ],
+                ['glob'       ],
+                ['gtk'        ],
+                ['logging'    ],
+                ['os'         ],
+                ['pickle'     ],
+                ['platform'   ],
+                ['re'         ],
+                ['subprocess' ],
+                ['sys'        ],
+                ['urllib'     ],
 
                 ['ConfigParser'],
             ]
@@ -608,6 +639,7 @@ classes   = [
                 listClass,
                 dictClass,
                 objectClass,
+                propertyClass,
             ]
 
 def getAll():

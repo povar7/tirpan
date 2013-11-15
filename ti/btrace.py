@@ -7,6 +7,12 @@ Created on 18.08.2013
 from ti.sema import *
 from utils   import *
 
+def stringFrom(element):
+    try:
+        return element.getString()
+    except AttributeError:
+        return str(None)
+
 class BackTrace(object):
 
     def __init__(self):
@@ -36,7 +42,7 @@ class BackTrace(object):
             if not line:
                 line = '?'
 
-            scopeName = scope.getString()
+            scopeName = stringFrom(scope)
           
             res += 'File "%s", line %s, in %s:\n' % (filename, line, scopeName)
 
@@ -44,7 +50,7 @@ class BackTrace(object):
 
             parent = func.parent
             if isinstance(parent, InstanceSema):
-                res += '%s.' % parent.getString()
+                res += '%s.' % stringFrom(parent)
                 printedArgs = args[1:]
             else:
                 printedArgs = args
@@ -55,7 +61,7 @@ class BackTrace(object):
                 if isinstance(origin, ExternalModuleTGNode):
                     res += '%s.' % origin.getAliasName()
 
-            res += func.getString()
+            res += stringFrom(func)
 
             res += '('
             firstArg = True
@@ -65,7 +71,7 @@ class BackTrace(object):
                     res += ', '
                 else:
                     firstArg = False
-                res += arg.getString()
+                res += stringFrom(arg)
 
             res += ')'
             res += '\n'

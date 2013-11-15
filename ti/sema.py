@@ -181,9 +181,10 @@ class TupleSema(ListOrTupleSema):
 
 class DictSema(CollectionSema):
     
-    def __init__(self):
+    def __init__(self, default = False):
         super(DictSema, self).__init__()
-        self.elems = dict()
+        self.elems   = dict()
+        self.default = default
 
     def isInstanceEqualTo(self, other):
         assert self.frozen == other.frozen
@@ -205,7 +206,10 @@ class DictSema(CollectionSema):
         try:
             return self.elems[key]
         except:
-            return set()
+            res = set()
+            if self.default:
+                res.add(ListSema())
+            return res
 
     def getElements(self):
         return self.getElementsAtIndex(None)
@@ -214,7 +218,10 @@ class DictSema(CollectionSema):
         try:
             oldValue = self.elems[key]
         except:
-            oldValue = self.elems[key] = set()
+            res = set()
+            if self.default:
+                res.add(ListSema())
+            oldValue = self.elems[key] = res
         oldValue |= values
 
     def copy(self):

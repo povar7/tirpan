@@ -3328,25 +3328,6 @@ class TestBinop01(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x225', 'name is not "x225"')
 
-class TestBinop02(unittest.TestCase):
-    
-    ast, defects = tirpan.run('tests/binop02.py')
-        
-    def test_x(self):
-        node = utils.findNode(self.ast, line=1, kind=ast.Name)
-        self.assertTrue(node is not None, 'required node was not found')
-        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
-        self.assertTrue(isinstance(node.link, VariableTGNode),
-                        'type is not a var')
-        nodeType = freezeSet(node.link.nodeType)
-        type1 = LiteralValueSema(1)
-        type2 = LiteralSema(float)
-        self.assertTrue(len(nodeType) == 2 and
-                        any(type1 == elem for elem in nodeType) and
-                        any(type2 == elem for elem in nodeType),
-                        'wrong types calculated')
-        self.assertEqual(node.link.name, 'x', 'name is not "x"')
-
 class TestBoolop01(unittest.TestCase):
     
     ast, defects = tirpan.run('tests/boolop01.py')
@@ -3901,6 +3882,90 @@ class TestBuiltin18(unittest.TestCase):
                         'type is not a var')
         nodeType = freezeSet(node.link.nodeType)
         type1 = LiteralValueSema(platform.system())
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
+class TestBuiltin19(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/builtin19.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=15, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = ListSema()
+        type1.freeze()
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
+class TestBuiltin20(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/builtin20.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=16, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = ListSema()
+        type1.elems[0].add(LiteralSema(int))
+        type1.elems[0].add(LiteralSema(float))
+        type1.elems[0].add(LiteralValueSema('abc'))
+        type1.freeze()
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
+class TestBuiltin21(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/builtin21.py')
+        
+    def test_y(self):
+        node = utils.findNode(self.ast, line=3, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = ListSema()
+        type1.elems[0].add(LiteralSema(int))
+        type1.freeze()
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'y', 'name is not "y"')
+
+class TestBuiltin22(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/builtin22.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=8, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        childType1 = ListSema()
+        childType1.elems[0].add(LiteralSema(float))
+        childType1.freeze()
+        childType2 = ListSema()
+        childType2.elems[0].add(LiteralValueSema(u'abc'))
+        childType2.freeze()
+        type1 = DictSema()
+        type1.elems[LiteralValueSema(1    )] = {childType1}
+        type1.elems[LiteralValueSema('abc')] = {childType2}
+        type1.freeze()
         self.assertTrue(len(nodeType) == 1 and
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
