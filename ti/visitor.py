@@ -113,8 +113,6 @@ class Visitor(ast.NodeVisitor):
     def visit_common_subscript(self, collection, index):
         hasIndex = not isinstance(index, ast.Slice)
         link = ti.tgnode.SubscriptTGNode(hasIndex)
-        link.addEdge(EdgeType.ASSIGN_OBJECT, collection.link)
-        collection.link.addEdge(EdgeType.ATTR_OBJECT, link)
         if hasIndex:
             save = self.getValue
             self.getValue = True
@@ -133,6 +131,8 @@ class Visitor(ast.NodeVisitor):
             if index.step:
                 link.addEdge(EdgeType.ASSIGN_SLICE, index.upper.link, 2)
                 index.step.link.addEdge(EdgeType.ATTR_SLICE, link)
+        link.addEdge(EdgeType.ASSIGN_OBJECT, collection.link)
+        collection.link.addEdge(EdgeType.ATTR_OBJECT, link)
         return link
         
     def visit_Dict(self, node):
@@ -331,7 +331,13 @@ class Visitor(ast.NodeVisitor):
         node.link = ti.tgnode.ListTGNode(node)
 
     def visit_IfExp(self, node):
-        node.link = ti.tgnode.UnknownTGNode(node)
+        self.generic_visit(node)
+        link = ti.tgnode.VariableTGNode(None)
+        head = node.body
+        tail = node.orelse
+        head.link.addEdge(EdgeType.ASSIGN, link)
+        tail.link.addEdge(EdgeType.ASSIGN, link)
+        node.link = link
 
     def visit_If(self, node):
         saveScope = config.data.currentScope

@@ -14,6 +14,6 @@ atests_dir = os.path.dirname(sys.argv[0])
 tirpan_dir = os.path.join(atests_dir, '..')
 output = subprocess.check_output([os.path.join(tirpan_dir, 'tirpan.py'),
                                   '-V',
-                                  os.path.join(atests_dir, 'misc28.py')])
-defects = open(os.path.join(atests_dir, 'accept02_defects.txt'), 'r').read()
+                                  os.path.join(atests_dir, 'misc42.py')])
+defects = open(os.path.join(atests_dir, 'accept04_defects.txt'), 'r').read()
 assert output == defects, 'there must exactly the same output as in the sample'

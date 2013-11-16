@@ -1079,25 +1079,25 @@ class GuiPluginManager(object):
 class CLIManager(object):
 
     def __init__(self):
-        self._pmgr = BasePluginManager.get_instance()
+        self._cpmgr = BasePluginManager.get_instance()
 
     def do_reg_plugins(self):
-        self._pmgr.reg_plugins(PLUGINS_DIR, load_on_reg=True)
+        self._cpmgr.reg_plugins(PLUGINS_DIR, load_on_reg=True)
 
 class ViewManager(CLIManager):
 
     def __init__(self):
         CLIManager.__init__(self)
-        self._pmgr = GuiPluginManager.get_instance()
+        self._vpmgr = GuiPluginManager.get_instance()
 
     def do_reg_plugins(self):
         CLIManager.do_reg_plugins(self)
 
     def foo(self):
-        return self._pmgr.get_plugin_data('WEBSTUFF')
+        return self._vpmgr.get_plugin_data('WEBSTUFF')
 
     def bar(self):
-        return self._pmgr.get_docgen_plugins()
+        return self._vpmgr.get_docgen_plugins()
 
 vm = ViewManager()
 vm.do_reg_plugins()

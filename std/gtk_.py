@@ -11,6 +11,7 @@ from ti.lookup import *
 from ti.sema   import *
 from utils     import *
 
+typeInt  = LiteralSema(int)
 typeNone = LiteralSema(types.NoneType)
 
 def findGtkModule():
@@ -48,6 +49,10 @@ def quasiButton(params, **kwargs):
     var = lookupVariable(obj, '_handlers', True, True)
     if var:
         var.nodeType = {ListSema()}
+    return {obj}
+
+def quasiComboBox(params, **kwargs):
+    obj = params[0]
     return {obj}
 
 def quasiConnect(params, **kwargs):
@@ -91,6 +96,9 @@ def quasiAddButton(params, **kwargs):
 
     return {button}
 
+def quasiGetActive(params, **kwargs):
+    return {typeInt}
+
 def quasiGtkMain(params, **kwargs):
     from ti.tgnode import FunctionCallTGNode, VariableTGNode
 
@@ -125,6 +133,13 @@ def quasiGtkMain(params, **kwargs):
     FunctionCallTGNode(quasiCall)
 
     return {typeNone}
+
+def quasiNewText(params, **kwargs):
+    cls = findGtkName(getComboBoxClassName())
+    if not cls:
+        return set()
+    obj = cls.getClassInstance()
+    return {obj}
 
 def quasiRun(params, **kwargs):
     from ti.tgnode import FunctionCallTGNode, VariableTGNode
@@ -169,7 +184,8 @@ def quasiStockOk():
     return {LiteralValueSema(gtk.STOCK_OK)}
 
 functions = [
-                ['main', quasiGtkMain, 0],
+                ['combo_box_new_text', quasiNewText, 0],
+                ['main'              , quasiGtkMain, 0],
             ]
 
 variables = [
@@ -221,9 +237,23 @@ dialogClass = (
                   ]
               )
 
+def getComboBoxClassName():
+    return 'ComboBox'
+
+comboBoxClass = (
+                    getComboBoxClassName(),
+                    [
+                        ['__init__'  , quasiComboBox , 1],
+                        ['get_active', quasiGetActive, 1],
+                    ],
+                    [
+                    ]
+                )
+
 classes = [
               actionGroupClass,
               buttonClass,
+              comboBoxClass,
               dialogClass
           ]
 

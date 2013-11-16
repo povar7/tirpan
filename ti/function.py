@@ -315,6 +315,7 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
             btrace.deleteFrame()
 
             template.walkEdges()
+            del templates[key]
 
             globalDestructive = ti.skips.checkGlobalDestructive(flags,
                                                                 tgNode.node)

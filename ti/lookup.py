@@ -100,7 +100,9 @@ def lookupVariable(obj, attr, setValue = False, createNew = False, aux = None):
                 return var
             else:
                 return lookupProperty(prop, aux)
-        if (aux is not None and attr != '__getattr__' and
+        if (aux is not None and
+            attr != '__getattr__' and
+            attr != getPropertyClassName() and
             not setValue and not createNew):
             attrTypes = lookupTypes(aux, '__getattr__')
         else:

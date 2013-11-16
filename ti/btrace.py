@@ -11,7 +11,7 @@ def stringFrom(element):
     try:
         return element.getString()
     except AttributeError:
-        return str(None)
+        return None.__repr__()
 
 class BackTrace(object):
 

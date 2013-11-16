@@ -53,7 +53,7 @@ class LiteralSema(Sema):
 
     def getString(self):
         if self.ltype == types.NoneType:
-            return str(None)
+            return None.__repr__()
         else:
             return '<%s value>' % str(self.ltype)
 
@@ -71,12 +71,7 @@ class LiteralValueSema(LiteralSema):
         return hash((self.ltype, self.value))
 
     def getString(self):
-        if self.ltype == str:
-            return '\'' + str(self.value) + '\''
-        elif self.ltype == unicode:
-            return 'u\'' + str(self.value) + '\''
-        else:
-            return str(self.value)
+        return self.value.__repr__()
 
 class CollectionSema(Sema):
 
@@ -102,7 +97,10 @@ class ListOrTupleSema(CollectionSema):
         try:
             return self.elems[index + 1]
         except:
-            return self.getElements()
+            if index is None or isinstance(index, (int, long)):
+                return self.getElements()
+            else:
+                return set()
 
     def getNumberOfElements(self):
         return max(0, len(self.elems) - 1)
