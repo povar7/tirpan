@@ -16,8 +16,20 @@ import ti.tgnode
 import ti.visitor
 import utils
 
-CHEAT_LIST = ('add_user_options', 'get_relationship_calculator',
-              'read_file', 'trav')
+CHEAT_LIST = ('Date', 'DbBookmarks', 'GrampsType',
+              'NameOriginType', 'NameType', 'NoteBase', 'PrivacyBase',
+              '_format_str_base',
+              'add_user_options', 'emit', 'get_relationship_calculator',
+              'recursive_action', 'read_file', 'trav',
+              'unserialize', 'write_markup')
+
+def cheat_skip(function):
+    origin = function.origin
+    if (isinstance(function, ti.sema.FunctionSema) and
+        origin.name == '__init__' and
+        isinstance(function.parent, ti.sema.ClassSema)):
+        origin = function.parent.origin
+    return origin.name in CHEAT_LIST
 
 class Flags(object):
 
@@ -77,7 +89,6 @@ def linkCall(function, isInit, kwKeys,
 
     scope = ti.sema.ScopeSema()
     inst  = None
-    
     index = 0
     for param in params:
         paramCopy = copyParam(param)
@@ -223,8 +234,11 @@ def getProductElements(listArgumentType,
         yield elem, kwKeys
 
 def processProductElement(function, isInit, tgNode, productElement, kwKeys):
-    btrace = config.data.backTrace
+    if config.data.cheat and cheat_skip(function):
+        return
+
     origin = function.origin
+    btrace = config.data.backTrace
 
     if isInit or origin.isGlobalDestructive():
         key = productElement, tgNode
@@ -247,10 +261,6 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
     if newTemplate:
         templates[key] = template
 
-    if config.data.cheat and origin.name in CHEAT_LIST:
-        return
-
-    if newTemplate:
         save = config.data.currentScope
 
         if (isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode) or

@@ -183,6 +183,7 @@ class Visitor(ast.NodeVisitor):
         index = 0
         for param in node.args:
             self.visit(param)
+            paramLink = getLink(param)
             defPos = index - nonDefs
             defVal = node.defaults[defPos] if defPos >= 0 else None
             if defVal:
@@ -191,9 +192,10 @@ class Visitor(ast.NodeVisitor):
                 config.data.currentScope = oldScope
                 self.leftPart = False
                 self.visit(defVal)
+                defValLink = getLink(defVal)
                 self.leftPart = saveLeft
                 config.data.currentScope = saveScope
-                link.defaults[getLink(param).name] = getLink(defVal)
+                link.defaults[paramLink.name] = defValLink
             index += 1
             getLink(param).setNumber(index)
 

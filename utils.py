@@ -15,7 +15,7 @@ class QuasiAlias(object):
 class QuasiNode(object):
 
     def __init__(self, link):
-        self.link = link
+        setLink(self, link)
 
 class QuasiCall(object):
 
@@ -66,19 +66,11 @@ def getFileNumber(node):
 
 def getLink(node):
     import config
-    mapping = config.data.currentScope.getMapping()
-    if mapping:
-        return mapping[node]
-    else:
-        return node.link
+    return config.data.currentScope.getLink(node)
 
 def setLink(node, value):
     import config
-    mapping = config.data.currentScope.getMapping()
-    if mapping:
-        mapping[node] = value
-    else:
-        node.link = value
+    config.data.currentScope.setLink(node, value)
 
 def findNode(tree, **kwargs):
     line = kwargs.get('line')

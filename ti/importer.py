@@ -57,15 +57,15 @@ class Importer(object):
             exit(1)
         tree   = parser.getAST()
         module = ti.tgnode.UsualModuleTGNode(tree, filename, data.globalScope)
-        setLink(tree, module)
         fileno = self.putIdent(module)
         if data.imports:
             print >> sys.stderr, '%d\t%s' % (fileno, module.name)
         for node in ast.walk(tree):
             node.fileno = fileno
-        self.importedFiles[searchName] = getLink(tree)
+        self.importedFiles[searchName] = module
         save = data.currentScope
         data.currentScope = module.getScope()
+        setLink(tree, module)
         nodeType = {LiteralValueSema(relName)}
         fileVariable = ti.tgnode.VariableTGNode('__file__', nodeType)
         data.currentScope.addVariable(fileVariable)

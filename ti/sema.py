@@ -35,14 +35,25 @@ class Sema(object):
     def getElementsAtIndex(self, index):
         return set()
 
-    def getMapping(self):
-        return None
+    def getLink(self, node):
+        parent = self.getParent()
+        if parent:
+            return parent.getLink(node)
+        else:
+            return node.link
 
     def getNumberOfElements(self):
         return 0
 
     def getString(self):
         return '?'
+
+    def setLink(self, node, value):
+        parent = self.getParent()
+        if parent:
+            parent.setLink(node, value)
+        else:
+            node.link = value
 
 class LiteralSema(Sema):
 
@@ -342,13 +353,6 @@ class ScopeSema(Sema, ScopeInterface):
         if parent:
             parent.setGlobalDestructive()
 
-    def getMapping(self):
-        parent = self.getParent()
-        if parent:
-            return parent.getMapping()
-        else:
-            return None
-
     def getString(self):
         parent = self.getParent()
         if parent:
@@ -471,8 +475,11 @@ class TemplateSema(Sema, ScopeInterface):
         function = self.origin.function
         function.setGlobalDestructive()
 
-    def getMapping(self):
-        return self.origin.mapping
+    def getLink(self, node):
+        try:
+            return self.origin.mapping[node]
+        except KeyError:
+            return self.getParent().getLink(node)
 
     def getString(self):
         function = self.origin.function
@@ -480,6 +487,9 @@ class TemplateSema(Sema, ScopeInterface):
             return function.name
         else:
             return '<lambda>'
+
+    def setLink(self, node, value):
+        self.origin.mapping[node] = value
 
 class ModuleSema(Sema, ScopeInterface):
 

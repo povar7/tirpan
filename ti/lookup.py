@@ -84,6 +84,7 @@ def setTypes(obj, attr, values):
         EdgeType.updateRight(var, values)
 
 def lookupVariable(obj, attr, setValue = False, createNew = False, aux = None):
+    import config
     from ti.tgnode import FunctionCallTGNode, VariableTGNode
     var = None
     if (isinstance(obj, CollectionSema) or
@@ -115,12 +116,15 @@ def lookupVariable(obj, attr, setValue = False, createNew = False, aux = None):
             quasiCall = QuasiCall(func, args)
             return FunctionCallTGNode(quasiCall)
         for base in obj.origin.getBases():
+            save = config.data.currentScope
+            config.data.currentScope = obj
             for elem in getLink(base).nodeType:
                 if not isinstance(elem, ClassSema):
                     continue
                 var = lookupVariable(elem, attr)
                 if var:
-                    return var
+                    break
+            config.data.currentScope = save
     elif isinstance(obj, InstanceSema):
         lookupScope = obj.getBody()
         var = lookupScope.findNameHere(attr)
