@@ -1,11 +1,11 @@
 class A:
     def __init__(self):
-        self.link = None
+        self.ref = None
 
 class B:
     def __init__(self, a):
-        self.link = a
-        a.link = self
+        self.ref = a
+        a.ref = self
 
 def foo(x):
     return x

@@ -12,7 +12,7 @@ import ti.tgnode
 from   ti.builtin import *
 from   ti.parser  import Parser
 from   ti.sema    import ListSema, LiteralValueSema
-from   utils      import QuasiAlias
+from   utils      import QuasiAlias, getLink, setLink
 
 class Importer(object):
 
@@ -57,13 +57,13 @@ class Importer(object):
             exit(1)
         tree   = parser.getAST()
         module = ti.tgnode.UsualModuleTGNode(tree, filename, data.globalScope)
-        tree.link = module
+        setLink(tree, module)
         fileno = self.putIdent(module)
         if data.imports:
             print >> sys.stderr, '%d\t%s' % (fileno, module.name)
         for node in ast.walk(tree):
             node.fileno = fileno
-        self.importedFiles[searchName] = tree.link
+        self.importedFiles[searchName] = getLink(tree)
         save = data.currentScope
         data.currentScope = module.getScope()
         nodeType = {LiteralValueSema(relName)}

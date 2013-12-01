@@ -84,7 +84,7 @@ def checkSkipNonEqualNumbers(condition):
     def callback(x, value):
         return isinstance(x, ti.sema.LiteralValueSema) and x.value != value
 
-    nodeType = left.link.nodeType
+    nodeType = utils.getLink(left).nodeType
     return any(callback(elem, num) for elem in nodeType)
 
 def checkSkipHasKey(condition):
@@ -104,7 +104,7 @@ def checkSkipHasKey(condition):
     arg = args[0]
     if not isinstance(arg, ast.Str):
         return False
-    nodeType = value.link.nodeType
+    nodeType = utils.getLink(value).nodeType
     if len(nodeType) != 1:
         return False
     theDict = list(nodeType)[0]
@@ -115,7 +115,7 @@ def checkSkipWrongArch(condition):
     if not isinstance(condition, ast.Compare):
         return False
     left = condition.left
-    leftType = left.link.nodeType
+    leftType = utils.getLink(left).nodeType
     if len(leftType) != 1:
         return False
     type1 = list(leftType)[0]
@@ -131,7 +131,7 @@ def checkSkipWrongArch(condition):
     if len(comps) != 1:
         return False
     comp = comps[0]
-    rightType = comp.link.nodeType
+    rightType = utils.getLink(comp).nodeType
     if len(rightType) != 1:
         return False
     type2 = list(rightType)[0]
@@ -147,7 +147,7 @@ def checkSkipWrongArch(condition):
 def checkSkipFalseFunction(condition):
     if not isinstance(condition, ast.Call):
         return False
-    nodeType = condition.link.nodeType
+    nodeType = utils.getLink(condition).nodeType
     if len(nodeType) != 1:
         return False
     type1 = list(nodeType)[0]
@@ -181,7 +181,7 @@ def checkSkipNotPosix(condition):
     comp = comps[0]
     if not isinstance(comp, ast.Name):
         return False
-    nodeType = comp.link.nodeType
+    nodeType = utils.getLink(comp).nodeType
     if len(nodeType) != 1:
         return False
     type1 = list(nodeType)[0]
@@ -221,7 +221,7 @@ def checkSkipNotIterable(stmt):
     arg = args[0]
     if not isinstance(arg, ast.Name):
         return None
-    return arg.link
+    return utils.getLink(arg)
 
 def checkHandlerType(handler):
     if not handler.type:
@@ -275,11 +275,11 @@ def checkSkipAfterIf(condition):
     op = ops[0]
     if not isinstance(op, ast.Eq):
         return False
-    type1 = operand.left.link.nodeType
+    type1 = utils.getLink(operand.left).nodeType
     if len(type1) != 1:
         return False
     elem1 = list(type1)[0]
-    type2 = comparators[0].link.nodeType
+    type2 = utils.getLink(comparators[0]).nodeType
     if len(type2) != 1:
         return False
     elem2 = list(type2)[0]
@@ -293,7 +293,7 @@ def checkGlobalDestructive(flags, node):
         return False
 
     try:
-        link = node.func.value.link
+        link = utils.getLink(node.func.value)
         objects = link.commonRetrieve('objects',
                                       ti.tgnode.EdgeType.isNotReverseAssign)
     except AttributeError:

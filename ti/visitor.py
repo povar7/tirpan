@@ -29,10 +29,10 @@ class Visitor(ast.NodeVisitor):
         self.isGlobal  = isGlobal
 
     def visit_Num(self, node):
-        node.link = ti.tgnode.ConstTGNode(node, self.getValue)
+        setLink(node, ti.tgnode.ConstTGNode(node, self.getValue))
     
     def visit_Str(self, node):
-        node.link = ti.tgnode.ConstTGNode(node, True)
+        setLink(node, ti.tgnode.ConstTGNode(node, True))
         
     def visit_Name(self, node):
         if node.id == 'None':
@@ -56,7 +56,7 @@ class Visitor(ast.NodeVisitor):
                 link = config.data.currentScope.findOrAddName(node.id)
         if self.getValue and link is not None:
             link.commonRetrieve('constants', EdgeType.isNotReverse) 
-        node.link = link
+        setLink(node, link)
         if self.filtering:
             if link is not None:
                 addSubvariable(link, EdgeType.ASSIGN_TRUE, True)
@@ -81,9 +81,9 @@ class Visitor(ast.NodeVisitor):
             self.leftPart = save
             index = 0
             for ast_el in target.elts:
-                node.value.link.addEdge(EdgeType.ASSIGN_ELEMENT,
-                                        ast_el.link,
-                                        index)
+                getLink(node.value).addEdge(EdgeType.ASSIGN_ELEMENT,
+                                            getLink(ast_el),
+                                            index)
                 index += 1
         else:
             saveLose = self.loseName
@@ -92,8 +92,8 @@ class Visitor(ast.NodeVisitor):
             self.visit(target)
             self.loseName = saveLose
             self.leftPart = save
-            node.value.link.addEdge(EdgeType.ASSIGN, target.link)
-        node.link = node.value.link
+            getLink(node.value).addEdge(EdgeType.ASSIGN, getLink(target))
+        setLink(node, getLink(node.value))
 
     def visit_AugAssign(self, node):
         self.visit(node.value)
@@ -103,12 +103,13 @@ class Visitor(ast.NodeVisitor):
         self.visit(target)
         self.leftPart = save
         var = self.visit_Op(node.op)
-        node.link = ti.tgnode.FunctionCallTGNode(node, var)
-        node.link.addEdge(EdgeType.ASSIGN, target.link)
+        link = ti.tgnode.FunctionCallTGNode(node, var)
+        setLink(node, link)
+        link.addEdge(EdgeType.ASSIGN, getLink(target))
 
     def visit_List(self, node):
         self.generic_visit(node)
-        node.link = ti.tgnode.ListTGNode(node)
+        setLink(node, ti.tgnode.ListTGNode(node))
 
     def visit_common_subscript(self, collection, index):
         hasIndex = not isinstance(index, ast.Slice)
@@ -118,35 +119,40 @@ class Visitor(ast.NodeVisitor):
             self.getValue = True
             self.visit(index)
             self.getValue = save
-            link.addEdge(EdgeType.ASSIGN_INDEX, index.link)
-            index.link.addEdge(EdgeType.ATTR_INDEX, link)
+            indexLink = getLink(index)
+            link.addEdge(EdgeType.ASSIGN_INDEX, indexLink)
+            indexLink.addEdge(EdgeType.ATTR_INDEX, link)
         else:
             self.visit(index)
             if index.lower:
-                link.addEdge(EdgeType.ASSIGN_SLICE, index.lower.link, 0)
-                index.lower.link.addEdge(EdgeType.ATTR_SLICE, link)
+                indexLowerLink = getLink(index.lower)
+                link.addEdge(EdgeType.ASSIGN_SLICE, indexLowerLink, 0)
+                indexLowerLink.addEdge(EdgeType.ATTR_SLICE, link)
             if index.upper:
-                link.addEdge(EdgeType.ASSIGN_SLICE, index.upper.link, 1)
-                index.upper.link.addEdge(EdgeType.ATTR_SLICE, link)
+                indexUpperLink = getLink(index.upper)
+                link.addEdge(EdgeType.ASSIGN_SLICE, indexUpperLink, 1)
+                indexUpperLink.addEdge(EdgeType.ATTR_SLICE, link)
             if index.step:
-                link.addEdge(EdgeType.ASSIGN_SLICE, index.upper.link, 2)
-                index.step.link.addEdge(EdgeType.ATTR_SLICE, link)
-        link.addEdge(EdgeType.ASSIGN_OBJECT, collection.link)
-        collection.link.addEdge(EdgeType.ATTR_OBJECT, link)
+                indexStepLink  = getLink(index.step )
+                link.addEdge(EdgeType.ASSIGN_SLICE, indexStepLink , 2)
+                indexStepLink.addEdge(EdgeType.ATTR_SLICE , link)
+        collectionLink = getLink(collection)
+        link.addEdge(EdgeType.ASSIGN_OBJECT, collectionLink)
+        collectionLink.addEdge(EdgeType.ATTR_OBJECT, link)
         return link
         
     def visit_Dict(self, node):
-        node.link = ti.tgnode.DictTGNode()
+        setLink(node, ti.tgnode.DictTGNode())
         for number in range(len(node.keys)):
             key = node.keys  [number]
             val = node.values[number]
             self.visit(val)
             link = self.visit_common_subscript(node, key)
-            val.link.addEdge(EdgeType.ASSIGN, link)
+            getLink(val).addEdge(EdgeType.ASSIGN, link)
  
     def visit_Tuple(self, node):
         self.generic_visit(node)
-        node.link = ti.tgnode.TupleTGNode(node)
+        setLink(node, ti.tgnode.TupleTGNode(node))
 
     def visit_Import(self, node):
         importer = config.data.importer
@@ -158,7 +164,7 @@ class Visitor(ast.NodeVisitor):
         importer.importFromFile(self.filename, node.module, node.names)
 
     def visit_Module(self, node):
-        if not node.link.isInherited():
+        if not getLink(node).isInherited():
             nodeType = {ti.sema.LiteralValueSema(True)} 
             trueVariable = ti.tgnode.VariableTGNode('True', nodeType)
             config.data.currentScope.addVariable(trueVariable)
@@ -169,7 +175,7 @@ class Visitor(ast.NodeVisitor):
 
         self.generic_visit(node)
 
-        if not node.link.isInherited():
+        if not getLink(node).isInherited():
            config.data.currentScope = config.data.currentScope.getParent()
 
     def visit_arguments(self, node, link, oldScope):
@@ -187,9 +193,9 @@ class Visitor(ast.NodeVisitor):
                 self.visit(defVal)
                 self.leftPart = saveLeft
                 config.data.currentScope = saveScope
-                link.defaults[param.link.name] = defVal.link
+                link.defaults[getLink(param).name] = getLink(defVal)
             index += 1
-            param.link.setNumber(index)
+            getLink(param).setNumber(index)
 
     def visit_FunctionDef(self, node):
         save = config.data.currentScope
@@ -197,7 +203,7 @@ class Visitor(ast.NodeVisitor):
         link = ti.tgnode.UsualFunctionDefinitionTGNode(node, name, save, self)
         var  = save.findOrAddName(name)
         link.addEdge(EdgeType.ASSIGN, var)
-        node.link = link
+        setLink(node, link)
 
     def visit_Call(self, node):
         for arg in node.args:
@@ -209,11 +215,11 @@ class Visitor(ast.NodeVisitor):
         for pair in node.keywords:
             self.visit(pair.value)
         self.visit(node.func)
-        node.link = ti.tgnode.FunctionCallTGNode(node)
+        setLink(node, ti.tgnode.FunctionCallTGNode(node))
 
     def visit_common_iter(self, node):
         self.visit(node.iter)
-        link = node.iter.link
+        link = getLink(node.iter)
         var  = ti.tgnode.VariableTGNode(None)
         link.addEdge(EdgeType.ASSIGN_ELEMENT, var, None)
         var.addEdge(EdgeType.REV_ASSIGN_ELEMENT, link)
@@ -231,7 +237,7 @@ class Visitor(ast.NodeVisitor):
             self.leftPart = save
             index = 0
             for elem in target.elts:
-                var.addEdge(EdgeType.ASSIGN_ELEMENT, elem.link, index)
+                var.addEdge(EdgeType.ASSIGN_ELEMENT, getLink(elem), index)
                 index += 1
         else:
             saveNo = self.noFScope
@@ -241,9 +247,9 @@ class Visitor(ast.NodeVisitor):
             self.leftPart = save
             if ifs:
                 test = checkComprehension(ifs, target)
-                var.addEdge(EdgeType.ASSIGN_CUSTOM, target.link, test)
+                var.addEdge(EdgeType.ASSIGN_CUSTOM, getLink(target), test)
             else:
-                var.addEdge(EdgeType.ASSIGN, target.link)
+                var.addEdge(EdgeType.ASSIGN, getLink(target))
 
     def visit_For(self, node):
         scope = config.data.currentScope
@@ -265,12 +271,12 @@ class Visitor(ast.NodeVisitor):
         self.visit(node.right)
         self.getValue = save
         var = self.visit_Op(node.op)
-        node.link = ti.tgnode.FunctionCallTGNode(node, var)
+        setLink(node, ti.tgnode.FunctionCallTGNode(node, var))
 
     def visit_UnaryOp(self, node):
         self.visit(node.operand)
         var = self.visit_Op(node.op)
-        node.link = ti.tgnode.FunctionCallTGNode(node, var)
+        setLink(node, ti.tgnode.FunctionCallTGNode(node, var))
         
     def visit_BoolOp(self, node):
         link = ti.tgnode.BooleanOperationTGNode(node.op)
@@ -278,20 +284,20 @@ class Visitor(ast.NodeVisitor):
         for value in node.values:
             self.filtering = isinstance(value, ast.Name)
             self.visit(value)
-            value.link.addEdge(EdgeType.ASSIGN, link)
+            getLink(value).addEdge(EdgeType.ASSIGN, link)
         self.filtering = save
-        node.link = link
+        setLink(node, link)
 
     def visit_Compare(self, node):
         self.generic_visit(node)
-        node.link = ti.tgnode.UnknownTGNode(node)
+        setLink(node, ti.tgnode.UnknownTGNode(node))
 
     def visit_common_ret(self, node):
         if node.value:
             self.visit(node.value)
-            node.link = node.value.link
+            setLink(node, getLink(node.value))
         else:
-            node.link = ti.tgnode.ConstTGNode(node)
+            setLink(node, ti.tgnode.ConstTGNode(node))
 
     def visit_Return(self, node):
         self.visit_common_ret(node)
@@ -306,7 +312,7 @@ class Visitor(ast.NodeVisitor):
     def visit_Lambda(self, node):
         save = config.data.currentScope
         link = ti.tgnode.UsualFunctionDefinitionTGNode(node, None, save, self)
-        node.link = link
+        setLink(node, link)
 
     def visit_Attribute(self, node):
         save = self.leftPart
@@ -314,30 +320,31 @@ class Visitor(ast.NodeVisitor):
         collection = node.value
         self.visit(collection)
         link = ti.tgnode.AttributeTGNode(node.attr)
-        link.addEdge(EdgeType.ASSIGN_OBJECT, collection.link)
-        collection.link.addEdge(EdgeType.ATTR_OBJECT, link)
-        node.link = link
+        collectionLink = getLink(collection) 
+        link.addEdge(EdgeType.ASSIGN_OBJECT, collectionLink)
+        collectionLink.addEdge(EdgeType.ATTR_OBJECT, link)
+        setLink(node, link)
         self.leftPart = save
 
     def visit_Subscript(self, node):
         self.visit(node.value)
         index = getattr(node.slice, 'value', node.slice)
-        node.link = self.visit_common_subscript(node.value, index)
+        setLink(node, self.visit_common_subscript(node.value, index))
 
     def visit_ListComp(self, node):
         for elem in node.generators:
             self.visit(elem)
         self.visit(node.elt)
-        node.link = ti.tgnode.ListTGNode(node)
+        setLink(node, ti.tgnode.ListTGNode(node))
 
     def visit_IfExp(self, node):
         self.generic_visit(node)
         link = ti.tgnode.VariableTGNode(None)
         head = node.body
         tail = node.orelse
-        head.link.addEdge(EdgeType.ASSIGN, link)
-        tail.link.addEdge(EdgeType.ASSIGN, link)
-        node.link = link
+        getLink(head).addEdge(EdgeType.ASSIGN, link)
+        getLink(tail).addEdge(EdgeType.ASSIGN, link)
+        setLink(node, link)
 
     def visit_If(self, node):
         saveScope = config.data.currentScope
@@ -368,7 +375,7 @@ class Visitor(ast.NodeVisitor):
 
     def visit_GeneratorExp(self, node):
         self.generic_visit(node)
-        node.link = ti.tgnode.ListTGNode(node)
+        setLink(node, ti.tgnode.ListTGNode(node))
 
     def visit_Global(self, node):
         config.data.currentScope.addGlobalNames(node.names)
@@ -382,7 +389,7 @@ class Visitor(ast.NodeVisitor):
         self.isGlobal = False
         link = ti.tgnode.ClassTGNode(name, node.bases, save)
         var  = save.findOrAddName(name)
-        node.link = link
+        setLink(node, link)
         config.data.currentScope = link.getScope()
         basesVar  = ti.tgnode.VariableTGNode('__bases__')
         tupleNode = ti.tgnode.TupleTGNode(node)
@@ -406,7 +413,7 @@ class Visitor(ast.NodeVisitor):
 
     def visit_Set(self, node):
         self.generic_visit(node)
-        node.link = ti.tgnode.UnknownTGNode(node)
+        setLink(node, ti.tgnode.UnknownTGNode(node))
 
     def visit_comprehension(self, node):
         var = self.visit_common_iter(node)

@@ -7,6 +7,8 @@ Created on 26.05.2013
 import copy
 import types
 
+import utils
+
 class ScopeWrap(object):
 
     def __init__(self, scope):
@@ -32,6 +34,9 @@ class Sema(object):
 
     def getElementsAtIndex(self, index):
         return set()
+
+    def getMapping(self):
+        return None
 
     def getNumberOfElements(self):
         return 0
@@ -337,6 +342,13 @@ class ScopeSema(Sema, ScopeInterface):
         if parent:
             parent.setGlobalDestructive()
 
+    def getMapping(self):
+        parent = self.getParent()
+        if parent:
+            return parent.getMapping()
+        else:
+            return None
+
     def getString(self):
         parent = self.getParent()
         if parent:
@@ -445,7 +457,7 @@ class TemplateSema(Sema, ScopeInterface):
         if isinstance(origin.function, ForFunctionDefinitionTGNode):
             origin.parent.connectReturn(node)
         else:
-            node.link.addEdge(EdgeType.ASSIGN, origin)
+            utils.getLink(node).addEdge(EdgeType.ASSIGN, origin)
 
     def connectYield(self, node):
         from ti.tgnode import EdgeType, ForFunctionDefinitionTGNode
@@ -453,11 +465,14 @@ class TemplateSema(Sema, ScopeInterface):
         if isinstance(origin.function, ForFunctionDefinitionTGNode):
             origin.parent.connectYield(node)
         else:
-            node.link.addEdge(EdgeType.ASSIGN_YIELD, origin)
+            utils.getLink(node).addEdge(EdgeType.ASSIGN_YIELD, origin)
 
     def setGlobalDestructive(self):
         function = self.origin.function
         function.setGlobalDestructive()
+
+    def getMapping(self):
+        return self.origin.mapping
 
     def getString(self):
         function = self.origin.function

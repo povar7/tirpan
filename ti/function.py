@@ -255,7 +255,7 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
 
         if (isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode) or
             isinstance(origin, ti.tgnode.ForFunctionDefinitionTGNode)):
-            astCopy  = copy.deepcopy(origin.ast)
+            astCopy  = origin.ast
             filename = utils.getFileName(astCopy[0])
             visitor  = ti.visitor.Visitor(filename, False)
             
@@ -281,10 +281,13 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
             if usual:
                 btrace.deleteFrame()
 
+            if not origin.name:
+                lambdaLink = utils.getLink(astCopy[0])
+
             config.data.currentScope = save
 
             if not origin.name:
-                astCopy[0].link.addEdge(ti.tgnode.EdgeType.ASSIGN, template)
+                lambdaLink.addEdge(ti.tgnode.EdgeType.ASSIGN, template)
 
             try:
                 globalDestructive = origin.isGlobalDestructive()

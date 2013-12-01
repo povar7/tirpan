@@ -64,6 +64,22 @@ def getFileName(node):
 def getFileNumber(node):
     return getattr(node, 'fileno', None)
 
+def getLink(node):
+    import config
+    mapping = config.data.currentScope.getMapping()
+    if mapping:
+        return mapping[node]
+    else:
+        return node.link
+
+def setLink(node, value):
+    import config
+    mapping = config.data.currentScope.getMapping()
+    if mapping:
+        mapping[node] = value
+    else:
+        node.link = value
+
 def findNode(tree, **kwargs):
     line = kwargs.get('line')
     col  = kwargs.get('col' )

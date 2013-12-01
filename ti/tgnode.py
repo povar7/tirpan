@@ -13,6 +13,7 @@ import itertools
 import config
 import ti.lookup
 from   ti.sema   import *
+from   utils     import *
 
 classes = (CollectionSema, LiteralSema, ClassSema, InstanceSema, ModuleSema)
 
@@ -140,7 +141,7 @@ class EdgeType(object):
                 visitor = Visitor(None, False)
                 astCopy = copy.deepcopy(test.comparators[0])
                 visitor.visit(astCopy)
-                rType = astCopy.link.nodeType 
+                rType = getLink(astCopy).nodeType
                 lType = ti.lookup.lookupTypes(x, test.left.attr)
                 return lType.issuperset(rType)
             EdgeType.updateRightWithCondition(right, types, condition)
@@ -405,11 +406,11 @@ class ListTGNode(TGNode):
             self.nodeType = {listSema}
             index = 0
             for elem in elems:
-                link = elem.link
+                link = getLink(elem)
                 link.addEdge(EdgeType.ELEMENT, self, index)
                 index += 1
         else:
-            link = node.elt.link
+            link = getLink(node.elt)
             listSema = ListSema()
             self.nodeType = {listSema}
             link.addEdge(EdgeType.ELEMENT, self)
@@ -428,7 +429,7 @@ class TupleTGNode(TGNode):
             isinstance(node, ast.ClassDef)):
             index = 0
             for elem in elems:
-                link = elem.link
+                link = getLink(elem)
                 link.addEdge(EdgeType.ELEMENT, self, index)
                 index += 1
 
@@ -822,7 +823,7 @@ class FunctionCallTGNode(TGNode):
             func = var
             args = [node.target, node.value]
         else:
-            func = node.func.link
+            func = getLink(node.func)
             args = node.args
 
         func.addEdge(EdgeType.FUNC, self)
@@ -830,7 +831,7 @@ class FunctionCallTGNode(TGNode):
 
         index = 0
         for arg in args:
-            link = arg.link
+            link = getLink(arg)
             link.addEdge(EdgeType.ARGUMENT, self)
             self.addEdge(EdgeType.REV_ARGUMENT, link, index)
             index += 1
@@ -838,12 +839,12 @@ class FunctionCallTGNode(TGNode):
 
         if isinstance(node, ast.Call):
             for pair in node.keywords:
-                link = pair.value.link
+                link = getLink(pair.value)
                 link.addEdge(EdgeType.KWARGUMENT, self)
                 self.addEdge(EdgeType.REV_KWARGUMENT, link, pair.arg)
 
             if node.starargs:
-                link = node.starargs.link
+                link = getLink(node.starargs)
                 link.addEdge(EdgeType.LISTARGUMENT, self)
                 self.addEdge(EdgeType.REV_LISTARGUMENT, link)
 
@@ -935,8 +936,9 @@ class FunctionTemplateTGNode(TGNode):
         if inst:
             self.nodeType.add(inst)
 
-        self.params = params
-        self.tgNode = tgNode
+        self.mapping = {}
+        self.params  = params
+        self.tgNode  = tgNode
 
     def getParams(self):
         return self.params

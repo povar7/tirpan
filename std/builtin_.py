@@ -96,7 +96,7 @@ def quasiExecfile(params, **kwargs):
         newNumber = importer.putIdent(module)
         if config.data.imports:
             print >> sys.stderr, '%d\t%s' % (newNumber, module.name)
-        tree.link = module
+        utils.setLink(tree, module)
         ourGlobals = params[1]
         save = config.data.currentScope
         newScope = ScopeSema(save)
