@@ -16,19 +16,11 @@ import ti.tgnode
 import ti.visitor
 import utils
 
-CHEAT_LIST = ('Date', 'DbBookmarks', 'GrampsType',
-              'NameOriginType', 'NameType', 'NoteBase', 'PrivacyBase',
-              '_format_str_base',
-              'add_user_options', 'emit', 'get_relationship_calculator',
-              'recursive_action', 'read_file', 'trav',
-              'unserialize', 'write_markup')
+CHEAT_LIST = ('emit', 'get_relationship_calculator',
+              'read_file', 'recursive_action', 'unserialize')
 
 def cheat_skip(function):
     origin = function.origin
-    if (isinstance(function, ti.sema.FunctionSema) and
-        origin.name == '__init__' and
-        isinstance(function.parent, ti.sema.ClassSema)):
-        origin = function.parent.origin
     return origin.name in CHEAT_LIST
 
 class Flags(object):
