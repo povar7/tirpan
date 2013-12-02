@@ -17,7 +17,8 @@ import ti.visitor
 import utils
 
 CHEAT_LIST = ('emit', 'get_relationship_calculator',
-              'read_file', 'recursive_action', 'unserialize')
+              'recursive_action', 'unserialize',
+              'change_database', 'no_database')
 
 def cheat_skip(function):
     origin = function.origin
