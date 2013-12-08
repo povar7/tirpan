@@ -16,13 +16,15 @@ import ti.tgnode
 import ti.visitor
 import utils
 
-CHEAT_LIST = ('get_relationship_calculator', 'read_file', 'unserialize')
-
 MAX_TEMPLATES_NUMBER = 1024
 
-def cheat_skip(function):
+def skip_function(function):
     origin = function.origin
-    return origin.name in CHEAT_LIST
+    if origin.name in config.data.skipped_functions:
+        return True
+    templates = origin.getTemplates()
+    return (len(templates) >= MAX_TEMPLATES_NUMBER and
+            origin.name not in config.data.no_limits)
 
 class Flags(object):
 
@@ -227,22 +229,18 @@ def getProductElements(listArgumentType,
         yield elem, kwKeys
 
 def processProductElement(function, isInit, tgNode, productElement, kwKeys):
-    if config.data.cheat and cheat_skip(function):
-        return
-
-    origin    = function.origin
-    templates = origin.getTemplates()
-
-    if len(templates) > MAX_TEMPLATES_NUMBER:
+    if skip_function(function):
         return
 
     btrace = config.data.backTrace
+    origin = function.origin
 
     if isInit or origin.isGlobalDestructive():
         key = productElement, tgNode
     else:
         key = productElement, None
 
+    templates   = origin.getTemplates()
     template    = templates.get(key)
     newTemplate = template is None
 

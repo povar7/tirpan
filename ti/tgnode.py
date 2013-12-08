@@ -86,6 +86,7 @@ class EdgeType(object):
                 if (isinstance(left, FunctionCallTGNode) and
                     not isSafeCallLoop(left)):
                     right.removeEdge(EdgeType.ARGUMENT, left)
+                    update_flag = False
         except KeyError:
             pass
         # Remove simple loops in type variables graph (2)
@@ -103,6 +104,7 @@ class EdgeType(object):
             try:
                 if (right, ()) in sub.edges[EdgeType.ASSIGN_OBJECT]:
                     sub.removeEdge(EdgeType.ASSIGN_OBJECT, right)
+                    update_flag = False
             except KeyError:
                 pass
         # Remove simple loops in type variables graph (3)
@@ -126,6 +128,16 @@ class EdgeType(object):
             try:
                 if (right, ()) in oper.edges[EdgeType.ASSIGN_OBJECT]:
                     oper.removeEdge(EdgeType.ASSIGN_OBJECT, right)
+                    update_flag = False
+                elif isinstance(right, AttributeTGNode):
+                    for node, args in oper.edges[EdgeType.ASSIGN_OBJECT]:
+                        if (isinstance(node, AttributeTGNode) and
+                            node.attr == right.attr and
+                            node.edges[EdgeType.ASSIGN_OBJECT] ==
+                            right.edges[EdgeType.ASSIGN_OBJECT]):
+                            oper.removeEdge(EdgeType.ASSIGN_OBJECT, right)
+                            update_flag = False
+                            break
             except KeyError:
                 pass
             

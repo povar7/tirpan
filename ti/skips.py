@@ -14,14 +14,12 @@ import utils
 def addSubvariable(var, edgeType, flag, filtered = None):
     if not var:
         return
-
     scope  = ti.sema.ScopeSema(config.data.currentScope, False)
     newVar = ti.tgnode.VariableTGNode(var.name)
     scope.addVariable(newVar)
     var.addEdge(edgeType, newVar, flag)
     newVar.addEdge(ti.tgnode.EdgeType.ASSIGN, var)
     config.data.currentScope = scope
-
     if flag:
         try:
             filtered[var] = edgeType
@@ -294,7 +292,6 @@ def checkFilteringOperand(expr):
 
 def checkFilteringCondition(expr):
     return isinstance(expr, ast.BoolOp) or checkFilteringOperand(expr)
-
 
 def checkSkipAfterIf(condition):
     if not isinstance(condition, ast.UnaryOp):

@@ -76,7 +76,9 @@ executedFiles = ExecutedFiles()
 def quasiExecfile(params, **kwargs):
     filename = getattr(params[0], 'value', None)
     if filename is not None:
-        import config
+        if not any(elem.match(filename) for elem in config.data.execfiles):
+            return {typeNone}
+
         from ti.parser import Parser
         from ti.tgnode import VariableTGNode, UsualModuleTGNode
         node = kwargs['NODE']
