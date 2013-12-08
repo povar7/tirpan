@@ -7,12 +7,15 @@ Created on 18.08.2013
 '''
 
 import os
+import re
 import subprocess
 import sys
 
 atests_dir = os.path.dirname(sys.argv[0])
 tirpan_dir = os.path.join(atests_dir, '..')
+test_fname = os.path.realpath(os.path.join(atests_dir, 'misc28.py'))
 output = subprocess.check_output([os.path.join(tirpan_dir, 'tirpan.py'),
-                                  os.path.join(atests_dir, 'misc28.py')])
+                                  test_fname])
 defects = open(os.path.join(atests_dir, 'accept02_defects.txt'), 'r').read()
+defects = re.sub('FILE', test_fname, defects)
 assert output == defects, 'there must exactly the same output as in the sample'
