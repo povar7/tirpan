@@ -16,9 +16,9 @@ import ti.tgnode
 import ti.visitor
 import utils
 
-CHEAT_LIST = ('emit', 'get_relationship_calculator',
-              'recursive_action', 'unserialize',
-              'change_database', 'no_database')
+CHEAT_LIST = ('get_relationship_calculator', 'read_file', 'unserialize')
+
+MAX_TEMPLATES_NUMBER = 1024
 
 def cheat_skip(function):
     origin = function.origin
@@ -230,7 +230,12 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
     if config.data.cheat and cheat_skip(function):
         return
 
-    origin = function.origin
+    origin    = function.origin
+    templates = origin.getTemplates()
+
+    if len(templates) > MAX_TEMPLATES_NUMBER:
+        return
+
     btrace = config.data.backTrace
 
     if isInit or origin.isGlobalDestructive():
@@ -238,7 +243,6 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
     else:
         key = productElement, None
 
-    templates   = origin.getTemplates()
     template    = templates.get(key)
     newTemplate = template is None
 
