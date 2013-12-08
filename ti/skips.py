@@ -11,13 +11,22 @@ import ti.tgnode
 import ti.sema
 import utils
 
-def addSubvariable(var, edgeType, flag):
-    scope  = ti.sema.ScopeSema(config.data.currentScope)
+def addSubvariable(var, edgeType, flag, filtered = None):
+    if not var:
+        return
+
+    scope  = ti.sema.ScopeSema(config.data.currentScope, False)
     newVar = ti.tgnode.VariableTGNode(var.name)
     scope.addVariable(newVar)
     var.addEdge(edgeType, newVar, flag)
     newVar.addEdge(ti.tgnode.EdgeType.ASSIGN, var)
     config.data.currentScope = scope
+
+    if flag:
+        try:
+            filtered[var] = edgeType
+        except TypeError:
+            pass
 
 def checkSkipNotMain(condition):
     if not isinstance(condition, ast.Compare):
@@ -257,8 +266,35 @@ def checkComprehension(ifs, target):
         return None
     return first
 
-def checkFilteringCondition(condition):
-    return isinstance(condition, (ast.Name, ast.BoolOp))
+
+def checkFilteringIsInstance(expr):
+    if not isinstance(expr, ast.Call):
+        return False
+    func = expr.func
+    if (not isinstance(expr.func, ast.Name) or
+        func.id != 'isinstance'):
+        return False
+    args = expr.args
+    if len(args) != 2:
+        return False
+    obj = args[0]
+    if not isinstance(obj, ast.Name):
+        return False
+    cls = args[1]
+    if (not isinstance(cls, ast.Name) or
+        cls.id != 'list'):
+        return False
+    return True
+
+def checkFilteringName(expr):
+    return isinstance(expr, ast.Name)
+
+def checkFilteringOperand(expr):
+    return checkFilteringName(expr) or checkFilteringIsInstance(expr)
+
+def checkFilteringCondition(expr):
+    return isinstance(expr, ast.BoolOp) or checkFilteringOperand(expr)
+
 
 def checkSkipAfterIf(condition):
     if not isinstance(condition, ast.UnaryOp):

@@ -308,7 +308,8 @@ class ScopeInterface(object):
             if considerGlobals and fileScope:
                 fileScope.addVariable(res)
             else:
-                self.addVariable(res)
+                scope = self.getScopeForAdding()
+                scope.addVariable(res)
         return res
 
     def findNameHere(self, name):
@@ -317,10 +318,14 @@ class ScopeInterface(object):
             return variables[name]
         return None
 
+    def getScopeForAdding(self):
+        return self
+
 class ScopeSema(Sema, ScopeInterface):
 
-    def __init__(self, parent = None):
+    def __init__(self, parent = None, add = True):
         super(ScopeSema, self).__init__()
+        self.add       = add
         self.parent    = parent
         self.variables = {}
 
@@ -352,6 +357,15 @@ class ScopeSema(Sema, ScopeInterface):
         parent = self.getParent()
         if parent:
             parent.setGlobalDestructive()
+
+    def getScopeForAdding(self):
+        if self.add:
+            return self
+        parent = self.getParent()
+        if parent:
+            return parent.getScopeForAdding()
+        else:
+            return None
 
     def getString(self):
         parent = self.getParent()

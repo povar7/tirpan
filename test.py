@@ -5826,6 +5826,27 @@ class TestMisc41(unittest.TestCase):
         self.assertEqual(len(self.defects), 2,
                          'there must be exactly 2 defects')
 
+class TestMisc43(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc43.py')
+        
+    def test_x(self):
+        node = utils.findNode(self.ast, line=16, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(int)
+        type2 = LiteralSema(float)
+        type3 = LiteralValueSema('abc')
+        self.assertTrue(len(nodeType) == 3 and
+                        any(type1 == elem for elem in nodeType) and
+                        any(type2 == elem for elem in nodeType) and
+                        any(type3 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
 class TestObject01(unittest.TestCase):
     
     ast, defects = tirpan.run('tests/object01.py')

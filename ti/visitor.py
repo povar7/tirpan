@@ -21,6 +21,7 @@ class Visitor(ast.NodeVisitor):
 
     def __init__(self, filename, isGlobal = True):
         self.filename  = filename
+        self.filtered  = None
         self.filtering = False
         self.getValue  = False
         self.leftPart  = False
@@ -58,8 +59,7 @@ class Visitor(ast.NodeVisitor):
             link.commonRetrieve('constants', EdgeType.isNotReverse) 
         setLink(node, link)
         if self.filtering:
-            if link is not None:
-                addSubvariable(link, EdgeType.ASSIGN_TRUE, True)
+            addSubvariable(link, EdgeType.ASSIGN_TRUE, True, self.filtered)
        
     def visit_Assign(self, node):
         saveValue = self.getValue
@@ -208,6 +208,8 @@ class Visitor(ast.NodeVisitor):
         setLink(node, link)
 
     def visit_Call(self, node):
+        saveFiltering = self.filtering
+        self.filtering = False
         for arg in node.args:
             self.visit(arg)
         if node.starargs:
@@ -218,6 +220,10 @@ class Visitor(ast.NodeVisitor):
             self.visit(pair.value)
         self.visit(node.func)
         setLink(node, ti.tgnode.FunctionCallTGNode(node))
+        self.filtering = saveFiltering
+        if self.filtering:
+            obj_link = getLink(node.args[0])
+            addSubvariable(obj_link, EdgeType.ASSIGN_LIST, True, self.filtered)
 
     def visit_common_iter(self, node):
         self.visit(node.iter)
@@ -284,7 +290,7 @@ class Visitor(ast.NodeVisitor):
         link = ti.tgnode.BooleanOperationTGNode(node.op)
         save = self.filtering
         for value in node.values:
-            self.filtering = isinstance(value, ast.Name)
+            self.filtering = checkFilteringOperand(value)
             self.visit(value)
             getLink(value).addEdge(EdgeType.ASSIGN, link)
         self.filtering = save
@@ -353,9 +359,12 @@ class Visitor(ast.NodeVisitor):
         condition = node.test
         save = self.filtering
         saveGlobal = self.isGlobal
-        self.isGlobal = False
+        self.isGlobal  = False
         self.filtering = checkFilteringCondition(condition)
+        saveFiltered   = self.filtered
+        self.filtered  = filtered = {}
         self.visit(condition)
+        self.filtered  = saveFiltered
         self.filtering = save
         skipIf   = checkSkipIf  (condition)
         skipElse = checkSkipElse(condition)
@@ -368,11 +377,14 @@ class Visitor(ast.NodeVisitor):
                     else:
                         break
         config.data.currentScope = saveScope
+        for link, edgeType in filtered.items():
+            addSubvariable(link, edgeType, False)
         if not skipElse:
             for stmt in node.orelse:
                 res = self.visit(stmt)
                 if res == self.SKIP_NEXT:
                     break
+        config.data.currentScope = saveScope
         self.isGlobal = saveGlobal
 
     def visit_GeneratorExp(self, node):
