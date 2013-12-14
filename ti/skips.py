@@ -322,6 +322,7 @@ def checkSkipAfterIf(condition):
     except:
         return False
 
+
 def checkGlobalDestructive(flags, node):
     if not flags.isDestructive():
         return False

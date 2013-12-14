@@ -8,13 +8,13 @@ import copy
 import itertools
 
 import config
-import ti.checkers
 import ti.lookup
 import ti.sema
 import ti.skips
 import ti.tgnode
 import ti.visitor
-import utils
+
+from utils import *
 
 MAX_TEMPLATES_NUMBER = 1024
 
@@ -56,18 +56,18 @@ def makeSet(elem):
     else:
         return set()
 
-def getFunctions(functionNode):
-    for elem in functionNode.nodeType:
-        if isinstance(elem, ti.sema.FunctionSema):
-            yield elem, False
-        elif isinstance(elem, ti.sema.ClassSema):
-            var = ti.lookup.lookupVariable(elem, '__init__')
-            if var:
-                for atom in var.nodeType:
-                    if isinstance(atom, ti.sema.FunctionSema):
-                        yield atom, True
-            else:
-                yield elem, True
+def getParamsTypes(params):
+    unsorted = [var for var in params.variables.values() if var.number]
+    sortedParams = sorted(unsorted, sortParams)
+    types = []
+    for param in sortedParams:
+        assert len(param.nodeType) <= 1
+        try:
+            newType = list(param.nodeType)[0]
+        except IndexError:
+            newType = None
+        types.append(newType)
+    return types
 
 def linkCall(function, isInit, kwKeys,
              argsTypes, listArgsTypes, dictArgsTypes):
@@ -232,7 +232,6 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
     if skip_function(function):
         return
 
-    btrace = config.data.backTrace
     origin = function.origin
 
     if isInit or origin.isGlobalDestructive():
@@ -261,33 +260,24 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
         if (isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode) or
             isinstance(origin, ti.tgnode.ForFunctionDefinitionTGNode)):
             astCopy  = origin.ast
-            filename = utils.getFileName(astCopy[0])
+            filename = getFileName(astCopy[0])
             visitor  = ti.visitor.Visitor(filename, False)
             
             templateScope = template.getScope()
             config.data.currentScope = ti.sema.ScopeSema(templateScope)
 
-            if isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode):
-                usual = True
-            else:
-                usual = False
+            if not isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode):
                 var = params.findName(origin.ITER_NAME)
                 targetCopy = copy.deepcopy(origin.target)
                 visitor.visit_common_target(var, targetCopy)
-
-            if usual:
-                btrace.addFrame(tgNode.node, save, function, productElement)
 
             for stmt in astCopy:
                 res = visitor.visit(stmt)
                 if res == visitor.SKIP_NEXT:
                     break
 
-            if usual:
-                btrace.deleteFrame()
-
             if not origin.name:
-                lambdaLink = utils.getLink(astCopy[0])
+                lambdaLink = getLink(astCopy[0])
 
             config.data.currentScope = save
 
@@ -299,29 +289,11 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
             except AttributeError:
                 pass
         elif isinstance(origin, ti.tgnode.ExternalFunctionDefinitionTGNode):
-            unsorted     = [var for var in params.variables.values()
-                            if var.number]
-            sortParams   = ti.tgnode.FunctionDefinitionTGNode.sortParams
-            sortedParams = sorted(unsorted, sortParams)
-            types = []
-            for param in sortedParams:
-                assert len(param.nodeType) <= 1
-                try:
-                    newType = list(param.nodeType)[0]
-                except IndexError:
-                    newType = None
-                types.append(newType)
-
-            btrace.addFrame(tgNode.node, save, function, productElement)
+            types = getParamsTypes(params) 
             flags = Flags()
             template.nodeType = origin.quasi(types,
                                              NODE=tgNode.node,
                                              FLAGS=flags)
-            ti.checkers.checkBasenameCall(tgNode.node,
-                                          function,
-                                          types)
-            btrace.deleteFrame()
-
             template.walkEdges()
             del templates[key]
 
@@ -334,7 +306,7 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
 def processFunc(node, functionNode, argumentNodes, KWArgumentNodes,
                 listArgumentType):
     classes = (ti.sema.FunctionSema, ti.sema.ClassSema)
-    for function, isInit in getFunctions(functionNode):
+    for function, isInit in ti.lookup.getFunctions(functionNode):
         if not isinstance(function, classes):
             continue
         matchResult = matchCall(function, isInit,

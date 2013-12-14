@@ -18,9 +18,8 @@ class BackTrace(object):
     def __init__(self):
         self._backtrace = []
 
-    def addFrame(self, node, scope, function, allArgs):
-        usualArgs = allArgs[0]
-        frame = (node, scope, function, usualArgs)
+    def addFrame(self, node, scope, function, args):
+        frame = (node, scope, function, args)
         self._backtrace.append(frame)
 
     def deleteFrame(self):

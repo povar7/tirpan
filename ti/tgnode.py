@@ -691,10 +691,6 @@ class FunctionDefinitionTGNode(TGNode):
     def isDictParam(self, param):
         return param and param is self.dictParam
 
-    @staticmethod
-    def sortParams(x, y):
-        return cmp(x.number, y.number)
-
     def getAllParams(self):
         res = self.getOrdinaryParams()
         if self.listParam:
@@ -706,7 +702,7 @@ class FunctionDefinitionTGNode(TGNode):
     def getOrdinaryParams(self):
         variables = self.params.variables.values() 
         unsorted = [var for var in variables if var.number]
-        return sorted(unsorted, self.sortParams)
+        return sorted(unsorted, sortParams)
 
     def getListParam(self):
         return self.listParam

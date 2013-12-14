@@ -74,7 +74,7 @@ class FuncArgWrongDefect(Defect):
         pos  = (line, col, fno)
         return hash((pos, self._arg))
 
-def checkBasenameCall(node, func, args):
+def checkBasenameCall(node):
     def funcCondition(x):
         from ti.tgnode import ExternalFunctionDefinitionTGNode
         if not isinstance(x, FunctionSema):
@@ -84,15 +84,23 @@ def checkBasenameCall(node, func, args):
             return False
         return origin.name == 'basename'
 
-    if not funcCondition(func):
+    try:
+        funcLink = getLink(node.func)
+    except:
+        return
+
+    function = None
+    for elem in funcLink.nodeType:
+        if funcCondition(elem):
+            function = elem
+            break
+
+    if not function:
         return
 
     try:
-        arg = args[0]
-    except IndexError:
-        arg = None
-
-    if arg is None:
+        argLink = getLink(node.args[0])
+    except:
         return
 
     def argCondition(x):
@@ -102,6 +110,13 @@ def checkBasenameCall(node, func, args):
             return False
         return True
 
-    if argCondition(arg):
-        defectsHandler = config.data.defectsHandler
-        defectsHandler.addDefect(FuncArgWrongDefect(node, arg)) 
+    btrace  = config.data.backTrace
+    handler = config.data.defectsHandler
+    scope   = config.data.currentScope
+
+    for arg in argLink.nodeType:
+        if argCondition(arg):
+            args = (arg,)
+            btrace.addFrame(node, scope, function, args) 
+            handler.addDefect(FuncArgWrongDefect(node, arg))
+            btrace.deleteFrame()

@@ -141,6 +141,20 @@ def lookupVariable(obj, attr, setValue = False, createNew = False, aux = None):
         var = lookupScope.findNameHere(attr)
     return var
 
+def getFunctions(functionNode):
+    for elem in functionNode.nodeType:
+        if isinstance(elem, FunctionSema):
+            yield elem, False
+        elif isinstance(elem, ClassSema):
+            var = lookupVariable(elem, '__init__')
+            if var:
+                for atom in var.nodeType:
+                    if isinstance(atom, FunctionSema):
+                        yield atom, True
+            else:
+                yield elem, True
+
+
 operatorNames = {
                     ast.Add      : '+' ,
                     ast.BitAnd   : '&' ,

@@ -5847,6 +5847,22 @@ class TestMisc43(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'x', 'name is not "x"')
 
+class TestMisc44(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc44.py')
+
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 0,
+                         'there must be no defects')
+
+class TestMisc45(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc45.py')
+
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 0,
+                         'there must be no defects')
+
 class TestObject01(unittest.TestCase):
     
     ast, defects = tirpan.run('tests/object01.py')

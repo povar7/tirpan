@@ -81,3 +81,8 @@ def findNode(tree, **kwargs):
                 (getColumn(node) == col  if col  is not None else True) and
                 (isinstance(node, kind)  if kind is not None else True))
     return findFirstNode(tree, callback)
+
+def sortParams(x, y):
+    return cmp(x.number, y.number)
+
+

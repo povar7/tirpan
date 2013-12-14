@@ -4,9 +4,10 @@ import sys
 
 from ti.btrace   import BackTrace
 from ti.builtin  import initBuiltins
-from ti.checkers import *
 from ti.importer import Importer
 from ti.sema     import ScopeSema
+
+from orak.checkers import DefectsHandler
 
 class Config(object):
 

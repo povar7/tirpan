@@ -263,9 +263,11 @@ class Visitor(ast.NodeVisitor):
         scope = config.data.currentScope
         var   = self.visit_common_iter(node)
         args  = [QuasiNode(var)]
-        func  = QuasiNode(ti.tgnode.ForFunctionDefinitionTGNode(node, scope))
+        link  = ti.tgnode.ForFunctionDefinitionTGNode(node, scope) 
+        func  = QuasiNode(link)
         quasiCall = QuasiCall(func, args, node)
         ti.tgnode.FunctionCallTGNode(quasiCall)
+        setLink(node, link)
 
     def visit_Op(self, node):
         name = getOperatorName(node)

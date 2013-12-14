@@ -11,6 +11,8 @@ import signal
 
 import config
 
+from orak.visitor import OrakVisitor
+
 def handle_pdb(sig, frame):
     import pdb
     pdb.set_trace()
@@ -20,6 +22,11 @@ def run(filename, conf_filename = None, imports = False, verbose = False):
     importer = config.data.importer
     mainModule = importer.getIdent(0)
     ast = mainModule.getAST()
+    visitor = OrakVisitor()
+    save = config.data.currentScope
+    config.data.currentScope = mainModule.getScope()
+    visitor.visit(ast)
+    config.data.currentScope = save
     handler = config.data.defectsHandler
     if verbose:
         handler.printDefects()
