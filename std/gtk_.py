@@ -4,7 +4,6 @@ Created on 11.08.2013
 @author: bronikkk
 '''
 
-import gtk
 import types
 
 from ti.lookup import *
@@ -178,10 +177,10 @@ def quasiRun(params, **kwargs):
     return {typeNone}
 
 def quasiResponseOk():
-    return {LiteralValueSema(gtk.RESPONSE_OK)}
+    return {typeInt}
 
 def quasiStockOk():
-    return {LiteralValueSema(gtk.STOCK_OK)}
+    return {typeInt}
 
 functions = [
                 ['combo_box_new_text', quasiNewText, 0],

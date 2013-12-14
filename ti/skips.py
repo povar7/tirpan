@@ -293,6 +293,7 @@ def checkFilteringOperand(expr):
 def checkFilteringCondition(expr):
     return isinstance(expr, ast.BoolOp) or checkFilteringOperand(expr)
 
+
 def checkSkipAfterIf(condition):
     if not isinstance(condition, ast.UnaryOp):
         return False
