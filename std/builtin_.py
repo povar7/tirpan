@@ -58,22 +58,8 @@ def quasiEncode(params, **kwargs):
     res = params[0]
     return {res}
 
-class ExecutedFiles(object):
-
-    def __init__(self):
-        self._files = set()
-
-    def addFile(self, filename, node):
-        key = (unicode(filename), node)
-        self._files.add(key)
-
-    def hasFile(self, filename, node):
-        key = (unicode(filename), node)
-        return key in self._files
-
-executedFiles = ExecutedFiles()
-
 def quasiExecfile(params, **kwargs):
+    executedFiles = config.data.importer.executedFiles
     filename = getattr(params[0], 'value', None)
     if filename is not None:
         if not any(elem.match(filename) for elem in config.data.execfiles):
@@ -81,11 +67,12 @@ def quasiExecfile(params, **kwargs):
 
         from ti.parser import Parser
         from ti.tgnode import VariableTGNode, UsualModuleTGNode
-        node = kwargs['TGNODE'].node
-        if executedFiles.hasFile(filename, node):
+        tgNode = kwargs['TGNODE']
+        node   = tgNode.node
+        if executedFiles.hasFile(filename, tgNode):
             return {typeNone}
         else:
-            executedFiles.addFile(filename, node)
+            executedFiles.addFile(filename, tgNode)
         try:
             parser = Parser(filename)
             tree   = parser.getAST()
@@ -110,16 +97,16 @@ def quasiExecfile(params, **kwargs):
                     valueCopy = value.copy()
                     var = VariableTGNode(key.value, valueCopy)
                     newScope.addVariable(var)
-        for node in ast.walk(tree):
-            node.fileno = newNumber
+        for tree_node in ast.walk(tree):
+            tree_node.fileno = newNumber
         parser.walk()
         config.data.currentScope = save
     return {typeNone}
 
 def quasiImport(params, **kwargs):
     filename = getattr(params[0], 'value', None)
-    node = kwargs['TGNODE'].node
-    origin = utils.getFileName(node)
+    tgNode   = kwargs['TGNODE']
+    origin   = utils.getFileName(tgNode.node)
     if filename is not None and origin is not None:
         try:
             importer = config.data.importer

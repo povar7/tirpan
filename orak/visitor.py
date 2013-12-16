@@ -30,22 +30,31 @@ class OrakVisitor(ast.NodeVisitor):
     def visit_Lambda(self, node):
         pass
 
+    def visit_external_function(self, node, origin):
+        parentNode = getLink(node)
+        save = config.data.currentScope
+        if origin.name == '__import__':
+            for elem in parentNode.nodeType:
+                if not isinstance(elem, ti.sema.ModuleSema):
+                    continue
+                self.visit_common_module(elem.origin)
+        for scope, tgNode, quasiCall in origin.calls:
+            if tgNode != parentNode:
+                continue
+            config.data.currentScope = scope
+            quasiLink = getLink(quasiCall.func)
+            self.visit_common_call(quasiCall, quasiLink)
+            config.data.currentScope = save
+
     def visit_common_call(self, node, link):
         btrace = config.data.backTrace
-        save   = config.data.currentScope
+        save = config.data.currentScope
         for function, isInit in ti.lookup.getFunctions(link):
             if not isinstance(function, ti.sema.FunctionSema):
                 continue
             origin = function.origin
             if isinstance(origin, ti.tgnode.ExternalFunctionDefinitionTGNode):
-                parentNode = getLink(node)
-                for scope, tgNode, quasiCall in origin.calls:
-                    if tgNode != parentNode:
-                        continue
-                    config.data.currentScope = scope
-                    quasiLink = getLink(quasiCall.func)
-                    self.visit_common_call(quasiCall, quasiLink)
-                    config.data.currentScope = save
+                self.visit_external_function(node, origin)
                 continue
             if isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode):
                 usual = True
@@ -99,11 +108,7 @@ class OrakVisitor(ast.NodeVisitor):
             for stmt in node.orelse:
                 self.visit(stmt)
 
-    def visit_common_module(self, node):
-        try:
-            module = getLink(node)
-        except AttributeError:
-            module = None
+    def visit_common_module(self, module):
         if not isinstance(module, ti.tgnode.UsualModuleTGNode):
             return
         elif module in self.modules:
@@ -117,7 +122,15 @@ class OrakVisitor(ast.NodeVisitor):
 
     def visit_Import(self, node):
         for alias in node.names:
-            self.visit_common_module(alias)
+            try:
+                module = getLink(alias)
+            except AttributeError:
+                module = None
+            self.visit_common_module(module)
 
     def visit_ImportFrom(self, node):
-        self.visit_common_module(node)
+        try:
+            module = getLink(node)
+        except AttributeError:
+            module = None
+        self.visit_common_module(module)

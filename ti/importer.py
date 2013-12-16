@@ -14,12 +14,38 @@ from   ti.parser  import Parser
 from   ti.sema    import ListSema, LiteralValueSema
 from   utils      import QuasiAlias, getLink, setLink
 
+class ExecutedFiles(object):
+
+    def __init__(self):
+        self._files = {}
+
+    @staticmethod
+    def getKey(filename):
+        return unicode(filename)
+
+    def addFile(self, filename, tgNode):
+        key = self.getKey(filename)
+        if tgNode in self._files:
+            res = self._files[tgNode]
+        else:
+            res = set()
+            self._files[tgNode] = res
+        res.add(key)
+
+    def hasFile(self, filename, tgNode):
+        key = self.getKey(filename)
+        try:
+            return key in self._files[tgNode]
+        except KeyError:
+            return False
+
 class Importer(object):
 
     def __init__(self, relName, data):
-        self.importedFiles   = {}
-        self.identTable      = {}
-        self.totalIdents     = 0
+        self.executedFiles = ExecutedFiles() 
+        self.importedFiles = {}
+        self.identTable    = {}
+        self.totalIdents   = 0
 
         filename = os.path.abspath(relName) 
         self.mainPath = os.path.dirname(filename)
