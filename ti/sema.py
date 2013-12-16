@@ -572,27 +572,6 @@ class ModuleSema(Sema, ScopeInterface):
     def getString(self):
         return '<module>'
 
-class UnknownSema(Sema):
-
-    def __init__(self):
-        super(UnknownSema, self).__init__()
-
-    def isInstanceEqualTo(self, other):
-        return True
-
-    def getInstanceHash(self):
-        return hash(self.__class__)
-
-unknownSema = UnknownSema()
-
-def NoSema():
-    return unknownSema
-
-boolSema = LiteralSema(bool)
-
-def getBoolSema():
-    return boolSema
-
 def freezeSet(elems):
     res = set()
     for elem in elems:
@@ -609,3 +588,8 @@ def freezeDict(elems):
         valCopy = frozenset(freezeSet(val))
         res[keyCopy] = valCopy
     return res
+
+boolSema = LiteralSema(bool)
+
+def getBoolSema():
+    return boolSema

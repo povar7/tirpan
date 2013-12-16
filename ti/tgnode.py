@@ -1088,9 +1088,3 @@ class BooleanOperationTGNode(TGNode):
 
     def process(self):
         pass
-
-class UnknownTGNode(TGNode):
-
-    def __init__(self, node):
-        super(UnknownTGNode, self).__init__()
-        self.nodeType = {NoSema()}

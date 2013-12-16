@@ -11,8 +11,6 @@ import config
 from   ti.sema import *
 from   utils   import *
 
-unknownSema = NoSema()
-
 class DefectsHandler(object):
 
     def __init__(self):
@@ -104,8 +102,6 @@ def checkBasenameCall(node):
         return
 
     def argCondition(x):
-        if x == unknownSema:
-            return False
         if isinstance(x, LiteralSema) and x.ltype in (str, unicode):
             return False
         return True
