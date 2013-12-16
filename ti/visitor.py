@@ -301,7 +301,9 @@ class Visitor(ast.NodeVisitor):
 
     def visit_Compare(self, node):
         self.generic_visit(node)
-        setLink(node, ti.tgnode.UnknownTGNode(node))
+        boolSema = ti.sema.getBoolSema()
+        link = ti.tgnode.VariableTGNode(None, {boolSema})
+        setLink(node, link)
 
     def visit_common_ret(self, node):
         if node.value:

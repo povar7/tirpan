@@ -270,7 +270,6 @@ class FunctionSema(Sema):
 class ScopeInterface(object):
 
     def addVariable(self, var):
-        var.setParent(self)
         variables = self.getVariables()
         variables[var.name] = var
 
@@ -551,6 +550,11 @@ unknownSema = UnknownSema()
 
 def NoSema():
     return unknownSema
+
+boolSema = LiteralSema(bool)
+
+def getBoolSema():
+    return boolSema
 
 def freezeSet(elems):
     res = set()

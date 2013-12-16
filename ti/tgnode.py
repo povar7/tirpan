@@ -403,7 +403,6 @@ class VariableTGNode(TGNode):
         super(VariableTGNode, self).__init__()
         self.name   = name
         self.number = None
-        # self.parent = None
 
         if nodeType is not None:
             self.nodeType = nodeType
@@ -412,10 +411,6 @@ class VariableTGNode(TGNode):
 
     def setNumber(self, number):
         self.number = number
-
-    def setParent(self, parent):
-        # self.parent = parent
-        pass
 
     def process(self):
         pass
