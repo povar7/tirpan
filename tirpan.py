@@ -22,7 +22,7 @@ def run(filename, conf_filename = None, imports = False, verbose = False):
     importer = config.data.importer
     mainModule = importer.getIdent(0)
     ast = mainModule.getAST()
-    visitor = OrakVisitor()
+    visitor = OrakVisitor(mainModule)
     save = config.data.currentScope
     config.data.currentScope = mainModule.getScope()
     visitor.visit(ast)

@@ -5863,6 +5863,14 @@ class TestMisc46(unittest.TestCase):
         self.assertEqual(len(self.defects), 1,
                          'there must be a defect')
 
+class TestMisc47(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc47_1.py')
+
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 1,
+                         'there must be a defect')
+
 class TestObject01(unittest.TestCase):
     
     ast, defects = tirpan.run('tests/object01.py')

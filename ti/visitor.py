@@ -157,7 +157,7 @@ class Visitor(ast.NodeVisitor):
     def visit_Import(self, node):
         importer = config.data.importer
         for alias in node.names:
-            importer.importFile(self.filename, alias)
+            setLink(alias, importer.importFile(self.filename, alias))
 
     def visit_ImportFrom(self, node):
         importer = config.data.importer

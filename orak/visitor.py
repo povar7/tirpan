@@ -20,8 +20,9 @@ def skipTemplate(template, node):
 
 class OrakVisitor(ast.NodeVisitor):
 
-    def __init__(self):
-        self.visited = set()
+    def __init__(self, mainModule):
+        self.modules   = {mainModule}
+        self.templates = set()
 
     def visit_FunctionDef(self, node):
         pass
@@ -52,10 +53,10 @@ class OrakVisitor(ast.NodeVisitor):
                 usual = False
             templates = origin.getTemplates()
             for key, template in templates.items():
-                if template in self.visited or skipTemplate(template, node):
+                if template in self.templates or skipTemplate(template, node):
                     continue
                 else:
-                    self.visited.add(template)
+                    self.templates.add(template)
                 productElement, _ = key
                 config.data.currentScope = template.getScope()
                 if usual:
@@ -97,3 +98,19 @@ class OrakVisitor(ast.NodeVisitor):
         if not skipElse:
             for stmt in node.orelse:
                 self.visit(stmt)
+
+    def visit_Import(self, node):
+        for alias in node.names:
+            try:
+                module = getLink(alias)
+            except AttributeError:
+                module = None
+            if (not isinstance(module, ti.tgnode.UsualModuleTGNode) or
+                module in self.modules):
+                continue
+            else:
+                self.modules.add(module)
+            save = config.data.currentScope
+            config.data.currentScope = module.getScope()
+            self.visit(module.getAST())
+            config.data.currentScope = save
