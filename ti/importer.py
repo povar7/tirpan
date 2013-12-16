@@ -122,10 +122,13 @@ class Importer(object):
         data = config.data
 
         quasiAlias = QuasiAlias(moduleName)
+
         module = self.importFile(origin, quasiAlias)
         if not module:
-            return
+            return None
+
         scope = module.getScope()
+
         for alias in names:
             name = alias.name
             if name == '*':
@@ -148,6 +151,8 @@ class Importer(object):
                     newVar = VariableTGNode(aliasName)
                     data.currentScope.addVariable(newVar)
                     oldVar.addEdge(EdgeType.ASSIGN, newVar)
+
+        return module
 
     def findName(self, name, paths):
         for path in paths:

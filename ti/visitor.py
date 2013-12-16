@@ -161,7 +161,8 @@ class Visitor(ast.NodeVisitor):
 
     def visit_ImportFrom(self, node):
         importer = config.data.importer
-        importer.importFromFile(self.filename, node.module, node.names)
+        link = importer.importFromFile(self.filename, node.module, node.names)
+        setLink(node, link)
 
     def visit_Module(self, node):
         if not getLink(node).isInherited():

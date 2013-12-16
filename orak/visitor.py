@@ -99,18 +99,25 @@ class OrakVisitor(ast.NodeVisitor):
             for stmt in node.orelse:
                 self.visit(stmt)
 
+    def visit_common_module(self, node):
+        try:
+            module = getLink(node)
+        except AttributeError:
+            module = None
+        if not isinstance(module, ti.tgnode.UsualModuleTGNode):
+            return
+        elif module in self.modules:
+            return
+        else:
+            self.modules.add(module)
+        save = config.data.currentScope
+        config.data.currentScope = module.getScope()
+        self.visit(module.getAST())
+        config.data.currentScope = save
+
     def visit_Import(self, node):
         for alias in node.names:
-            try:
-                module = getLink(alias)
-            except AttributeError:
-                module = None
-            if (not isinstance(module, ti.tgnode.UsualModuleTGNode) or
-                module in self.modules):
-                continue
-            else:
-                self.modules.add(module)
-            save = config.data.currentScope
-            config.data.currentScope = module.getScope()
-            self.visit(module.getAST())
-            config.data.currentScope = save
+            self.visit_common_module(alias)
+
+    def visit_ImportFrom(self, node):
+        self.visit_common_module(node)
