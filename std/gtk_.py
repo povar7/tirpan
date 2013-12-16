@@ -99,6 +99,7 @@ def quasiGetActive(params, **kwargs):
     return {typeInt}
 
 def quasiGtkMain(params, **kwargs):
+    import config
     from ti.tgnode import FunctionCallTGNode, VariableTGNode
 
     cls = findGtkName(getActionGroupClassName())
@@ -127,9 +128,12 @@ def quasiGtkMain(params, **kwargs):
     arg = VariableTGNode('arg1', argTypes)
     args.append(QuasiNode(arg))
 
-    node = kwargs['NODE']
+    tgNode = kwargs['TGNODE']
+    node = tgNode.node
     quasiCall = QuasiCall(func, args, node)
-    FunctionCallTGNode(quasiCall)
+    link = FunctionCallTGNode(quasiCall)
+    setLink(quasiCall, link)
+    kwargs['CALLS'].append((config.data.currentScope, tgNode, quasiCall))
 
     return {typeNone}
 
@@ -141,6 +145,7 @@ def quasiNewText(params, **kwargs):
     return {obj}
 
 def quasiRun(params, **kwargs):
+    import config
     from ti.tgnode import FunctionCallTGNode, VariableTGNode
 
     obj = params[0]
@@ -170,9 +175,12 @@ def quasiRun(params, **kwargs):
     arg = VariableTGNode('arg1', argTypes)
     args.append(QuasiNode(arg))
 
-    node = kwargs['NODE']
+    tgNode = kwargs['TGNODE']
+    node = tgNode.node
     quasiCall = QuasiCall(func, args, node)
-    FunctionCallTGNode(quasiCall)
+    link = FunctionCallTGNode(quasiCall)
+    setLink(quasiCall, link)
+    kwargs['CALLS'].append((config.data.currentScope, tgNode, quasiCall))
 
     return {typeNone}
 

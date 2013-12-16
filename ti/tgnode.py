@@ -789,6 +789,7 @@ class ExternalFunctionDefinitionTGNode(FunctionDefinitionTGNode):
                                                                scope,
                                                                defaults)
 
+        self.calls = []
         self.quasi = quasi
 
         number = 0

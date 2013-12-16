@@ -4,8 +4,6 @@ Created on 08.09.2013
 @author: bronikkk
 '''
 
-import urllib
-
 from ti.sema import *
 
 def quasiUrlopen(params, **kwargs):

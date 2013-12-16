@@ -12,6 +12,7 @@ from utils   import *
 typeNone = LiteralSema(types.NoneType)
 
 def quasiTimeout_Add(params, **kwargs):
+    import config
     from ti.tgnode import FunctionCallTGNode, VariableTGNode
 
     vaarg = params[0]
@@ -32,9 +33,12 @@ def quasiTimeout_Add(params, **kwargs):
         arg = VariableTGNode('arg' + str(index), argTypes.copy())
         args.append(QuasiNode(arg))
 
-    node = kwargs['NODE']
+    tgNode = kwargs['TGNODE']
+    node = tgNode.node
     quasiCall = QuasiCall(func, args, node)
-    FunctionCallTGNode(quasiCall)
+    link = FunctionCallTGNode(quasiCall)
+    setLink(quasiCall, link)
+    kwargs['CALLS'].append((config.data.currentScope, tgNode, quasiCall))
 
     return {typeNone}
 

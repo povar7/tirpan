@@ -81,7 +81,7 @@ def quasiExecfile(params, **kwargs):
 
         from ti.parser import Parser
         from ti.tgnode import VariableTGNode, UsualModuleTGNode
-        node = kwargs['NODE']
+        node = kwargs['TGNODE'].node
         if executedFiles.hasFile(filename, node):
             return {typeNone}
         else:
@@ -118,7 +118,7 @@ def quasiExecfile(params, **kwargs):
 
 def quasiImport(params, **kwargs):
     filename = getattr(params[0], 'value', None)
-    node = kwargs['NODE']
+    node = kwargs['TGNODE'].node
     origin = utils.getFileName(node)
     if filename is not None and origin is not None:
         try:

@@ -289,11 +289,12 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
             except AttributeError:
                 pass
         elif isinstance(origin, ti.tgnode.ExternalFunctionDefinitionTGNode):
-            types = getParamsTypes(params) 
+            types = getParamsTypes(params)
             flags = Flags()
             template.nodeType = origin.quasi(types,
-                                             NODE=tgNode.node,
-                                             FLAGS=flags)
+                                             CALLS=origin.calls,
+                                             FLAGS=flags,
+                                             TGNODE=tgNode)
             template.walkEdges()
             del templates[key]
 

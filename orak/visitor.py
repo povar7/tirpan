@@ -14,6 +14,10 @@ import orak.checkers
 
 from utils import *
 
+def skipTemplate(template, node):
+    tgNode = getLink(node) 
+    return (tgNode, ()) not in template.edges[ti.tgnode.EdgeType.ASSIGN]
+
 class OrakVisitor(ast.NodeVisitor):
 
     def __init__(self):
@@ -33,6 +37,14 @@ class OrakVisitor(ast.NodeVisitor):
                 continue
             origin = function.origin
             if isinstance(origin, ti.tgnode.ExternalFunctionDefinitionTGNode):
+                parentNode = getLink(node)
+                for scope, tgNode, quasiCall in origin.calls:
+                    if tgNode != parentNode:
+                        continue
+                    config.data.currentScope = scope
+                    quasiLink = getLink(quasiCall.func)
+                    self.visit_common_call(quasiCall, quasiLink)
+                    config.data.currentScope = save
                 continue
             if isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode):
                 usual = True
@@ -40,10 +52,10 @@ class OrakVisitor(ast.NodeVisitor):
                 usual = False
             templates = origin.getTemplates()
             for key, template in templates.items():
-                if key in self.visited:
+                if template in self.visited or skipTemplate(template, node):
                     continue
                 else:
-                    self.visited.add(key)
+                    self.visited.add(template)
                 productElement, _ = key
                 config.data.currentScope = template.getScope()
                 if usual:
@@ -59,24 +71,23 @@ class OrakVisitor(ast.NodeVisitor):
         self.generic_visit(node)
         try:
             link = getLink(node.func)
-            self.visit_common_call(node, link)
         except AttributeError:
-            pass
+            return
+        self.visit_common_call(node, link)
 
     def visit_For(self, node):
         self.visit(node.iter)
         try:
             link = getLink(node)
-            self.visit_common_call(node, link)
         except AttributeError:
-            pass
+            return
+        self.visit_common_call(node, link)
 
     def visit_TryExcept(self, node):
         skipBody = False
         skipElse = False
         for handler in node.handlers:
-            if (handler.type is None or
-                isinstance(handler.type, ast.Name) and
+            if (isinstance(handler.type, ast.Name) and
                 handler.type.id == 'AttributeError'):
                 skipBody = True
             self.visit(handler)
