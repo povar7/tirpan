@@ -248,6 +248,43 @@ class DictSema(CollectionSema):
         self.elems = freezeDict(self.elems)
         self.frozen = True
 
+class SetSema(CollectionSema):
+    
+    def __init__(self):
+        super(SetSema, self).__init__()
+        self.elems = set()
+
+    def isInstanceEqualTo(self, other):
+        assert self.frozen == other.frozen
+        if self.frozen:
+            return self.elems == other.elems
+        else:
+            return self is other
+
+    def getInstanceHash(self):
+        if self.frozen:
+            return hash(frozenset(self.elems.items()))
+        else:
+            return id(self)
+
+    def getElementsAtIndex(self, index):
+        return self.getElements()
+
+    def getElements(self):
+        return self.elems.copy()
+
+    def addElementsAtIndex(self, key, values):
+        self.elems |= values
+
+    def copy(self):
+        res = SetSema()
+        res.elems = self.elems.copy()
+        return res
+
+    def freeze(self):
+        self.elems = freezeSet(self.elems)
+        self.frozen = True
+
 class FunctionSema(Sema):
 
     def __init__(self, origin, parent):

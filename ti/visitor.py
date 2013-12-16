@@ -432,7 +432,7 @@ class Visitor(ast.NodeVisitor):
 
     def visit_Set(self, node):
         self.generic_visit(node)
-        setLink(node, ti.tgnode.UnknownTGNode(node))
+        setLink(node, ti.tgnode.SetTGNode(node))
 
     def visit_comprehension(self, node):
         var = self.visit_common_iter(node)

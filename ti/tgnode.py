@@ -459,6 +459,16 @@ class DictTGNode(TGNode):
         dictSema = DictSema()
         self.nodeType = {dictSema}
 
+class SetTGNode(TGNode):
+
+    def __init__(self, node):
+        super(SetTGNode, self).__init__()
+        setSema = SetSema()
+        self.nodeType = {setSema}
+        for elem in node.elts:
+            link = getLink(elem)
+            link.addEdge(EdgeType.ELEMENT, self)
+
 class AttributeTGNode(TGNode):
 
     def __init__(self, attr):
