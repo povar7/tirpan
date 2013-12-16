@@ -69,20 +69,20 @@ def quasiExecfile(params, **kwargs):
         from ti.tgnode import VariableTGNode, UsualModuleTGNode
         tgNode = kwargs['TGNODE']
         node   = tgNode.node
-        if executedFiles.hasFile(filename, tgNode):
+        if executedFiles.hasFile(tgNode, filename):
             return {typeNone}
-        else:
-            executedFiles.addFile(filename, tgNode)
         try:
             parser = Parser(filename)
             tree   = parser.getAST()
         except IOError:
+            executedFiles.addFile(tgNode, filename, None)
             return {typeNone}
         importer  = config.data.importer
         oldNumber = node.fileno
         oldScope  = importer.getFileScope(oldNumber) 
         module    = UsualModuleTGNode(tree, filename, None, oldScope)
         newNumber = importer.putIdent(module)
+        executedFiles.addFile(tgNode, filename, module)
         if config.data.imports:
             print >> sys.stderr, '%d\t%s' % (newNumber, module.name)
         utils.setLink(tree, module)

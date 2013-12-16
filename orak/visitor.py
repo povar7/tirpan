@@ -38,6 +38,11 @@ class OrakVisitor(ast.NodeVisitor):
                 if not isinstance(elem, ti.sema.ModuleSema):
                     continue
                 self.visit_common_module(elem.origin)
+        elif origin.name == 'execfile':
+            executedFiles = config.data.importer.executedFiles 
+            modules = executedFiles.getModules(parentNode)
+            for module in modules:
+                self.visit_common_module(module)
         for scope, tgNode, quasiCall in origin.calls:
             if tgNode != parentNode:
                 continue

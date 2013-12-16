@@ -23,16 +23,23 @@ class ExecutedFiles(object):
     def getKey(filename):
         return unicode(filename)
 
-    def addFile(self, filename, tgNode):
+    def getModules(self, tgNode):
+        try:
+            temp = self._files[tgNode]
+            return temp.values()
+        except:
+            return []
+
+    def addFile(self, tgNode, filename, module):
         key = self.getKey(filename)
         if tgNode in self._files:
             res = self._files[tgNode]
         else:
-            res = set()
+            res = {}
             self._files[tgNode] = res
-        res.add(key)
+        res[key] = module
 
-    def hasFile(self, filename, tgNode):
+    def hasFile(self, tgNode, filename):
         key = self.getKey(filename)
         try:
             return key in self._files[tgNode]

@@ -1,7 +1,7 @@
 import os
 import sys
 
-if hasattr(sys, "frozen"):
+if hasattr(sys, 'frozen'):
     ROOT_DIR = os.path.abspath(
                    os.path.dirname(unicode(sys.executable,
                                            sys.getfilesystemencoding())))
@@ -10,10 +10,10 @@ else:
                    os.path.dirname(unicode(__file__,
                                            sys.getfilesystemencoding())))
 
-PLUGINS_DIR = os.path.join(ROOT_DIR, "plugins")
+PLUGINS_DIR = os.path.join(ROOT_DIR, 'plugins')
 
-DIR_FOR_BUILTIN05  = os.path.join(ROOT_DIR, "import03")
-PATH_FOR_BUILTIN08 = os.path.join(ROOT_DIR, "builtin08.py")
+DIR_FOR_BUILTIN05  = os.path.join(ROOT_DIR, 'import03')
+PATH_FOR_BUILTIN08 = os.path.join(ROOT_DIR, 'builtin08.py')
 
 X = 'x'
 Y = 'y'
@@ -28,7 +28,7 @@ FANCHART_PYTHON_FN = 'fanchartview.py'
 REPORT_KEY = 'FamilySheet'
 REPORT_MENU_NAME = 'Family Sheet...'
 
-VERSION       = "3.3.0"
+VERSION       = '3.3.0'
 VERSION_TUPLE = (3, 3, 0)
 
 if os.environ.has_key('GRAMPSHOME'):
@@ -49,30 +49,31 @@ else:
 USER_HOME = unicode(USER_HOME, sys.getfilesystemencoding())
 HOME_DIR = unicode(HOME_DIR, sys.getfilesystemencoding())
 
-IMAGE_DIR     = os.path.join(ROOT_DIR, "images")
+IMAGE_DIR     = os.path.join(ROOT_DIR, 'images')
 VERSION_DIR   = os.path.join(HOME_DIR,
-                             "gramps%s%s" % (VERSION_TUPLE[0],
+                             'gramps%s%s' % (VERSION_TUPLE[0],
                                              VERSION_TUPLE[1]))
-USER_PLUGINS  = os.path.join(VERSION_DIR, "plugins")
+USER_PLUGINS  = os.path.join(VERSION_DIR, 'plugins')
 
 CONST_PYTHON_FN = os.path.basename('../tests/const.py')
 
-PATH_FOR_MISC34_2 = os.path.join(ROOT_DIR, "misc34_2.py")
+PATH_FOR_MISC19   = os.path.join(ROOT_DIR, 'misc19.py')
+PATH_FOR_MISC34_2 = os.path.join(ROOT_DIR, 'misc34_2.py')
 
-if sys.platform == "win32":
+if sys.platform == 'win32':
     if sys.prefix == os.path.dirname(os.getcwd()):
         PREFIXDIR = sys.prefix
-        SYSCONFDIR = os.path.join(sys.prefix, "etc")
-elif  sys.platform == "darwin" and sys.prefix != sys.exec_prefix:
+        SYSCONFDIR = os.path.join(sys.prefix, 'etc')
+elif  sys.platform == 'darwin' and sys.prefix != sys.exec_prefix:
     PREFIXDIR = sys.prefix
-    SYSCONFDIR = os.path.join(sys.prefix, "etc")
+    SYSCONFDIR = os.path.join(sys.prefix, 'etc')
 else:
-    PREFIXDIR = "/usr/local"
-    SYSCONFDIR = "${prefix}/etc"
+    PREFIXDIR = '/usr/local'
+    SYSCONFDIR = '${prefix}/etc'
 
-LINUX = ["Linux", "linux", "linux2"]
-MACOS = ["Darwin", "darwin"]
-WINDOWS = ["Windows", "win32"]
+LINUX = ['Linux', 'linux', 'linux2']
+MACOS = ['Darwin', 'darwin']
+WINDOWS = ['Windows', 'win32']
 
-URL_WIKISTRING  = "http://gramps-project.org/wiki/index.php?title="
-URL_MANUAL_PAGE = "Gramps_3.3_Wiki_Manual"
+URL_WIKISTRING  = 'http://gramps-project.org/wiki/index.php?title='
+URL_MANUAL_PAGE = 'Gramps_3.3_Wiki_Manual'
