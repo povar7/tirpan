@@ -314,9 +314,9 @@ def quasiAdd(params, **kwargs):
         res.addElementsAtKey(None, right.getElements())
         return {res}
 
-    if not isinstance(left , LiteralSema):
+    if not isinstance(left , LiteralSema) or left.ltype == types.NoneType:
         return set()
-    if not isinstance(right, LiteralSema):
+    if not isinstance(right, LiteralSema) or right.ltype == types.NoneType:
         return set()
 
     if (left.ltype  in (str, unicode) and
