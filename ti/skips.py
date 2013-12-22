@@ -11,11 +11,27 @@ import ti.tgnode
 import ti.sema
 import utils
 
+def getSubvariableName(var):
+    name = None
+    if isinstance(var, ti.tgnode.VariableTGNode):
+        name = var.name
+    elif isinstance(var, ti.tgnode.AttributeTGNode):
+        edges = var.getEdges(ti.tgnode.EdgeType.ASSIGN_OBJECT)
+        if len(edges) == 1:
+            node, args = list(edges)[0]
+            try:
+                prefix = node.name
+                name = prefix + '.' + var.attr
+            except AttributeError:
+                pass
+    return name
+
 def addSubvariable(var, edgeType, flag, filtered = None):
-    if not var:
-        return
+    name = getSubvariableName(var)
+    if name is None:
+        return 
     scope  = ti.sema.ScopeSema(config.data.currentScope, False)
-    newVar = ti.tgnode.VariableTGNode(var.name)
+    newVar = ti.tgnode.VariableTGNode(name)
     scope.addVariable(newVar)
     var.addEdge(edgeType, newVar, flag)
     newVar.addEdge(ti.tgnode.EdgeType.ASSIGN, var)
@@ -285,7 +301,12 @@ def checkFilteringIsInstance(expr):
     return True
 
 def checkFilteringName(expr):
-    return isinstance(expr, ast.Name)
+    if isinstance(expr, ast.Name):
+        return True
+    if not isinstance(expr, ast.Attribute):
+        return False
+    value = expr.value
+    return isinstance(value, ast.Name)
 
 def checkFilteringOperand(expr):
     return checkFilteringName(expr) or checkFilteringIsInstance(expr)

@@ -330,12 +330,23 @@ class Visitor(ast.NodeVisitor):
     def visit_Attribute(self, node):
         save = self.leftPart
         self.leftPart = False
+        saveFiltering = self.filtering
+        self.filtering = False
         collection = node.value
         self.visit(collection)
+        self.filtering = saveFiltering
         link = ti.tgnode.AttributeTGNode(node.attr)
         collectionLink = getLink(collection) 
         link.addEdge(EdgeType.ASSIGN_OBJECT, collectionLink)
         collectionLink.addEdge(EdgeType.ATTR_OBJECT, link)
+        if self.filtering:
+            addSubvariable(link, EdgeType.ASSIGN_TRUE, True, self.filtered)
+        else:
+            name = getSubvariableName(link)
+            if name:
+                var = config.data.currentScope.findName(name)
+                if var:
+                    link = var
         setLink(node, link)
         self.leftPart = save
 
