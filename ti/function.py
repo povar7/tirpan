@@ -19,7 +19,7 @@ from utils import *
 MAX_TEMPLATES_NUMBER = 1024
 
 def skip_function(function):
-    origin = function.origin
+    origin = function.getOrigin()
     if origin.name in config.data.skipped_functions:
         return True
     templates = origin.getTemplates()
@@ -77,7 +77,7 @@ def linkCall(function, isInit, kwKeys,
         inst = argType.getClassInstance()
         return None, inst
 
-    origin    = function.origin
+    origin    = function.getOrigin()
     params    = origin.getOrdinaryParams()
     listParam = origin.getListParam()
     dictParam = origin.getDictParam()
@@ -121,7 +121,7 @@ def linkCall(function, isInit, kwKeys,
     return scope, inst
 
 def matchCall(function, isInit, argumentNodes, KWArgumentNodes):
-    origin = function.origin
+    origin = function.getOrigin()
 
     if isinstance(function, ti.sema.FunctionSema):
         params   = origin.getAllParams()
@@ -232,7 +232,7 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
     if skip_function(function):
         return
 
-    origin = function.origin
+    origin = function.getOrigin()
 
     if isInit or origin.isGlobalDestructive():
         key = productElement, tgNode

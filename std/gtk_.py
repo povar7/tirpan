@@ -108,7 +108,7 @@ def quasiGtkMain(params, **kwargs):
 
     funcTypes = set()
 
-    origin = cls.origin
+    origin = cls.getOrigin()
     for inst in origin.getInstances():
         var = lookupVariable(inst, '_actions')
         if not var:

@@ -751,7 +751,10 @@ class FunctionDefinitionTGNode(TGNode):
     def setGlobalDestructive(self):
         if not self.globalDestructive:
             self.rehashTemplates()
-            self.globalDestructive = True 
+            self.globalDestructive = True
+
+    def getNodeName(self):
+        return self.name
 
 class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
@@ -1082,6 +1085,9 @@ class ExternalModuleTGNode(ModuleTGNode):
 
     def getAliasName(self):
         return self.asname
+
+    def getNodeName(self):
+        return self.getAliasName()
 
 class BooleanOperationTGNode(TGNode):
 

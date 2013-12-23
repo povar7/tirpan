@@ -298,9 +298,16 @@ class FunctionSema(Sema):
     def getInstanceHash(self):
         return id(self)
 
+    def getOrigin(self):
+        return self.origin
+
+    def getParent(self):
+        return self.parent
+
     def getString(self):
-        if self.origin.name:
-            return self.origin.name
+        origin = self.getOrigin()
+        if origin.name:
+            return origin.name
         else:
             return '<lambda>'
 
@@ -417,24 +424,28 @@ class ClassSema(Sema, ScopeInterface):
         self.origin = origin
 
     def getBody(self):
-        return self.origin.getBody()
+        origin = self.getOrigin()
+        return origin.getBody()
 
     def getClassInstance(self):
         from ti.tgnode import VariableTGNode
         inst = InstanceSema(self)
-        self.origin.addInstance(inst)
+        origin = self.getOrigin()
+        origin.addInstance(inst)
         var = VariableTGNode('__class__', {self})
         inst.getBody().addVariable(var)
         return inst
 
     def getInstancesNumber(self):
-        return self.origin.getInstancesNumber()
+        origin = self.getOrigin()
+        return origin.getInstancesNumber()
 
     def getGlobalNames(self):
         return set() 
 
     def getParent(self):
-        return self.origin.getParent()
+        origin = self.getOrigin()
+        return origin.getParent()
 
     def getVariables(self):
         scope = self.getBody()
@@ -449,8 +460,12 @@ class ClassSema(Sema, ScopeInterface):
     def getInstanceHash(self):
         return id(self)
 
+    def getOrigin(self):
+        return self.origin
+
     def getString(self):
-        return '<class %s>' % self.origin.name
+        origin = self.getOrigin()
+        return '<class %s>' % origin.name
 
 class InstanceSema(Sema, ScopeInterface):
 
@@ -473,7 +488,9 @@ class InstanceSema(Sema, ScopeInterface):
         return id(self)
 
     def getString(self):
-        return '<%s object>' % self.stub.origin.name
+        stub   = self.getStub()
+        origin = stub.getOrigin()
+        return '<%s object>' % origin.name
 
     def isSingleton(self):
         stub = self.getStub()
@@ -490,24 +507,28 @@ class TemplateSema(Sema, ScopeInterface):
         globalNames |= set(names)
 
     def getGlobalNames(self):
-        return self.origin.function.globalNames
+        origin = self.getOrigin()
+        return origin.function.globalNames
 
     def getParent(self):
-        return self.origin.getParent()
+        origin = self.getOrigin()
+        return origin.getParent()
 
     def getVariables(self):
-        scope = self.origin.getParams()
+        origin = self.getOrigin()
+        scope  = origin.getParams()
         return scope.getVariables()
 
     def hasGlobals(self):
         from ti.tgnode import ForFunctionDefinitionTGNode
-        if isinstance(self.origin.function, ForFunctionDefinitionTGNode):
+        origin = self.getOrigin()
+        if isinstance(origin.function, ForFunctionDefinitionTGNode):
             return False
         return True
 
     def connectReturn(self, node):
         from ti.tgnode import EdgeType, ForFunctionDefinitionTGNode
-        origin = self.origin
+        origin = self.getOrigin()
         if isinstance(origin.function, ForFunctionDefinitionTGNode):
             origin.parent.connectReturn(node)
         else:
@@ -515,31 +536,38 @@ class TemplateSema(Sema, ScopeInterface):
 
     def connectYield(self, node):
         from ti.tgnode import EdgeType, ForFunctionDefinitionTGNode
-        origin = self.origin
+        origin = self.getOrigin()
         if isinstance(origin.function, ForFunctionDefinitionTGNode):
             origin.parent.connectYield(node)
         else:
             utils.getLink(node).addEdge(EdgeType.ASSIGN_YIELD, origin)
 
     def setGlobalDestructive(self):
-        function = self.origin.function
+        origin   = self.getOrigin()
+        function = origin.function
         function.setGlobalDestructive()
 
     def getLink(self, node):
         try:
-            return self.origin.mapping[node]
+            origin = self.getOrigin()
+            return origin.mapping[node]
         except KeyError:
             return self.getParent().getLink(node)
 
+    def setLink(self, node, value):
+        origin = self.getOrigin()
+        origin.mapping[node] = value
+
+    def getOrigin(self):
+        return self.origin
+
     def getString(self):
-        function = self.origin.function
+        origin = self.getOrigin()
+        function = origin.function
         if function.name:
             return function.name
         else:
             return '<lambda>'
-
-    def setLink(self, node, value):
-        self.origin.mapping[node] = value
 
 class ModuleSema(Sema, ScopeInterface):
 
@@ -554,10 +582,12 @@ class ModuleSema(Sema, ScopeInterface):
         return id(self)
 
     def getBody(self):
-        return self.origin.getBody()
+        origin = self.getOrigin()
+        return origin.getBody()
 
     def getParent(self):
-        return self.origin.getParent()
+        origin = self.getOrigin()
+        return origin.getParent()
 
     def getVariables(self):
         scope = self.getBody()
@@ -568,6 +598,9 @@ class ModuleSema(Sema, ScopeInterface):
 
     def setGlobalDestructive(self):
         pass
+
+    def getOrigin(self):
+        return self.origin
 
     def getString(self):
         return '<module>'

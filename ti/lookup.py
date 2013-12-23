@@ -115,7 +115,8 @@ def lookupVariable(obj, attr, setValue = False, createNew = False, aux = None):
             func     = QuasiNode(attrFunc)
             quasiCall = QuasiCall(func, args)
             return FunctionCallTGNode(quasiCall)
-        for base in obj.origin.getBases():
+        origin = obj.getOrigin()
+        for base in origin.getBases():
             save = config.data.currentScope
             config.data.currentScope = obj
             for elem in getLink(base).nodeType:

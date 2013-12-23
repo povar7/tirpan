@@ -56,7 +56,7 @@ class BackTrace(object):
 
             if isinstance(parent, ModuleSema):
                 from ti.tgnode import ExternalModuleTGNode
-                origin = parent.origin
+                origin = parent.getOrigin()
                 if isinstance(origin, ExternalModuleTGNode):
                     res += '%s.' % origin.getAliasName()
 

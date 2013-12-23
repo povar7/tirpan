@@ -30,7 +30,8 @@ def quasiTranslation(params, **kwargs):
     cls = findGettextName(getNullTranslationsClassName())
     if not cls:
         return set()
-    instances = cls.origin.getInstances()
+    origin = cls.getOrigin()
+    instances = origin.getInstances()
     if len(instances) == 1:
         res = list(instances)[0]
     else:

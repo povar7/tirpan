@@ -4,8 +4,11 @@ Created on 03.08.2013
 @author: bronikkk
 '''
 
+import ast
+
 import config
 
+from orak.api     import *
 from orak.defects import *
 from ti.sema      import *
 from utils        import *
@@ -30,23 +33,19 @@ class BasenameDefect(Defect):
         pos  = (line, col, fno)
         return hash((pos, self._arg))
 
-def checkBasenameCall(node):
-    def funcCondition(x):
-        from ti.tgnode import ExternalFunctionDefinitionTGNode
-        if not isinstance(x, FunctionSema):
-            return False
-        origin = x.origin
-        if not isinstance(origin, ExternalFunctionDefinitionTGNode):
-            return False
-        return origin.name == 'basename'
+def funcCondition(sema):
+    return orak_getQualifiedName(sema) == 'os.path.basename'
 
-    try:
-        funcLink = getLink(node.func)
-    except:
+def argCondition(sema):
+    return not orak_isBasestring(sema)
+
+def checkBasenameCall(node):
+    funcLink = orak_getLink(node.func)
+    if not funcLink:
         return
 
     function = None
-    for elem in funcLink.nodeType:
+    for elem in orak_getNodeType(funcLink):
         if funcCondition(elem):
             function = elem
             break
@@ -54,23 +53,20 @@ def checkBasenameCall(node):
     if not function:
         return
 
-    try:
-        argLink = getLink(node.args[0])
-    except:
+    argLink = orak_getLink(node.args[0])
+    if not argLink:
         return
-
-    def argCondition(x):
-        if isinstance(x, LiteralSema) and x.ltype in (str, unicode):
-            return False
-        return True
 
     btrace  = config.data.backTrace
     handler = config.data.defectsHandler
     scope   = config.data.currentScope
 
-    for arg in argLink.nodeType:
+    for arg in orak_getNodeType(argLink):
         if argCondition(arg):
             args = (arg,)
             btrace.addFrame(node, scope, function, args) 
             handler.addDefect(BasenameDefect(node, arg))
             btrace.deleteFrame()
+
+def basenameChecker():
+    orak_registerCallback(ast.Call, checkBasenameCall)
