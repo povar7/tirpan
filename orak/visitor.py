@@ -10,9 +10,14 @@ import config
 import ti.lookup
 import ti.tgnode
 import ti.sema
-import orak.checkers
+
+import orak.api
 
 from utils import *
+
+def callCheckers(node, func):
+    orak.api.invokeCallbacks(node)
+    func(node)
 
 def skipTemplate(template, node):
     tgNode = getLink(node) 
@@ -82,7 +87,7 @@ class OrakVisitor(ast.NodeVisitor):
                 config.data.currentScope = save
 
     def visit_Call(self, node):
-        orak.checkers.checkBasenameCall(node)
+        orak.api.invokeCallbacks(node)
         self.generic_visit(node)
         try:
             link = getLink(node.func)
@@ -91,6 +96,7 @@ class OrakVisitor(ast.NodeVisitor):
         self.visit_common_call(node, link)
 
     def visit_For(self, node):
+        orak.api.invokeCallbacks(node)
         self.visit(node.iter)
         try:
             link = getLink(node)
@@ -99,6 +105,7 @@ class OrakVisitor(ast.NodeVisitor):
         self.visit_common_call(node, link)
 
     def visit_TryExcept(self, node):
+        orak.api.invokeCallbacks(node)
         skipBody = False
         skipElse = False
         for handler in node.handlers:
@@ -126,6 +133,7 @@ class OrakVisitor(ast.NodeVisitor):
         config.data.currentScope = save
 
     def visit_Import(self, node):
+        orak.api.invokeCallbacks(node)
         for alias in node.names:
             try:
                 module = getLink(alias)
@@ -134,8 +142,13 @@ class OrakVisitor(ast.NodeVisitor):
             self.visit_common_module(module)
 
     def visit_ImportFrom(self, node):
+        orak.api.invokeCallbacks(node)
         try:
             module = getLink(node)
         except AttributeError:
             module = None
         self.visit_common_module(module)
+
+    def __getattr__(self, name):
+        func = super(OrakVisitor, self).__getattr__(name)
+        return lambda node : callCheckers(node, func)

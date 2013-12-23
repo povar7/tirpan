@@ -5,4 +5,4 @@ Tirpan traceback (most recent call last):
     foo([])
   File "FILE", line 4, in foo:
     os.path.basename([])
-FUNC.ARG.WRONG: 'os.path.basename' expects <basestring object>, not [].
+BASENAME: 'os.path.basename' expects <basestring object>, not [].

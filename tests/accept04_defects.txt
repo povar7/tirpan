@@ -5,4 +5,4 @@ Tirpan traceback (most recent call last):
     <A object>.set_css_filename([])
   File "FILE", line 8, in set_css_filename:
     os.path.basename([])
-FUNC.ARG.WRONG: 'os.path.basename' expects <basestring object>, not [].
+BASENAME: 'os.path.basename' expects <basestring object>, not [].

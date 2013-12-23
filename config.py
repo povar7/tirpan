@@ -7,7 +7,8 @@ from ti.builtin  import initBuiltins
 from ti.importer import Importer
 from ti.sema     import ScopeSema
 
-from orak.checkers import DefectsHandler
+from orak.checkers import initCheckers
+from orak.defects  import DefectsHandler
 
 class Config(object):
 
@@ -22,6 +23,8 @@ class Config(object):
 
         self.imports  = imports
         self.importer = Importer(filename, self)
+
+        initCheckers()
 
     def _read_config(self, conf_filename):
         cfg = ConfigParser.RawConfigParser()
