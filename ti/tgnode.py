@@ -163,6 +163,9 @@ class EdgeType(object):
 
     @staticmethod
     def processAssignElement(left, right, *args):
+        for node, _ in left.getEdges(EdgeType.REV_ELEMENT):
+            if node == right:
+                return
         index = args[0]
         types = left.getElementsTypes(index)
         EdgeType.updateRight(right, types)
