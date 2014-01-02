@@ -25,6 +25,9 @@ from ti.tgnode import VariableTGNode, FunctionDefinitionTGNode
 import tests.const
 from   tests.ggettext import gettext as _
 
+tirpan_dir  = os.path.dirname(sys.argv[0])
+all_no_conf = os.path.join(tirpan_dir, 'cfg', 'orak_no.ini')
+
 class TestAssign01(unittest.TestCase):
     
     ast, defects = tirpan.run('tests/assign01.py')
@@ -5448,13 +5451,21 @@ class TestMisc18(unittest.TestCase):
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'a', 'name is not "a"')
 
-class TestMisc19(unittest.TestCase):
+class TestMisc19_1(unittest.TestCase):
     
     ast, defects = tirpan.run('tests/misc19.py')
         
     def test_defects(self):
         self.assertEqual(len(self.defects), 1,
                          'there must be a defect')
+
+class TestMisc19_2(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc19.py', orak_conf = all_no_conf)
+        
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 0,
+                         'there must be no defects')
 
 class TestMisc20(unittest.TestCase):
     

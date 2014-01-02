@@ -67,6 +67,9 @@ def orak_isBasestring(sema):
     except:
         return False
 
+def orak_initializeCallbacks():
+    callbacks.initialize()
+
 def orak_invokeCallbacks(node):
     callbacks.invokeCallbacks(node)
 

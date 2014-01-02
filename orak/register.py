@@ -21,6 +21,10 @@ class CallbacksRegister(object):
         if CallbacksRegister.__instance is not 1:
             print >> sys.stderr, 'CallbacksRegister is a singleton'
             exit(1)
+        
+        self.initialize()
+
+    def initialize(self):
         self._callbacks = {}
 
     def invokeCallbacks(self, node):

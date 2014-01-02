@@ -17,27 +17,29 @@ def handle_pdb(sig, frame):
     import pdb
     pdb.set_trace()
 
-def run(filename, conf_filename = None, imports = False, verbose = False):
-    config.initialize(filename, conf_filename, imports)
+def run(filename, tirpan_conf = None, orak_conf = None,
+        imports = False, verbose = False):
+    config.initialize(filename, tirpan_conf, orak_conf, imports)
     importer = config.data.importer
     mainModule = importer.getIdent(0)
-    ast = mainModule.getAST()
     visitor = OrakVisitor(mainModule)
     save = config.data.currentScope
     config.data.currentScope = mainModule.getScope()
-    visitor.visit(ast)
+    visitor.run()
     config.data.currentScope = save
     handler = config.data.defectsHandler
     if verbose:
         handler.printDefects()
-    return ast, handler.getDefects()
+    return mainModule.getAST(), handler.getDefects()
 
 if __name__ == '__main__':
     argParser = argparse.ArgumentParser()
     argParser.add_argument('filename',
                            help='name of analyzed Python source file')
     argParser.add_argument('-c', '--config' , action='store', metavar='INI',
-                           help='use configuration file')
+                           help='use TI configuration file')
+    argParser.add_argument('-d', '--defects', action='store', metavar='INI',
+                           help='use defects configuration file')
     argParser.add_argument('-i', '--imports', action='store_true',
                            help='print imports')
     args = argParser.parse_args()
@@ -47,4 +49,4 @@ if __name__ == '__main__':
     except ValueError:
         pass
 
-    run(args.filename, args.config, args.imports, True)
+    run(args.filename, args.config, args.defects, args.imports, True)

@@ -7,26 +7,32 @@ Created on 14.12.2013
 import ast
 
 import config
+import utils
+
 import ti.lookup
 import ti.tgnode
 import ti.sema
 
-from orak.api import orak_invokeCallbacks 
-from utils    import *
+import orak.api
 
 def callCheckers(node, func):
-    orak_invokeCallbacks(node)
+    orak.api.orak_invokeCallbacks(node)
     func(node)
 
 def skipTemplate(template, node):
-    tgNode = getLink(node) 
+    tgNode = utils.getLink(node) 
     return (tgNode, ()) not in template.edges[ti.tgnode.EdgeType.ASSIGN]
 
 class OrakVisitor(ast.NodeVisitor):
 
     def __init__(self, mainModule):
-        self.modules   = {mainModule}
-        self.templates = set()
+        self.mainModule = mainModule
+        self.modules    = {self.mainModule}
+        self.templates  = set()
+
+    def run(self):
+        ast = self.mainModule.getAST()
+        self.visit(ast)
 
     def visit_FunctionDef(self, node):
         pass
@@ -35,7 +41,7 @@ class OrakVisitor(ast.NodeVisitor):
         pass
 
     def visit_external_function(self, node, origin):
-        parentNode = getLink(node)
+        parentNode = utils.getLink(node)
         save = config.data.currentScope
         if origin.name == '__import__':
             for elem in parentNode.nodeType:
@@ -52,7 +58,7 @@ class OrakVisitor(ast.NodeVisitor):
             if tgNode != parentNode:
                 continue
             config.data.currentScope = scope
-            quasiLink = getLink(quasiCall.func)
+            quasiLink = utils.getLink(quasiCall.func)
             self.visit_common_call(quasiCall, quasiLink)
             config.data.currentScope = save
 
@@ -87,25 +93,25 @@ class OrakVisitor(ast.NodeVisitor):
                 config.data.currentScope = save
 
     def visit_Call(self, node):
-        orak_invokeCallbacks(node)
+        orak.api.orak_invokeCallbacks(node)
         self.generic_visit(node)
         try:
-            link = getLink(node.func)
+            link = utils.getLink(node.func)
         except AttributeError:
             return
         self.visit_common_call(node, link)
 
     def visit_For(self, node):
-        orak_invokeCallbacks(node)
+        orak.api.orak_invokeCallbacks(node)
         self.visit(node.iter)
         try:
-            link = getLink(node)
+            link = utils.getLink(node)
         except AttributeError:
             return
         self.visit_common_call(node, link)
 
     def visit_TryExcept(self, node):
-        orak_invokeCallbacks(node)
+        orak.api.orak_invokeCallbacks(node)
         skipBody = False
         skipElse = False
         for handler in node.handlers:
@@ -133,18 +139,18 @@ class OrakVisitor(ast.NodeVisitor):
         config.data.currentScope = save
 
     def visit_Import(self, node):
-        orak_invokeCallbacks(node)
+        orak.api.orak_invokeCallbacks(node)
         for alias in node.names:
             try:
-                module = getLink(alias)
+                module = utils.getLink(alias)
             except AttributeError:
                 module = None
             self.visit_common_module(module)
 
     def visit_ImportFrom(self, node):
-        orak_invokeCallbacks(node)
+        orak.api.orak_invokeCallbacks(node)
         try:
-            module = getLink(node)
+            module = utils.getLink(node)
         except AttributeError:
             module = None
         self.visit_common_module(module)

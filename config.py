@@ -1,4 +1,5 @@
 import ConfigParser
+import os
 import re
 import sys
 
@@ -7,13 +8,15 @@ from ti.builtin  import initBuiltins
 from ti.importer import Importer
 from ti.sema     import ScopeSema
 
-from orak.checkers import orak_initCheckers
+from orak.checkers import initCheckers
 from orak.defects  import DefectsHandler
+from orak.visitor  import OrakVisitor
 
 class Config(object):
 
-    def __init__(self, filename, conf_filename, imports):
-        self._read_config(conf_filename)
+    def __init__(self, filename, tirpan_conf, orak_conf, imports):
+        self._read_tirpan_config(tirpan_conf)
+        self._read_orak_config(orak_conf)
 
         self.backTrace      = BackTrace()
         self.defectsHandler = DefectsHandler()
@@ -24,9 +27,9 @@ class Config(object):
         self.imports  = imports
         self.importer = Importer(filename, self)
 
-        orak_initCheckers()
+        initCheckers(self.checkers)
 
-    def _read_config(self, conf_filename):
+    def _read_tirpan_config(self, conf_filename):
         cfg = ConfigParser.RawConfigParser()
         if conf_filename:
             cfg.read(conf_filename)
@@ -48,11 +51,29 @@ class Config(object):
             good_value = ''
         self.no_limits = good_value.split(',')
 
+    def _read_orak_config(self, conf_filename):
+        self.checkers = set()
+        if not conf_filename:
+            tirpan_dir = os.path.dirname(sys.argv[0])
+            conf_filename = os.path.join(tirpan_dir, 'cfg', 'orak_def.ini')
+        cfg = ConfigParser.RawConfigParser()
+        if conf_filename:
+            cfg.read(conf_filename)
+        try:
+            items = cfg.items('checkers')
+        except ConfigParser.Error:
+            return
+        for item in items:
+            name  = item[0]
+            value = cfg.getboolean('checkers', name)
+            if value:
+                self.checkers.add(name)
+
 data = None
 
-def initialize(filename, cheat, imports):
+def initialize(filename, tirpan_conf, orak_conf, imports):
     global data
-    data = Config(filename, cheat, imports)
+    data = Config(filename, tirpan_conf, orak_conf, imports)
     importer = data.importer
     globalScope = data.globalScope
     initBuiltins(importer, globalScope)
