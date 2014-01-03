@@ -6,7 +6,9 @@ Created on 23.12.2013
 
 import utils
 
-from ti.sema       import *
+from ti.lookup import lookupVariable
+from ti.sema   import *
+
 from orak.register import CallbacksRegister
 
 callbacks = CallbacksRegister.get_instance()
@@ -60,6 +62,13 @@ def orak_getQualifiedName(sema):
         return prefix + '.' + name
     else:
         return name
+
+def orak_hasName(sema, name):
+    try:
+        var = lookupVariable(sema, name)
+        return var is not None
+    except:
+        return False
 
 def orak_isBasestring(sema):
     try:

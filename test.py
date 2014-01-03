@@ -26,7 +26,7 @@ import tests.const
 from   tests.ggettext import gettext as _
 
 tirpan_dir  = os.path.dirname(sys.argv[0])
-all_no_conf = os.path.join(tirpan_dir, 'cfg', 'orak_no.ini')
+noattr_conf = os.path.join(tirpan_dir, 'cfg', 'orak_na.ini')
 
 class TestAssign01(unittest.TestCase):
     
@@ -5195,7 +5195,7 @@ class TestMisc08(unittest.TestCase):
     MAX_SECONDS_LIMIT = 10
    
     startTime = datetime.datetime.now()
-    tirpan.run('tests/misc08.py')
+    ast, defects = tirpan.run('tests/misc08.py')
     endTime   = datetime.datetime.now()
 
     delta = endTime - startTime
@@ -5461,7 +5461,7 @@ class TestMisc19_1(unittest.TestCase):
 
 class TestMisc19_2(unittest.TestCase):
     
-    ast, defects = tirpan.run('tests/misc19.py', orak_conf = all_no_conf)
+    ast, defects = tirpan.run('tests/misc19.py', orak_conf = noattr_conf)
         
     def test_defects(self):
         self.assertEqual(len(self.defects), 0,
@@ -5963,6 +5963,30 @@ class TestMisc54(unittest.TestCase):
                         any(type1 == elem for elem in nodeType),
                         'wrong types calculated')
         self.assertEqual(node.link.name, 'a', 'name is not "a"')
+
+class TestMisc55(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc55.py', orak_conf = noattr_conf)
+
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 1,
+                         'there must be a defect')
+
+class TestMisc56(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc56.py', orak_conf = noattr_conf)
+
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 1,
+                         'there must be a defect')
+
+class TestMisc57(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc57.py', orak_conf = noattr_conf)
+
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 0,
+                         'there must be no defects')
 
 class TestObject01(unittest.TestCase):
     

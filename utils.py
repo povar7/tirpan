@@ -27,6 +27,15 @@ class QuasiCall(object):
         if hasattr(node, 'lineno'):
             self.lineno = node.lineno
 
+class QuasiFunction(object):
+
+    def __init__(self, name):
+        self.name = name
+        self.parent = None
+
+    def getString(self):
+        return self.name
+
 def findFirstNode(tree, callback):
     for node in ast.walk(tree):
         if callback(node):

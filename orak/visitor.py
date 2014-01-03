@@ -156,5 +156,4 @@ class OrakVisitor(ast.NodeVisitor):
         self.visit_common_module(module)
 
     def __getattr__(self, name):
-        func = super(OrakVisitor, self).__getattr__(name)
-        return lambda node : callCheckers(node, func)
+        return lambda node : callCheckers(node, self.generic_visit)
