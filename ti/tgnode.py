@@ -21,6 +21,10 @@ def isSafeCallLoop(tgNode):
     return (isinstance(tgNode.node, ast.AugAssign) and
             isinstance(tgNode.node.value, ast.Num))
 
+def updateSet(res, updates):
+    res |= updates
+    res.discard(None)
+
 class EdgeType(object):
 
     ARGUMENT           = 'Argument'
@@ -53,7 +57,7 @@ class EdgeType(object):
     def updateRight(right, types):
         if len(types - right.nodeType) > 0:
             length = len(right.nodeType)
-            right.nodeType |= types
+            updateSet(right.nodeType, types)
             if len(right.nodeType) > length:
                 right.process()
                 right.walkEdges()
@@ -226,7 +230,7 @@ class EdgeType(object):
     @staticmethod
     def processAssignYield(left, right, *args):
         listType = ListSema(0)
-        listType.elems[0] |= left.nodeType
+        updateSet(listType.elems[0], left.nodeType)
         types = {listType}
         EdgeType.updateRight(right, types)
 
@@ -336,7 +340,7 @@ class TGNode(object):
     def getElementsTypes(self, index):
         res = set()
         for singleType in self.nodeType:
-            res |= singleType.getElementsAtIndex(index)
+            updateSet(res, singleType.getElementsAtIndex(index))
         return res
 
     def commonRetrieve(self, attr, condition):
@@ -481,32 +485,35 @@ class AttributeTGNode(TGNode):
     def getObjects(self):
        objects = set()
        for node, args in self.getEdges(EdgeType.ASSIGN_OBJECT):
-           objects |= node.nodeType
+           updateSet(objects, node.nodeType)
        return objects
 
     def getRights(self):
        rights = set()
        for node, args in self.getEdges(EdgeType.REV_ASSIGN):
-           rights |= node.nodeType
+           updateSet(rights, node.nodeType)
        return rights
 
-    def process(self):
+    def processWithFlag(self, createNew):
        objects = self.getObjects()
        rights  = self.getRights()
-       self.setValues(objects, self.attr, rights)
+       self.setValues(objects, self.attr, rights, createNew)
        self.nodeType = self.getValues(objects, self.attr)
 
-    @staticmethod
-    def setValuesWithAttr(obj, attr, values):
-        from ti.lookup import setTypes
-        setTypes(obj, attr, values)
+    def process(self):
+        self.processWithFlag(False)
 
     @staticmethod
-    def setValues(objects, attr, values):
+    def setValuesWithAttr(obj, attr, values, createNew):
+        from ti.lookup import setTypes
+        setTypes(obj, attr, values, createNew)
+
+    @staticmethod
+    def setValues(objects, attr, values, createNew):
         for obj in objects:
             if not isinstance(obj, classes):
                 continue
-            AttributeTGNode.setValuesWithAttr(obj, attr, values)
+            AttributeTGNode.setValuesWithAttr(obj, attr, values, createNew)
 
     @staticmethod
     def getValuesWithAttr(obj, attr):
@@ -520,11 +527,11 @@ class AttributeTGNode(TGNode):
             if not isinstance(obj, classes):
                 continue
             newTypes = AttributeTGNode.getValuesWithAttr(obj, attr)
-            res |= newTypes
+            updateSet(res, newTypes)
         return res
 
     def objectsCallback(self, result):
-        result |= self.getObjects()
+        updateSet(result, self.getObjects())
 
 class SubscriptTGNode(TGNode):
 
@@ -535,13 +542,13 @@ class SubscriptTGNode(TGNode):
     def getIndices(self):
        indices = set()
        for node, args in self.getEdges(EdgeType.ASSIGN_INDEX):
-           indices |= node.nodeType
+           updateSet(indices, node.nodeType)
        return indices
 
     def getRights(self):
        rights = set()
        for node, args in self.getEdges(EdgeType.REV_ASSIGN):
-           rights |= node.nodeType
+           updateSet(rights, node.nodeType)
        return rights
 
     def getSlices(self):
@@ -549,19 +556,19 @@ class SubscriptTGNode(TGNode):
        for node, args in self.getEdges(EdgeType.ASSIGN_SLICE):
            if args[0] != 0:
                continue
-           lowers |= node.nodeType
+           updateSet(lowers, node.nodeType)
        uppers = set()
        for node, args in self.getEdges(EdgeType.ASSIGN_SLICE):
            if args[0] != 1:
                continue
-           uppers |= node.nodeType
+           updateSet(uppers, node.nodeType)
        if len(uppers) == 0:
            uppers.add(None)
        steps = set()
        for node, args in self.getEdges(EdgeType.ASSIGN_SLICE):
            if args[0] != 2:
                continue
-           steps |= node.nodeType
+           updateSet(steps, node.nodeType)
        if len(steps) == 0:
            steps.add(None)
        return (lowers, uppers, steps)
@@ -569,7 +576,7 @@ class SubscriptTGNode(TGNode):
     def getObjects(self):
        objects = set()
        for node, args in self.getEdges(EdgeType.ASSIGN_OBJECT):
-           objects |= node.nodeType
+           updateSet(objects, node.nodeType)
        return objects
 
     def process(self):
@@ -623,7 +630,7 @@ class SubscriptTGNode(TGNode):
                 newTypes = obj.getElementsAtIndex(index)
             else:
                 newTypes = obj.getElementsAtKey(elem)
-            res |= newTypes
+            updateSet(res, newTypes)
         return res
 
     @staticmethod
@@ -668,7 +675,7 @@ class SubscriptTGNode(TGNode):
                             pass
                 else:
                     newTypes = set()
-            res |= newTypes
+            updateSet(res, newTypes)
         return res
 
 class FunctionDefinitionTGNode(TGNode):

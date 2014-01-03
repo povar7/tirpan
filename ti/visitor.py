@@ -98,10 +98,7 @@ class Visitor(ast.NodeVisitor):
     def visit_AugAssign(self, node):
         self.visit(node.value)
         target = node.target
-        save   = self.leftPart
-        self.leftPart = True
         self.visit(target)
-        self.leftPart = save
         var = self.visit_Op(node.op)
         link = ti.tgnode.FunctionCallTGNode(node, var)
         setLink(node, link)
@@ -348,6 +345,7 @@ class Visitor(ast.NodeVisitor):
             link = ti.tgnode.AttributeTGNode(node.attr)
             link.addEdge(EdgeType.ASSIGN_OBJECT, collectionLink)
             collectionLink.addEdge(EdgeType.ATTR_OBJECT, link)
+            link.processWithFlag(save)
 
         if self.filtering:
             addSubvariable(link, EdgeType.ASSIGN_TRUE, True, self.filtered)
@@ -362,7 +360,10 @@ class Visitor(ast.NodeVisitor):
         self.leftPart = save
 
     def visit_Subscript(self, node):
+        saveLeft = self.leftPart
+        self.leftPart = False
         self.visit(node.value)
+        self.leftPart = saveLeft
         index = getattr(node.slice, 'value', node.slice)
         setLink(node, self.visit_common_subscript(node.value, index))
 

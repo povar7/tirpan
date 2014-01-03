@@ -77,9 +77,9 @@ def lookupTypes(obj, attr):
         res |= var.nodeType
     return res
 
-def setTypes(obj, attr, values):
+def setTypes(obj, attr, values, createNew = False):
     from ti.tgnode import EdgeType
-    var = lookupVariable(obj, attr, True, len(values) > 0)
+    var = lookupVariable(obj, attr, True, createNew or len(values) > 0)
     if var is not None:
         EdgeType.updateRight(var, values)
 

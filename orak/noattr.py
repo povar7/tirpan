@@ -13,14 +13,12 @@ from orak.defects import *
 from ti.sema      import *
 from utils        import *
 
-SKIPPED_NAMES = ('__class__', '__getattribute__')
-
 class NoAttributeDefect(Defect):
 
     def __init__(self, node, obj, name):
         super(NoAttributeDefect, self).__init__(node)
         self._kind  = 'NOATTR'
-        self._descr = '%s has no attribute \'%s\'' % (obj.getString(), name)
+        self._descr = '%s has no attribute \'%s\'.' % (obj.getString(), name)
         self._msg   = 'Tirpan traceback (most recent call last):\n' + \
                       config.data.backTrace.get()
 
@@ -35,7 +33,7 @@ class NoAttributeDefect(Defect):
         return hash((pos, self._obj))
 
 def objCondition(sema, name):
-    if name in SKIPPED_NAMES:
+    if orak_isExternalModule(sema):
         return False
     return not orak_hasName(sema, name)
 
@@ -56,7 +54,7 @@ def checkNoAttribute(node):
             if first_time:
                 first_time = False
                 function = QuasiFunction('<.%s>' % name)
-                args = (obj,)
+            args = (obj,)
             btrace.addFrame(node, scope, function, args) 
             handler.addDefect(NoAttributeDefect(node, obj, name))
             btrace.deleteFrame()

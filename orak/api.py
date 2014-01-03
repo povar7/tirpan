@@ -9,6 +9,8 @@ import utils
 from ti.lookup import lookupVariable
 from ti.sema   import *
 
+import ti.tgnode
+
 from orak.register import CallbacksRegister
 
 callbacks = CallbacksRegister.get_instance()
@@ -73,6 +75,15 @@ def orak_hasName(sema, name):
 def orak_isBasestring(sema):
     try:
         return isinstance(sema, LiteralSema) and sema.ltype in (str, unicode)
+    except:
+        return False
+
+def orak_isExternalModule(sema):
+    try:
+        if not isinstance(sema, ModuleSema):
+            return False
+        origin = sema.getOrigin()
+        return isinstance(origin, ti.tgnode.ExternalModuleTGNode)
     except:
         return False
 
