@@ -178,6 +178,15 @@ def quasiStrip(params, **kwargs):
         pass
     return makeSet(res)
 
+def quasiGet(params, **kwargs):
+    obj = params[0]
+    key = params[1]
+    if key in obj.elems:
+        value = obj.getElementsAtKey(key)
+        return value.copy()
+    else:
+        return {typeNone}
+
 def quasiGetattr(params, **kwargs):
     obj  = params[0]
     attr = params[1]
@@ -264,6 +273,7 @@ def getDictClassName():
 dictClass = (
                 dictClassName,
                 [
+                    ['get'   , quasiGet   , 2],
                     ['update', quasiUpdate, 2],
                 ],
                 [

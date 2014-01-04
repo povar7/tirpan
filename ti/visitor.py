@@ -437,6 +437,12 @@ class Visitor(ast.NodeVisitor):
         tupleNode = ti.tgnode.TupleTGNode(node)
         tupleNode.addEdge(EdgeType.ASSIGN, basesVar)
         config.data.currentScope.addVariable(basesVar)
+        nodeType  = {ti.sema.LiteralValueSema(name)} 
+        nameVar   = ti.tgnode.VariableTGNode('__name__', nodeType)
+        config.data.currentScope.addVariable(nameVar)
+        nodeType  = {ti.sema.DictSema()}
+        dictVar   = ti.tgnode.VariableTGNode('__dict__', nodeType)
+        config.data.currentScope.addVariable(dictVar)
         for stmt in node.body:
             self.visit(stmt)
         self.isGlobal = saveGlobal

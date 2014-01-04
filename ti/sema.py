@@ -248,6 +248,9 @@ class DictSema(CollectionSema):
         self.elems = freezeDict(self.elems)
         self.frozen = True
 
+    def getString(self):
+        return '<%s object>' % str(self.elems.__class__)
+
 class SetSema(CollectionSema):
     
     def __init__(self):

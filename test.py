@@ -6012,6 +6012,56 @@ class TestMisc60(unittest.TestCase):
         self.assertEqual(len(self.defects), 0,
                          'there must be no defects')
 
+class TestMisc62(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc62.py', orak_conf = noattr_conf)
+
+    def test_x(self):
+        node = utils.findNode(self.ast, line=3, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(int)
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'x', 'name is not "x"')
+
+    def test_y(self):
+        node = utils.findNode(self.ast, line=5, kind=ast.Name)
+        self.assertTrue(node is not None, 'required node was not found')
+        self.assertTrue(hasattr(node, 'link'), 'node has no link to type info')
+        self.assertTrue(isinstance(node.link, VariableTGNode),
+                        'type is not a var')
+        nodeType = freezeSet(node.link.nodeType)
+        type1 = LiteralSema(types.NoneType)
+        self.assertTrue(len(nodeType) == 1 and
+                        any(type1 == elem for elem in nodeType),
+                        'wrong types calculated')
+        self.assertEqual(node.link.name, 'y', 'name is not "y"')
+
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 0,
+                         'there must be no defects')
+
+class TestMisc63(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc63.py', orak_conf = noattr_conf)
+
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 0,
+                         'there must be no defects')
+
+class TestMisc64(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc64.py', orak_conf = noattr_conf)
+
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 0,
+                         'there must be no defects')
+
 class TestObject01(unittest.TestCase):
     
     ast, defects = tirpan.run('tests/object01.py')

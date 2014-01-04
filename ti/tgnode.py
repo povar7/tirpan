@@ -1058,6 +1058,10 @@ class ModuleTGNode(TGNode):
             self.body  = ScopeSema()
             self.scope = ModuleSema(self)
 
+            nodeType = {LiteralValueSema(name)}
+            nameVar = VariableTGNode('__name__', nodeType)
+            self.scope.addVariable(nameVar)
+
         self.parent   = parent
         self.nodeType = {self.scope}
 
