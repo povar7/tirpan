@@ -58,6 +58,9 @@ def quasiEncode(params, **kwargs):
     res = params[0]
     return {res}
 
+def quasiEwith(params, **kwargs):
+    return {typeBool}
+
 def quasiExecfile(params, **kwargs):
     executedFiles = config.data.importer.executedFiles
     filename = getattr(params[0], 'value', None)
@@ -102,6 +105,9 @@ def quasiExecfile(params, **kwargs):
         parser.walk()
         config.data.currentScope = save
     return {typeNone}
+
+def quasiFind(params, **kwargs):
+    return {typeInt}
 
 def quasiImport(params, **kwargs):
     filename = getattr(params[0], 'value', None)
@@ -152,6 +158,14 @@ def quasiLen(params, **kwargs):
     except TypeError:
         return {typeInt}
 
+def quasiLower(params, **kwargs):
+    res = None
+    try:
+        res = LiteralValueSema(params[0].value.lower())
+    except:
+        pass
+    return makeSet(res)
+
 def quasiProperty(params, **kwargs):
     obj = params[0]
     var1 = lookupVariable(obj, '_fget', True, True)
@@ -180,6 +194,17 @@ def quasiRange3(params, **kwargs):
         listType.addElementsAtIndex(None, {typeInt})
     return {listType}
 
+def quasiReplace(params, **kwargs):
+    if any(isUnicodeString(elem) for elem in params):
+        return {typeUnicode}
+    elif all(isNormalString(elem) for elem in params):
+        return {typeStr}
+    else:
+        return {typeStr, typeUnicode}
+
+def quasiRfind(params, **kwargs):
+    return {typeInt}
+
 def quasiSet(params, **kwargs):
     param = params[0]
     return makeSet(param)
@@ -188,11 +213,25 @@ def quasiSorted(params, **kwargs):
     param = params[0]
     return makeSet(param)
 
+def quasiSplit(params, **kwargs):
+    return set()
+
 def quasiStrip(params, **kwargs):
     param = params[0]
     res   = None
     try:
         res = LiteralValueSema(param.value.strip())
+    except:
+        pass
+    return makeSet(res)
+
+def quasiSwith(params, **kwargs):
+    return {typeBool}
+   
+def quasiUpper(params, **kwargs):
+    res = None
+    try:
+        res = LiteralValueSema(params[0].value.upper())
     except:
         pass
     return makeSet(res)
@@ -261,9 +300,17 @@ def getBaseStringClassName():
 baseStringClass = (
                       baseStringClassName,
                       [
-                          ['encode', quasiEncode, 2],
-                          ['join'  , quasiJoin  , 2],
-                          ['strip' , quasiStrip , 1],
+                          ['encode'    , quasiEncode , 2                   ],
+                          ['endswith'  , quasiEwith  , 2                   ],
+                          ['find'      , quasiFind   , 2                   ],
+                          ['join'      , quasiJoin   , 2                   ],
+                          ['lower'     , quasiLower  , 1                   ],
+                          ['replace'   , quasiReplace, 3                   ],
+                          ['rfind'     , quasiRfind  , 2                   ],
+                          ['split'     , quasiSplit  , 3, {'3' : {typeInt}}],
+                          ['startswith', quasiSwith  , 2                   ],
+                          ['strip'     , quasiStrip  , 1                   ],
+                          ['upper'     , quasiUpper  , 1                   ],
                       ],
                       [
                       ]

@@ -632,3 +632,9 @@ def getBoolSema():
 
 def isBasestring(sema):
     return isinstance(sema, LiteralSema) and sema.ltype in (str, unicode)
+
+def isNormalString(sema):
+    return isinstance(sema, LiteralSema) and sema.ltype == str
+
+def isUnicodeString(sema):
+    return isinstance(sema, LiteralSema) and sema.ltype == unicode
