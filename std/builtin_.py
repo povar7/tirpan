@@ -125,6 +125,25 @@ def quasiIter(params, **kwargs):
     except AttributeError:
         return set()
 
+def quasiJoin(params, **kwargs):
+    sep = params[0]
+    arg = params[1]
+    if not isBasestring(sep):
+        return set()
+    if (isBasestring(arg) or
+        (isinstance(arg, ListSema) and
+         all(isBasestring(elem) for elem in arg.getElements()))):
+        if sep.ltype == unicode:
+            return {typeUnicode}
+        elif isBasestring(arg) and arg.ltype == unicode:
+            return {typeUnicode}
+        elif (isinstance(arg, ListSema) and
+              any(elem.ltype == unicode for elem in arg.getElements())):
+            return {typeUnicode}
+        else:
+            return {typeStr}
+    return set()
+
 def quasiLen(params, **kwargs):
     try:
         return {LiteralValueSema(len(params[0].value))}
@@ -243,6 +262,7 @@ baseStringClass = (
                       baseStringClassName,
                       [
                           ['encode', quasiEncode, 2],
+                          ['join'  , quasiJoin  , 2],
                           ['strip' , quasiStrip , 1],
                       ],
                       [

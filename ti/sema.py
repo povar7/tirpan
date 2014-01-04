@@ -629,3 +629,6 @@ boolSema = LiteralSema(bool)
 
 def getBoolSema():
     return boolSema
+
+def isBasestring(sema):
+    return isinstance(sema, LiteralSema) and sema.ltype in (str, unicode)

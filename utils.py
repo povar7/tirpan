@@ -93,5 +93,3 @@ def findNode(tree, **kwargs):
 
 def sortParams(x, y):
     return cmp(x.number, y.number)
-
-

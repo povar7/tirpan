@@ -74,7 +74,7 @@ def orak_hasName(sema, name):
 
 def orak_isBasestring(sema):
     try:
-        return isinstance(sema, LiteralSema) and sema.ltype in (str, unicode)
+        return isBasestring(sema) 
     except:
         return False
 
