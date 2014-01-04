@@ -245,6 +245,9 @@ def quasiGet(params, **kwargs):
     else:
         return {typeNone}
 
+def quasiHasKey(params, **kwargs):
+    return {typeBool}
+
 def quasiGetattr(params, **kwargs):
     obj  = params[0]
     attr = params[1]
@@ -340,8 +343,9 @@ def getDictClassName():
 dictClass = (
                 dictClassName,
                 [
-                    ['get'   , quasiGet   , 2],
-                    ['update', quasiUpdate, 2],
+                    ['get'    , quasiGet   , 2],
+                    ['has_key', quasiHasKey, 2],
+                    ['update' , quasiUpdate, 2],
                 ],
                 [
                 ]

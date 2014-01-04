@@ -77,3 +77,5 @@ WINDOWS = ['Windows', 'win32']
 
 URL_WIKISTRING  = 'http://gramps-project.org/wiki/index.php?title='
 URL_MANUAL_PAGE = 'Gramps_3.3_Wiki_Manual'
+
+ICON = os.path.join(ROOT_DIR, 'tirpan.png')

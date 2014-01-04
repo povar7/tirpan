@@ -137,6 +137,10 @@ def quasiGtkMain(params, **kwargs):
 
     return {typeNone}
 
+def quasiMessageDialog(params, **kwargs):
+    obj = params[0]
+    return {obj}
+
 def quasiNewText(params, **kwargs):
     cls = findGtkName(getComboBoxClassName())
     if not cls:
@@ -187,8 +191,24 @@ def quasiRun(params, **kwargs):
 def quasiResponseOk():
     return {typeInt}
 
+def quasiSetIcon(params, **kwargs):
+    return {typeNone}
+
+def quasiSetIcon2(params, **kwargs):
+    return {typeNone}
+
+def quasiSetMarkup(params, **kwargs):
+    return {typeNone}
+
+def quasiSetTitle(params, **kwargs):
+    return {typeNone}
+
 def quasiStockOk():
     return {typeInt}
+
+def quasiWindow(params, **kwargs):
+    obj = params[0]
+    return {obj}
 
 functions = [
                 ['combo_box_new_text', quasiNewText, 0],
@@ -236,9 +256,12 @@ def getDialogClassName():
 dialogClass = (
                   getDialogClassName(),
                   [
-                      ['__init__'  , quasiDialog   , 2],
-                      ['add_button', quasiAddButton, 3],
-                      ['run'       , quasiRun      , 1],
+                      ['__init__'          , quasiDialog   , 2],
+                      ['add_button'        , quasiAddButton, 3],
+                      ['run'               , quasiRun      , 1],
+                      ['set_icon'          , quasiSetIcon  , 2],
+                      ['set_icon_from_file', quasiSetIcon2 , 2],
+                      ['set_title'         , quasiSetTitle , 2],
                   ],
                   [
                   ]
@@ -257,11 +280,44 @@ comboBoxClass = (
                     ]
                 )
 
+def getMessageDialogClassName():
+    return 'MessageDialog'
+
+messageDialogClass = (
+                         getMessageDialogClassName(),
+                         [
+                             ['__init__'          , quasiMessageDialog, 1],
+                             ['set_icon'          , quasiSetIcon      , 2],
+                             ['set_icon_from_file', quasiSetIcon2     , 2],
+                             ['set_markup'        , quasiSetMarkup    , 2],
+                             ['set_title'         , quasiSetTitle     , 2],
+                         ],
+                         [
+                         ]
+                     )
+
+def getWindowClassName():
+    return 'Window'
+
+windowClass = (
+                  getWindowClassName(),
+                  [
+                      ['__init__'          , quasiWindow  , 1],
+                      ['set_icon'          , quasiSetIcon , 2],
+                      ['set_icon_from_file', quasiSetIcon2, 2],
+                      ['set_title'         , quasiSetTitle, 2],
+                  ],
+                  [
+                  ]
+              )
+
 classes = [
               actionGroupClass,
               buttonClass,
               comboBoxClass,
-              dialogClass
+              dialogClass,
+              messageDialogClass,
+              windowClass,
           ]
 
 def getAll():
