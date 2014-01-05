@@ -24,6 +24,18 @@ def findGtkName(name):
     assert len(var.nodeType) == 1
     return list(var.nodeType)[0]
 
+def quasi_cons(params, **kwargs):
+    return {params[0]}
+
+def quasi_none(params, **kwargs):
+    return {typeNone}
+
+def quasi_zero(params, **kwargs):
+    return set()
+
+def quasi_zero_var():
+    return set()
+
 def quasiActionGroup(params, **kwargs):
     obj = params[0]
     var = lookupVariable(obj, '_actions', True, True)
@@ -48,10 +60,6 @@ def quasiButton(params, **kwargs):
     var = lookupVariable(obj, '_handlers', True, True)
     if var:
         var.nodeType = {ListSema()}
-    return {obj}
-
-def quasiComboBox(params, **kwargs):
-    obj = params[0]
     return {obj}
 
 def quasiConnect(params, **kwargs):
@@ -137,10 +145,6 @@ def quasiGtkMain(params, **kwargs):
 
     return {typeNone}
 
-def quasiMessageDialog(params, **kwargs):
-    obj = params[0]
-    return {obj}
-
 def quasiNewText(params, **kwargs):
     cls = findGtkName(getComboBoxClassName())
     if not cls:
@@ -191,24 +195,8 @@ def quasiRun(params, **kwargs):
 def quasiResponseOk():
     return {typeInt}
 
-def quasiSetIcon(params, **kwargs):
-    return {typeNone}
-
-def quasiSetIcon2(params, **kwargs):
-    return {typeNone}
-
-def quasiSetMarkup(params, **kwargs):
-    return {typeNone}
-
-def quasiSetTitle(params, **kwargs):
-    return {typeNone}
-
 def quasiStockOk():
     return {typeInt}
-
-def quasiWindow(params, **kwargs):
-    obj = params[0]
-    return {obj}
 
 functions = [
                 ['combo_box_new_text', quasiNewText, 0],
@@ -223,6 +211,34 @@ variables = [
 modules   = [
             ]
 
+def getAboutDialogClassName():
+    return 'AboutDialog'
+
+aboutDialogClass = (
+                       getAboutDialogClassName(),
+                       [
+                           ['__init__'              , quasi_cons, 2],
+                           ['destroy'               , quasi_none, 1],
+                           ['run'                   , quasi_none, 1],
+                           ['set_authors'           , quasi_none, 2],
+                           ['set_artists'           , quasi_none, 2],
+                           ['set_comments'          , quasi_none, 2],
+                           ['set_copyright'         , quasi_none, 2],
+                           ['set_documenters'       , quasi_none, 2],
+                           ['set_license'           , quasi_none, 2],
+                           ['set_logo'              , quasi_none, 2],
+                           ['set_modal'             , quasi_none, 2],
+                           ['set_name'              , quasi_none, 2],
+                           ['set_transient_for'     , quasi_none, 2],
+                           ['set_translator_credits', quasi_none, 2],
+                           ['set_version'           , quasi_none, 2],
+                           ['set_website'           , quasi_none, 2],
+                           ['set_website_label'     , quasi_none, 2],
+                       ],
+                       [
+                       ]
+                   )
+
 def getActionGroupClassName():
     return 'ActionGroup'
 
@@ -231,11 +247,37 @@ actionGroupClass = (
                        [
                            ['__init__'   , quasiActionGroup, 2],
                            ['add_actions', quasiAddActions , 2],
+                           ['set_visible', quasi_none      , 2],
                        ],
                        [
                        ],
                        True
                    )
+
+def getAssistantClassName():
+    return 'Assistant'
+
+assistantClass = (
+                     getAssistantClassName(),
+                     [
+                         ['__init__'             , quasi_cons, 2],
+                         ['append_page'          , quasi_none, 2],
+                         ['connect'              , quasi_none, 3],
+                         ['destroy'              , quasi_none, 1],
+                         ['set_forward_page_func', quasi_none, 3],
+                         ['set_icon_from_file'   , quasi_none, 2],
+                         ['set_page_complete'    , quasi_none, 3],
+                         ['set_page_header_image', quasi_none, 3],
+                         ['set_page_side_image'  , quasi_none, 3],
+                         ['set_page_title'       , quasi_none, 3],
+                         ['set_page_type'        , quasi_none, 3],
+                         ['set_title'            , quasi_none, 2],
+                         ['set_transient_for'    , quasi_none, 2],
+                         ['show_all'             , quasi_none, 1],
+                     ],
+                     [
+                     ]
+                 )
 
 def getButtonClassName():
     return 'Button'
@@ -258,14 +300,40 @@ dialogClass = (
                   [
                       ['__init__'          , quasiDialog   , 2],
                       ['add_button'        , quasiAddButton, 3],
+                      ['connect'           , quasi_none    , 3],
+                      ['destroy'           , quasi_none    , 1],
+                      ['get_size'          , quasi_zero    , 1],
                       ['run'               , quasiRun      , 1],
-                      ['set_icon'          , quasiSetIcon  , 2],
-                      ['set_icon_from_file', quasiSetIcon2 , 2],
-                      ['set_title'         , quasiSetTitle , 2],
+                      ['set_default_size'  , quasi_none    , 3],
+                      ['set_has_separator' , quasi_none    , 2],
+                      ['set_icon'          , quasi_none    , 2],
+                      ['set_icon_from_file', quasi_none    , 2],
+                      ['set_modal'         , quasi_none    , 2],
+                      ['set_title'         , quasi_none    , 2],
+                      ['set_transient_for' , quasi_none    , 2],
+                      ['show_all'          , quasi_none    , 1],
                   ],
                   [
+                      ['vbox', quasi_zero_var],
                   ]
               )
+
+def getHBoxClassName():
+    return 'HBox'
+
+hboxClass = (
+                getHBoxClassName(),
+                [
+                    ['__init__'       , quasi_cons, 1],
+                    ['pack_end'       , quasi_none, 4],
+                    ['pack_start'     , quasi_none, 4],
+                    ['set_homogeneous', quasi_none, 2],
+                    ['set_sensitive'  , quasi_none, 2],
+                    ['set_spacing'    , quasi_none, 2],
+                ],
+                [
+                ]
+            )
 
 def getComboBoxClassName():
     return 'ComboBox'
@@ -273,8 +341,13 @@ def getComboBoxClassName():
 comboBoxClass = (
                     getComboBoxClassName(),
                     [
-                        ['__init__'  , quasiComboBox , 1],
-                        ['get_active', quasiGetActive, 1],
+                        ['__init__'     , quasi_cons    , 1],
+                        ['add_attribute', quasi_none    , 4],
+                        ['connect'      , quasi_none    , 3],
+                        ['get_active'   , quasiGetActive, 1],
+                        ['pack_start'   , quasi_none    , 3],
+                        ['set_active'   , quasi_none    , 2],
+                        ['set_model'    , quasi_none    , 2],
                     ],
                     [
                     ]
@@ -286,15 +359,47 @@ def getMessageDialogClassName():
 messageDialogClass = (
                          getMessageDialogClassName(),
                          [
-                             ['__init__'          , quasiMessageDialog, 1],
-                             ['set_icon'          , quasiSetIcon      , 2],
-                             ['set_icon_from_file', quasiSetIcon2     , 2],
-                             ['set_markup'        , quasiSetMarkup    , 2],
-                             ['set_title'         , quasiSetTitle     , 2],
+                             ['__init__'               , quasi_cons, 1],
+                             ['destroy'                , quasi_none, 1],
+                             ['format_secondary_markup', quasi_none, 2],
+                             ['format_secondary_text'  , quasi_none, 2],
+                             ['set_icon'               , quasi_none, 2],
+                             ['set_icon_from_file'     , quasi_none, 2],
+                             ['set_markup'             , quasi_none, 2],
+                             ['set_title'              , quasi_none, 2],
+                             ['show'                   , quasi_none, 1],
+                             ['run'                    , quasi_none, 1],
                          ],
                          [
                          ]
                      )
+
+def getNotebookClassName():
+    return 'Notebook'
+
+notebookClass = (
+                    getNotebookClassName(),
+                    [
+                        ['__init__'        , quasi_cons, 1],
+                        ['append_page'     , quasi_none, 3],
+                        ['connect'         , quasi_none, 3],
+                        ['destroy'         , quasi_none, 1],
+                        ['get_current_page', quasi_zero, 1],
+                        ['get_n_pages'     , quasi_zero, 1],
+                        ['get_property'    , quasi_zero, 2],
+                        ['insert_page'     , quasi_none, 4],
+                        ['remove_page'     , quasi_none, 2],
+                        ['set_border_width', quasi_none, 2],
+                        ['set_current_page', quasi_none, 2],
+                        ['set_group_id'    , quasi_none, 2],
+                        ['set_scrollable'  , quasi_none, 2],
+                        ['set_show_border' , quasi_none, 2],
+                        ['set_show_tabs'   , quasi_none, 2],
+                        ['show'            , quasi_none, 1],
+                    ],
+                    [
+                    ]
+                )
 
 def getWindowClassName():
     return 'Window'
@@ -302,21 +407,25 @@ def getWindowClassName():
 windowClass = (
                   getWindowClassName(),
                   [
-                      ['__init__'          , quasiWindow  , 1],
-                      ['set_icon'          , quasiSetIcon , 2],
-                      ['set_icon_from_file', quasiSetIcon2, 2],
-                      ['set_title'         , quasiSetTitle, 2],
+                      ['__init__'          , quasi_cons, 1],
+                      ['set_icon'          , quasi_none, 2],
+                      ['set_icon_from_file', quasi_none, 2],
+                      ['set_title'         , quasi_none, 2],
                   ],
                   [
                   ]
               )
 
 classes = [
+              aboutDialogClass,
               actionGroupClass,
+              assistantClass,
               buttonClass,
               comboBoxClass,
               dialogClass,
+              hboxClass,
               messageDialogClass,
+              notebookClass,
               windowClass,
           ]
 

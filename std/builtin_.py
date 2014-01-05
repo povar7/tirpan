@@ -27,6 +27,9 @@ typeType    = LiteralSema(type)
 typeStr     = LiteralSema(str)
 typeUnicode = LiteralSema(unicode)
 
+def quasi_zero(params, **kwargs):
+    return set()
+
 def quasiAppend(params, **kwargs):
     if isinstance(params[0], ListSema):
         if params[1] is None:
@@ -330,6 +333,7 @@ listClass = (
                     ['append', quasiAppend, 2],
                     ['extend', quasiExtend, 2],
                     ['insert', quasiInsert, 3],
+                    ['pop'   , quasi_zero , 1],
                 ],
                 [
                 ]
@@ -345,6 +349,8 @@ dictClass = (
                 [
                     ['get'    , quasiGet   , 2],
                     ['has_key', quasiHasKey, 2],
+                    ['items'  , quasi_zero , 1],
+                    ['keys'   , quasi_zero , 1],
                     ['update' , quasiUpdate, 2],
                 ],
                 [
