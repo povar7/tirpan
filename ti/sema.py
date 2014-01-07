@@ -338,6 +338,8 @@ class ScopeInterface(object):
             return None
         parent = self.getParent()
         if parent:
+            if considerGlobals and isinstance(self, ModuleSema):
+                return None
             return parent.findName(name, considerGlobals, scopeWrap, loseName)
         return None
 
@@ -377,7 +379,7 @@ class ScopeSema(Sema, ScopeInterface):
 
     def hasGlobals(self):
         return False
- 
+
     def getParent(self):
         return self.parent
 

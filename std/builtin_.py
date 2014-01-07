@@ -27,6 +27,9 @@ typeType    = LiteralSema(type)
 typeStr     = LiteralSema(str)
 typeUnicode = LiteralSema(unicode)
 
+def quasi_none(params, **kwargs):
+    return {typeNone}
+
 def quasi_zero(params, **kwargs):
     return set()
 
@@ -334,6 +337,7 @@ listClass = (
                     ['extend', quasiExtend, 2],
                     ['insert', quasiInsert, 3],
                     ['pop'   , quasi_zero , 1],
+                    ['sort'  , quasi_none , 1],
                 ],
                 [
                 ]
@@ -347,11 +351,12 @@ def getDictClassName():
 dictClass = (
                 dictClassName,
                 [
-                    ['get'    , quasiGet   , 2],
-                    ['has_key', quasiHasKey, 2],
-                    ['items'  , quasi_zero , 1],
-                    ['keys'   , quasi_zero , 1],
-                    ['update' , quasiUpdate, 2],
+                    ['get'      , quasiGet   , 2],
+                    ['has_key'  , quasiHasKey, 2],
+                    ['items'    , quasi_zero , 1],
+                    ['iteritems', quasi_zero , 1],
+                    ['keys'     , quasi_zero , 1],
+                    ['update'   , quasiUpdate, 2],
                 ],
                 [
                 ]

@@ -285,8 +285,13 @@ def getButtonClassName():
 buttonClass = (
                   getButtonClassName(),
                   [
-                      ['__init__', quasiButton , 2],
-                      ['connect' , quasiConnect, 3],
+                      ['__init__'     , quasiButton , 2],
+                      ['add'          , quasi_none  , 2],
+                      ['connect'      , quasiConnect, 3],
+                      ['hide'         , quasi_none  , 1],
+                      ['set_relief'   , quasi_none  , 2],
+                      ['set_sensitive', quasi_none  , 2],
+                      ['show'         , quasi_none  , 1],
                   ],
                   [
                   ]
@@ -330,6 +335,7 @@ hboxClass = (
                     ['set_homogeneous', quasi_none, 2],
                     ['set_sensitive'  , quasi_none, 2],
                     ['set_spacing'    , quasi_none, 2],
+                    ['show_all'       , quasi_none, 1],
                 ],
                 [
                 ]

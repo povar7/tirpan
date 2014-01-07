@@ -64,6 +64,7 @@ class FileEntry(gtk.HBox):
         button2 = gtk.Button()
         self.pack_start(button1, True, True)
         self.pack_end(button2, False, False)
+        self.show_all()
 
 class Tooltip(gtk.Window):
     def __init__(self):
@@ -141,6 +142,18 @@ class Foo1(gtk.ActionGroup):
         gtk.ActionGroup.__init__(self, 'foo1')
         self.set_visible(True)
 
+class WarnButton(gtk.Button):
+    def __init__(self):
+        gtk.Button.__init__(self)
+        image = gtk.Image()
+        image.set_from_stock(gtk.STOCK_INFO, gtk.ICON_SIZE_MENU)
+        image.show()
+        self.add(image)
+        self.set_relief(gtk.RELIEF_NONE)
+        self.set_sensitive(True)
+        self.show()
+        self.hide()
+
 dialog1 = Dialog()
 dialog2 = ErrorDialog()
 dialog3 = GrampsAboutDialog()
@@ -149,4 +162,5 @@ tooltip = Tooltip()
 pcbox   = PaperComboBox()
 bar     = GrampsBar()
 export  = ExportAssistant()
+wbutton = WarnButton()
 foo1    = Foo1()

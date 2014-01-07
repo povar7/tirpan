@@ -3,3 +3,5 @@ x = d.keys()
 print x
 y = d.items()
 print y
+z = d.iteritems()
+print z
