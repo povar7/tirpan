@@ -34,25 +34,26 @@ class Visitor(ast.NodeVisitor):
     
     def visit_Str(self, node):
         setLink(node, ti.tgnode.ConstTGNode(node, True))
-        
+
+    def visit_common_left_part(self, node, name):
+        fileScope = None
+        try:
+            importer = config.data.importer
+            if not self.noFScope:
+                fileScope = importer.getFileScope(node.fileno)
+        except AttributeError:
+            pass
+        loseName = self.loseName and self.isGlobal
+        scope = config.data.currentScope
+        var = scope.findOrAddName(name, True, fileScope, loseName)
+        return var
+
     def visit_Name(self, node):
         if node.id == 'None':
             link = ti.tgnode.ConstTGNode(node)
         else:
             if self.leftPart:
-                try:
-                    importer = config.data.importer
-                    if self.noFScope:
-                        fileScope = None
-                    else:
-                        fileScope = importer.getFileScope(node.fileno)
-                except AttributeError:
-                    fileScope = None
-                loseName = self.loseName and self.isGlobal
-                link = config.data.currentScope.findOrAddName(node.id,
-                                                              True,
-                                                              fileScope,
-                                                              loseName)
+                link = self.visit_common_left_part(node, node.id)
             else:
                 link = config.data.currentScope.findOrAddName(node.id)
         if self.getValue and link is not None:
@@ -201,7 +202,7 @@ class Visitor(ast.NodeVisitor):
         save = config.data.currentScope
         name = node.name
         link = ti.tgnode.UsualFunctionDefinitionTGNode(node, name, save, self)
-        var  = save.findOrAddName(name)
+        var  = self.visit_common_left_part(node, name)
         link.addEdge(EdgeType.ASSIGN, var)
         setLink(node, link)
 
