@@ -35,7 +35,8 @@ class NoAttributeDefect(Defect):
 def objCondition(sema, name):
     if orak_isExternalModule(sema):
         return False
-    return not orak_hasName(sema, name)
+    return (not orak_hasName(sema, name) and
+            not orak_hasName(sema, '__metaclass__'))
 
 def checkNoAttribute(node):
     objLink = orak_getLink(node.value)
