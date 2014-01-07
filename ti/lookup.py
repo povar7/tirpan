@@ -126,6 +126,8 @@ def lookupVariable(obj, attr, setValue = False, createNew = False, aux = None):
                 if var:
                     break
             config.data.currentScope = save
+            if var:
+                break
     elif isinstance(obj, InstanceSema):
         lookupScope = obj.getBody()
         var = lookupScope.findNameHere(attr)

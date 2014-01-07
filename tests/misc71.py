@@ -112,7 +112,7 @@ class PaperComboBox(gtk.ComboBox):
 class ManagedWindow(object):
     pass
 
-class ExportAssistant(gtk.Assistant):
+class ExportAssistant(gtk.Assistant, ManagedWindow):
     def __init__(self):
         gtk.Assistant.__init__(self)
         page = gtk.Label()
