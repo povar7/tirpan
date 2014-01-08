@@ -351,12 +351,15 @@ def getDictClassName():
 dictClass = (
                 dictClassName,
                 [
-                    ['get'      , quasiGet   , 2],
-                    ['has_key'  , quasiHasKey, 2],
-                    ['items'    , quasi_zero , 1],
-                    ['iteritems', quasi_zero , 1],
-                    ['keys'     , quasi_zero , 1],
-                    ['update'   , quasiUpdate, 2],
+                    ['clear'     , quasi_none , 1],
+                    ['copy'      , quasi_zero , 1],
+                    ['get'       , quasiGet   , 2],
+                    ['has_key'   , quasiHasKey, 2],
+                    ['items'     , quasi_zero , 1],
+                    ['iteritems' , quasi_zero , 1],
+                    ['itervalues', quasi_zero , 1],
+                    ['keys'      , quasi_zero , 1],
+                    ['update'    , quasiUpdate, 2],
                 ],
                 [
                 ]

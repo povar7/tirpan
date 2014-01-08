@@ -351,6 +351,7 @@ listStoreClass = (
                      getListStorClassName(),
                      [
                          ['__init__', quasi_cons, 1],
+                         ['clear'   , quasi_none, 1],
                          ['connect' , quasi_none, 3],
                      ],
                      [

@@ -296,7 +296,7 @@ def checkFilteringIsInstance(expr):
         return False
     cls = args[1]
     if (not isinstance(cls, ast.Name) or
-        cls.id not in ('list', 'tuple')):
+        cls.id not in ('int', 'list', 'tuple')):
         return False
     return True
 

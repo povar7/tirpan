@@ -222,7 +222,9 @@ class Visitor(ast.NodeVisitor):
         self.filtering = saveFiltering
         if self.filtering:
             obj_link = getLink(node.args[0])
-            if node.args[1].id == 'list':
+            if node.args[1].id == 'int':
+                edgeType = EdgeType.ASSIGN_INT
+            elif node.args[1].id == 'list':
                 edgeType = EdgeType.ASSIGN_LIST
             elif node.args[1].id == 'tuple':
                 edgeType = EdgeType.ASSIGN_TUPLE

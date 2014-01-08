@@ -32,6 +32,7 @@ class EdgeType(object):
     ASSIGN_CUSTOM      = 'AssignCustom'
     ASSIGN_ELEMENT     = 'AssignElement'
     ASSIGN_INDEX       = 'AssignIndex'
+    ASSIGN_INT         = 'AssignInt'
     ASSIGN_ITER        = 'AssignIter'
     ASSIGN_LIST        = 'AssignList'
     ASSIGN_TUPLE       = 'AssignTuple'
@@ -212,6 +213,18 @@ class EdgeType(object):
                 pass
             try:
                 return flag if len(x.getElements()) > 0 else not flag
+            except AttributeError:
+                pass
+            return flag
+        EdgeType.updateRightWithCondition(right, left.nodeType, condition)
+
+    @staticmethod
+    def processAssignInt(left, right, *args):
+        flag = args[0]
+        def condition(x):
+            try:
+                return flag if isinstance(x, LiteralSema) and x.ltype == int \
+                            else not flag
             except AttributeError:
                 pass
             return flag

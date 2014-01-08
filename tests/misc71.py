@@ -161,6 +161,7 @@ class ScratchPadListModel(gtk.ListStore):
     def __init__(self):
         gtk.ListStore.__init__(self, int)
         self.connect('row-inserted', self.row_inserted)
+        self.clear()
 
     def row_inserted(self):
         pass

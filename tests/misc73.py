@@ -1,7 +1,7 @@
 d = {1 : 3.14}
-x = d.keys()
-print x
-y = d.items()
-print y
-z = d.iteritems()
-print z
+print d.keys()
+print d.items()
+print d.iteritems()
+print d.itervalues()
+print d.copy()
+d.clear()
