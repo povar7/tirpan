@@ -34,7 +34,8 @@ class BasenameDefect(Defect):
         return hash((pos, self._arg))
 
 def funcCondition(sema):
-    return orak_getQualifiedName(sema) == 'os.path.basename'
+    return (orak_isFunction(sema) and
+            orak_getQualifiedName(sema) == 'os.path.basename')
 
 def argCondition(sema):
     return not orak_isBasestring(sema)

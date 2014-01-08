@@ -247,6 +247,7 @@ actionGroupClass = (
                        [
                            ['__init__'   , quasiActionGroup, 2],
                            ['add_actions', quasiAddActions , 2],
+                           ['get_action' , quasi_zero      , 2],
                            ['set_visible', quasi_none      , 2],
                        ],
                        [
@@ -341,6 +342,19 @@ hboxClass = (
                 ]
             )
 
+def getListStorClassName():
+    return 'ListStore'
+
+listStoreClass = (
+                     getListStorClassName(),
+                     [
+                         ['__init__', quasi_cons, 1],
+                         ['connect' , quasi_none, 3],
+                     ],
+                     [
+                     ]
+                 )
+
 def getComboBoxClassName():
     return 'ComboBox'
 
@@ -430,6 +444,7 @@ classes = [
               comboBoxClass,
               dialogClass,
               hboxClass,
+              listStoreClass,
               messageDialogClass,
               notebookClass,
               windowClass,

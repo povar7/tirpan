@@ -141,6 +141,7 @@ class Foo1(gtk.ActionGroup):
     def __init__(self):
         gtk.ActionGroup.__init__(self, 'foo1')
         self.set_visible(True)
+        self.get_action('ConfigView')
 
 class WarnButton(gtk.Button):
     def __init__(self):
@@ -154,10 +155,19 @@ class WarnButton(gtk.Button):
         self.show()
         self.hide()
 
+class ScratchPadListModel(gtk.ListStore):
+    def __init__(self):
+        gtk.ListStore.__init__(self, int)
+        self.connect('row-inserted', self.row_inserted)
+
+    def row_inserted(self):
+        pass
+
 dialog1 = Dialog()
 dialog2 = ErrorDialog()
 dialog3 = GrampsAboutDialog()
 entry   = FileEntry()
+lmodel  = ScratchPadListModel()
 tooltip = Tooltip()
 pcbox   = PaperComboBox()
 bar     = GrampsBar()

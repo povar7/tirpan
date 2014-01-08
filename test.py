@@ -6357,6 +6357,22 @@ class TestMisc76(unittest.TestCase):
         self.assertEqual(len(self.defects), 0,
                          'there must be no defects')
 
+class TestMisc77(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc77.py', orak_conf = noattr_conf)
+
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 0,
+                         'there must be no defects')
+
+class TestMisc78(unittest.TestCase):
+    
+    ast, defects = tirpan.run('tests/misc78.py', orak_conf = noattr_conf)
+
+    def test_defects(self):
+        self.assertEqual(len(self.defects), 0,
+                         'there must be no defects')
+
 class TestObject01(unittest.TestCase):
     
     ast, defects = tirpan.run('tests/object01.py')

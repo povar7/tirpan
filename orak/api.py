@@ -87,6 +87,9 @@ def orak_isExternalModule(sema):
     except:
         return False
 
+def orak_isFunction(sema):
+    return isinstance(sema, FunctionSema)
+
 def orak_initializeCallbacks():
     callbacks.initialize()
 

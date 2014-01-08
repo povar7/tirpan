@@ -33,7 +33,7 @@ class NoAttributeDefect(Defect):
         return hash((pos, self._obj))
 
 def objCondition(sema, name):
-    if orak_isExternalModule(sema):
+    if orak_isExternalModule(sema) or orak_isFunction(sema):
         return False
     return (not orak_hasName(sema, name) and
             not orak_hasName(sema, '__metaclass__'))

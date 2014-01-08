@@ -149,7 +149,8 @@ def getFunctions(functionNode):
         if isinstance(elem, FunctionSema):
             yield elem, False
         elif isinstance(elem, ClassSema):
-            var = lookupVariable(elem, '__init__')
+            lookupScope = elem.getBody()
+            var = lookupScope.findNameHere('__init__')
             if var:
                 for atom in var.nodeType:
                     if isinstance(atom, FunctionSema):
