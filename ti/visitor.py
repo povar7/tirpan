@@ -222,7 +222,11 @@ class Visitor(ast.NodeVisitor):
         self.filtering = saveFiltering
         if self.filtering:
             obj_link = getLink(node.args[0])
-            addSubvariable(obj_link, EdgeType.ASSIGN_LIST, True, self.filtered)
+            if node.args[1].id == 'list':
+                edgeType = EdgeType.ASSIGN_LIST
+            elif node.args[1].id == 'tuple':
+                edgeType = EdgeType.ASSIGN_TUPLE
+            addSubvariable(obj_link, edgeType, True, self.filtered)
 
     def visit_common_iter(self, node):
         self.visit(node.iter)

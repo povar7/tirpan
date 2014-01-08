@@ -34,6 +34,7 @@ class EdgeType(object):
     ASSIGN_INDEX       = 'AssignIndex'
     ASSIGN_ITER        = 'AssignIter'
     ASSIGN_LIST        = 'AssignList'
+    ASSIGN_TUPLE       = 'AssignTuple'
     ASSIGN_OBJECT      = 'AssignObject'
     ASSIGN_SLICE       = 'AssignSlice'
     ASSIGN_TRUE        = 'AssignTrue'
@@ -222,6 +223,17 @@ class EdgeType(object):
         def condition(x):
             try:
                 return flag if isinstance(x, ListSema) else not flag
+            except AttributeError:
+                pass
+            return flag
+        EdgeType.updateRightWithCondition(right, left.nodeType, condition)
+
+    @staticmethod
+    def processAssignTuple(left, right, *args):
+        flag = args[0]
+        def condition(x):
+            try:
+                return flag if isinstance(x, TupleSema) else not flag
             except AttributeError:
                 pass
             return flag

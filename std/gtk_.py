@@ -245,10 +245,12 @@ def getActionGroupClassName():
 actionGroupClass = (
                        getActionGroupClassName(),
                        [
-                           ['__init__'   , quasiActionGroup, 2],
-                           ['add_actions', quasiAddActions , 2],
-                           ['get_action' , quasi_zero      , 2],
-                           ['set_visible', quasi_none      , 2],
+                           ['__init__'          , quasiActionGroup, 2],
+                           ['add_actions'       , quasiAddActions , 2],
+                           ['add_toggle_actions', quasi_none      , 2],
+                           ['get_action'        , quasi_zero      , 2],
+                           ['set_sensitive'     , quasi_none      , 2],
+                           ['set_visible'       , quasi_none      , 2],
                        ],
                        [
                        ],

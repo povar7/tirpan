@@ -140,7 +140,9 @@ class ExportAssistant(gtk.Assistant, ManagedWindow):
 class Foo1(gtk.ActionGroup):
     def __init__(self):
         gtk.ActionGroup.__init__(self, 'foo1')
+        self.add_toggle_actions([])
         self.set_visible(True)
+        self.set_sensitive(True)
         self.get_action('ConfigView')
 
 class WarnButton(gtk.Button):
