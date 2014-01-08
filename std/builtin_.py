@@ -119,7 +119,9 @@ def quasiImport(params, **kwargs):
     filename = getattr(params[0], 'value', None)
     tgNode   = kwargs['TGNODE']
     origin   = utils.getFileName(tgNode.node)
-    if filename is not None and origin is not None:
+    if (filename is not None and
+        filename not in config.data.skipped_imports and
+        origin is not None):
         try:
             importer = config.data.importer
             quasiAlias = QuasiAlias(filename)

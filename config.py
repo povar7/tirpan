@@ -39,6 +39,11 @@ class Config(object):
             func_value = ''
         self.skipped_functions = func_value.split(',')
         try:
+            impt_value = cfg.get('skip', '__imports')
+        except ConfigParser.Error:
+            impt_value = ''
+        self.skipped_imports = impt_value.split(',')
+        try:
             exec_value = cfg.get('pass', 'execfiles')
         except ConfigParser.Error:
             exec_value = r'.*'
