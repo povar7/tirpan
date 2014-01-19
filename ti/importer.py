@@ -63,7 +63,7 @@ class Importer(object):
 
     def getPaths(self, origin):
         paths = [os.path.dirname(origin)]
-        sysPathType = getSysPathType()
+        sysPathType = ti.builtin.getSysPathType()
         assert isinstance(sysPathType, ti.sema.ListSema)
         for elem in sysPathType.elems:
             for atom in elem:

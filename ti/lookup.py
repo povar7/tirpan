@@ -175,6 +175,9 @@ operatorNames = {
                     ast.USub     : '-' ,
                     ast.Invert   : '~' ,
                     ast.Not      : '!' ,
+                    
+                    ast.And      : 'and',
+                    ast.Or       : 'or' ,
                 }
 
 def getOperatorName(node):
