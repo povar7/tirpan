@@ -59,6 +59,7 @@ class LiteralSema(Sema):
 
     def __init__(self, ltype):
         super(LiteralSema, self).__init__()
+        assert(ltype not in (str, unicode))
         self.ltype = ltype
 
     def isInstanceEqualTo(self, other):
@@ -76,7 +77,11 @@ class LiteralSema(Sema):
 class LiteralValueSema(LiteralSema):
 
     def __init__(self, value):
-        super(LiteralValueSema, self).__init__(value.__class__)
+        if isinstance(value, basestring):
+            lclass = basestring
+        else:
+            lclass = value.__class__
+        super(LiteralValueSema, self).__init__(lclass)
         self.value = value
 
     def isInstanceEqualTo(self, other):
@@ -375,7 +380,7 @@ class ScopeSema(Sema, ScopeInterface):
         super(ScopeSema, self).__init__()
         self.add       = add
         self.parent    = parent
-        self.variables = {}
+        self.variables = dict()
 
     def hasGlobals(self):
         return False
@@ -400,11 +405,6 @@ class ScopeSema(Sema, ScopeInterface):
         parent = self.getParent()
         if parent:
             parent.addGlobalNames(names)
-
-    def setGlobalDestructive(self):
-        parent = self.getParent()
-        if parent:
-            parent.setGlobalDestructive()
 
     def getScopeForAdding(self):
         if self.add:
@@ -436,14 +436,9 @@ class ClassSema(Sema, ScopeInterface):
         from ti.tgnode import VariableTGNode
         inst = InstanceSema(self)
         origin = self.getOrigin()
-        origin.addInstance(inst)
         var = VariableTGNode('__class__', {self})
         inst.getBody().addVariable(var)
         return inst
-
-    def getInstancesNumber(self):
-        origin = self.getOrigin()
-        return origin.getInstancesNumber()
 
     def getGlobalNames(self):
         return set() 
@@ -497,10 +492,6 @@ class InstanceSema(Sema, ScopeInterface):
         origin = stub.getOrigin()
         return '<%s object>' % origin.name
 
-    def isSingleton(self):
-        stub = self.getStub()
-        return stub.getInstancesNumber() == 1
-
 class TemplateSema(Sema, ScopeInterface):
 
     def __init__(self, origin):
@@ -546,11 +537,6 @@ class TemplateSema(Sema, ScopeInterface):
             origin.parent.connectYield(node)
         else:
             utils.getLink(node).addEdge(EdgeType.ASSIGN_YIELD, origin)
-
-    def setGlobalDestructive(self):
-        origin   = self.getOrigin()
-        function = origin.function
-        function.setGlobalDestructive()
 
     def getLink(self, node):
         try:
@@ -601,9 +587,6 @@ class ModuleSema(Sema, ScopeInterface):
     def hasGlobals(self):
         return False
 
-    def setGlobalDestructive(self):
-        pass
-
     def getOrigin(self):
         return self.origin
 
@@ -619,7 +602,7 @@ def freezeSet(elems):
     return res
 
 def freezeDict(elems):
-    res = {}
+    res = dict()
     for key, val in elems.items():
         keyCopy = copy.copy(key)
         keyCopy.freeze()
@@ -629,14 +612,16 @@ def freezeDict(elems):
 
 boolSema = LiteralSema(bool)
 
+def isString(sema):
+    try:
+        return sema.ltype == basestring
+    except AttributeError:
+        return False
+
 def getBoolSema():
     return boolSema
 
-def isBasestring(sema):
-    return isinstance(sema, LiteralSema) and sema.ltype in (str, unicode)
+noneSema = LiteralSema(types.NoneType)
 
-def isNormalString(sema):
-    return isinstance(sema, LiteralSema) and sema.ltype == str
-
-def isUnicodeString(sema):
-    return isinstance(sema, LiteralSema) and sema.ltype == unicode
+def getNoneSema():
+    return noneSema

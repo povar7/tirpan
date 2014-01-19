@@ -1,8 +1,0 @@
-Tirpan traceback (most recent call last):
-  File "FILE", line 10, in <module>:
-    bar()
-  File "FILE", line 7, in bar:
-    foo([])
-  File "FILE", line 4, in foo:
-    os.path.basename([])
-BASENAME: 'os.path.basename' expects <basestring object>, not [].

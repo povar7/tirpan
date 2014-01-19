@@ -9,7 +9,7 @@ import sys
 from ti.sema import *
 
 typeInt = LiteralSema(int)
-typeStr = LiteralSema(str)
+typeStr = LiteralSema(basestring)
 
 def findSysModule():
     import config

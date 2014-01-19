@@ -8,7 +8,7 @@ import os
 
 from ti.sema import *
 
-typeStr = LiteralSema(str)
+typeStr = LiteralSema(basestring)
 
 def quasiAbspath(params, **kwargs):
     try:

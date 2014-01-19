@@ -13,9 +13,9 @@ import utils
 
 import config
 
-from ti.function import makeSet, Flags
-from ti.lookup   import *
-from ti.sema     import *
+from ti.lookup import *
+from ti.sema   import *
+from utils     import *
 
 typeBool    = LiteralSema(bool)
 typeComplex = LiteralSema(complex)
@@ -24,22 +24,13 @@ typeInt     = LiteralSema(int)
 typeLong    = LiteralSema(long)
 typeNone    = LiteralSema(types.NoneType)
 typeType    = LiteralSema(type)
-typeStr     = LiteralSema(str)
-typeUnicode = LiteralSema(unicode)
-
-def quasi_none(params, **kwargs):
-    return {typeNone}
-
-def quasi_zero(params, **kwargs):
-    return set()
+typeStr     = LiteralSema(basestring)
 
 def quasiAppend(params, **kwargs):
     if isinstance(params[0], ListSema):
         if params[1] is None:
             return {typeNone}
         params[0].addElementsAtIndex(None, {params[1]})
-        flags = kwargs['FLAGS']
-        flags.setDestructive()
     return {typeNone}
 
 def quasiExtend(params, **kwargs):
@@ -47,8 +38,6 @@ def quasiExtend(params, **kwargs):
         isinstance(params[1], ListSema)):
         elements = params[1].getElements()
         params[0].addElementsAtIndex(None, elements)
-        flags = kwargs['FLAGS']
-        flags.setDestructive()
     return {typeNone}
 
 def quasiInsert(params, **kwargs):
@@ -56,8 +45,6 @@ def quasiInsert(params, **kwargs):
         if params[2] is None:
             return {typeNone}
         params[0].addElementsAtIndex(None, {params[2]})
-        flags = kwargs['FLAGS']
-        flags.setDestructive()
     return {typeNone}
 
 def quasiEncode(params, **kwargs):
@@ -142,20 +129,17 @@ def quasiIter(params, **kwargs):
 def quasiJoin(params, **kwargs):
     sep = params[0]
     arg = params[1]
-    if not isBasestring(sep):
+    if not isString(sep):
         return set()
-    if (isBasestring(arg) or
-        (isinstance(arg, ListSema) and
-         all(isBasestring(elem) for elem in arg.getElements()))):
-        if sep.ltype == unicode:
-            return {typeUnicode}
-        elif isBasestring(arg) and arg.ltype == unicode:
-            return {typeUnicode}
-        elif (isinstance(arg, ListSema) and
-              any(elem.ltype == unicode for elem in arg.getElements())):
-            return {typeUnicode}
-        else:
-            return {typeStr}
+    if isString(arg):
+        return {typeStr}
+    elif isinstance(arg, ListSema):
+        try:
+            elems = arg.getElements()
+            if all(isString(elem) for elem in elems):
+                return {typeStr}
+        except:
+            pass
     return set()
 
 def quasiLen(params, **kwargs):
@@ -203,12 +187,7 @@ def quasiRange3(params, **kwargs):
     return {listType}
 
 def quasiReplace(params, **kwargs):
-    if any(isUnicodeString(elem) for elem in params):
-        return {typeUnicode}
-    elif all(isNormalString(elem) for elem in params):
-        return {typeStr}
-    else:
-        return {typeStr, typeUnicode}
+    return {typeStr}
 
 def quasiRfind(params, **kwargs):
     return {typeInt}
@@ -288,15 +267,13 @@ def quasiUnicode(params, **kwargs):
         res = LiteralValueSema(unicode(params[0].value))
         return {res}
     except AttributeError:
-        return {typeUnicode}
+        return {typeStr}
 
 def quasiUpdate(params, **kwargs):
     if (isinstance(params[0], DictSema) and
         isinstance(params[1], DictSema)):
         for key, values in params[1].elems.items():
             params[0].addElementsAtKey(key, values)
-        flags = kwargs['FLAGS']
-        flags.setDestructive()
     return {typeNone}
 
 def quasiObjectClassBases():
@@ -327,7 +304,7 @@ baseStringClass = (
                       ]
                   )
 
-listClassName = str(type([]))
+listClassName = str(list)
 
 def getListClassName():
     return listClassName
@@ -345,7 +322,7 @@ listClass = (
                 ]
             )
 
-dictClassName = str(type({}))
+dictClassName = str(dict)
 
 def getDictClassName():
     return dictClassName
@@ -411,20 +388,16 @@ def quasiAdd(params, **kwargs):
         res.addElementsAtKey(None, right.getElements())
         return {res}
 
-    if not isinstance(left , LiteralSema) or left.ltype == types.NoneType:
+    if not isinstance(left , LiteralSema) or left.ltype  == types.NoneType:
         return set()
     if not isinstance(right, LiteralSema) or right.ltype == types.NoneType:
         return set()
 
-    if (left.ltype  in (str, unicode) and
-        right.ltype in (str, unicode)):
+    if isString(left) and isString(right):
         try:
             res = LiteralValueSema(left.value + right.value)
         except AttributeError:
-            if left.ltype == unicode and right.ltype == unicode:
-                res = typeUnicode
-            else:
-                res = typeStr
+            res = typeStr
         return {res}
 
     if left.ltype == complex or  right.ltype == complex:
@@ -463,11 +436,9 @@ def quasiDiv(params, **kwargs):
     left  = params[0]
     right = params[1]
 
-    if (not isinstance(left, LiteralSema) or
-        left.ltype in (str, unicode)):
+    if not isinstance(left,  LiteralSema) or isString(left) :
         return set()
-    if (not isinstance(right, LiteralSema) or
-        right.ltype in (str, unicode)):
+    if not isinstance(right, LiteralSema) or isString(right):
         return set()
 
     if left.ltype == complex or right.ltype == complex:
@@ -486,19 +457,13 @@ def quasiMult(params, **kwargs):
     left  = params[0]
     right = params[1]
 
-    if (isinstance(left,  LiteralSema) and left.ltype  in (str, unicode) and
+    if (isString(left) and
         isinstance(right, LiteralSema) and right.ltype in (bool, int, long)):
-        if left.ltype == str:
-            return {typeStr}
-        if left.ltype == unicode:
-            return {typeUnicode}
+        return {typeStr}
 
-    if (isinstance(right, LiteralSema) and right.ltype in (str, unicode) and
+    if (isString(right) and
         isinstance(left,  LiteralSema) and left.ltype  in (bool, int, long)):
-        if right.ltype == str:
-            return {typeStr}
-        if right.ltype == unicode:
-            return {typeUnicode}
+        return {typeStr}
 
     if (isinstance(left, (ListSema, TupleSema)) and
         isinstance(right, LiteralSema) and right.ltype in (bool, int, long)):
@@ -518,11 +483,9 @@ def quasiSub(params, **kwargs):
     left  = params[0]
     right = params[1]
 
-    if (isinstance(left, (ListSema, TupleSema)) or
-        isinstance(left, LiteralSema) and left.ltype in (str, unicode)):
+    if isinstance(left,  (ListSema, TupleSema)) or isString(left) :
         return set()
-    if (isinstance(right, (ListSema, TupleSema)) or
-        isinstance(right, LiteralSema) and right.ltype in (str, unicode)):
+    if isinstance(right, (ListSema, TupleSema)) or isString(right):
         return set()
 
     return quasiAdd(params, **kwargs)
@@ -571,7 +534,7 @@ def quasiMod(params, **kwargs):
     left  = params[0]
     right = params[1]
 
-    if isinstance(left, LiteralSema) and left.ltype in (str, unicode):
+    if isString(left):
         res = set()
         if isinstance(right, TupleSema):
             elems = right.elems[1:]
@@ -610,15 +573,15 @@ def quasiPow(params, **kwargs):
 
     if isinstance(left, (ListSema, TupleSema)):
         return set()
-    if isinstance(left,  LiteralSema) and left.ltype in (str, unicode):
+    if isString(left):
         return set()
 
     if isinstance(right, (ListSema, TupleSema)):
         return set()
-    if isinstance(right,  LiteralSema) and right.ltype in (str, unicode):
+    if isString(right):
         return set()
 
-    if (isinstance(left, LiteralSema) and left.ltype == int and
+    if (isinstance(left,  LiteralSema) and left.ltype  == int and
         isinstance(right, LiteralSema) and right.ltype == int):
         return {typeInt, typeLong}
 
@@ -626,8 +589,7 @@ def quasiPow(params, **kwargs):
 
 def quasiUplus(params, **kwargs):
     oper = params[0]
-    if (not isinstance(oper, LiteralSema) or
-        oper.ltype in (str, unicode)):
+    if isString(oper):
         return set()
     if oper.ltype == bool:
         oper = typeInt
@@ -772,10 +734,11 @@ modules   = [
                 ['StringIO'    ],
                 ['UserDict'    ],
 
-                ['__future__'      ],
                 ['_abcoll'         ],
                 ['_threading_local'],
                 ['_weakrefset'     ],
+
+                ['__future__'      ],
             ]
 
 classes   = [

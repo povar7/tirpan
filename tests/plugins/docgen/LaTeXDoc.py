@@ -1,2 +1,0 @@
-class LaTeXDoc:
-    pass

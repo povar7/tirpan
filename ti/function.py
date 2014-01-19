@@ -10,7 +10,6 @@ import itertools
 import config
 import ti.lookup
 import ti.sema
-import ti.skips
 import ti.tgnode
 import ti.visitor
 
@@ -20,41 +19,13 @@ MAX_TEMPLATES_NUMBER = 1024
 
 def skip_function(function):
     origin = function.getOrigin()
-    if origin.name in config.data.skipped_functions:
-        return True
     templates = origin.getTemplates()
-    return (len(templates) >= MAX_TEMPLATES_NUMBER and
-            origin.name not in config.data.no_limits)
-
-class Flags(object):
-
-    def __init__(self):
-        self._destructive = False
-
-    def isDestructive(self):
-        return self._destructive
-
-    def setDestructive(self):
-        self._destructive = True
+    return len(templates) >= MAX_TEMPLATES_NUMBER
 
 def copyParam(param):
     paramCopy = copy.copy(param)
-    paramCopy.edges = {}
     paramCopy.nodeType = set()
     return paramCopy
-
-def getNodeType(elem):
-    if (len(elem.nodeType) > 0 or
-        ti.tgnode.EdgeType.REV_ASSIGN_ELEMENT in elem.edges):
-        return elem.nodeType
-    else:
-        return {None}
-
-def makeSet(elem):
-    if elem is not None:
-        return {elem}
-    else:
-        return set()
 
 def getParamsTypes(params):
     unsorted = [var for var in params.variables.values() if var.number]
@@ -129,7 +100,7 @@ def matchCall(function, isInit, argumentNodes, KWArgumentNodes):
         parent   = function.parent
     else:
         params   = []
-        defaults = {}
+        defaults = dict()
         parent   = function
 
     if (isinstance(parent, ti.sema.ClassSema) and isInit or
@@ -148,7 +119,7 @@ def matchCall(function, isInit, argumentNodes, KWArgumentNodes):
 
     normResult  = []
     listResult  = []
-    dictResult  = {}
+    dictResult  = dict()
 
     while True:
         if paramIndex >= paramNumber:
@@ -234,7 +205,7 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
 
     origin = function.getOrigin()
 
-    if isInit or origin.isGlobalDestructive():
+    if isInit:
         key = productElement, tgNode
     else:
         key = productElement, None
@@ -247,11 +218,7 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
         params, inst = linkCall(function, isInit, kwKeys, *productElement)
         template = ti.tgnode.FunctionTemplateTGNode(params, origin,
                                                     inst  , tgNode)
-    if (tgNode, ()) not in template.edges:
-        template.addEdge(ti.tgnode.EdgeType.ASSIGN, tgNode)
-     
-    globalDestructive = False
-
+    
     if newTemplate:
         templates[key] = template
 
@@ -284,25 +251,13 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
             if not origin.name:
                 lambdaLink.addEdge(ti.tgnode.EdgeType.ASSIGN, template)
 
-            try:
-                globalDestructive = origin.isGlobalDestructive()
-            except AttributeError:
-                pass
         elif isinstance(origin, ti.tgnode.ExternalFunctionDefinitionTGNode):
             types = getParamsTypes(params)
-            flags = Flags()
             template.nodeType = origin.quasi(types,
                                              CALLS=origin.calls,
-                                             FLAGS=flags,
                                              TGNODE=tgNode)
             template.walkEdges()
             del templates[key]
-
-            globalDestructive = ti.skips.checkGlobalDestructive(flags,
-                                                                tgNode.node)
-
-        if globalDestructive:
-            config.data.currentScope.setGlobalDestructive()
 
 def processFunc(node, functionNode, argumentNodes, KWArgumentNodes,
                 listArgumentType):

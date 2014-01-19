@@ -1,8 +1,0 @@
-Tirpan traceback (most recent call last):
-  File "FILE", line 18, in <module>:
-    foo('foo\nbar')
-  File "FILE", line 16, in foo:
-    <A object>.set_css_filename([])
-  File "FILE", line 8, in set_css_filename:
-    os.path.basename([])
-BASENAME: 'os.path.basename' expects <basestring object>, not [].

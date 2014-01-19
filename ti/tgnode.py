@@ -12,14 +12,11 @@ import itertools
 
 import config
 import ti.lookup
-from   ti.sema   import *
-from   utils     import *
+
+from ti.sema import *
+from utils   import *
 
 classes = (CollectionSema, LiteralSema, ClassSema, InstanceSema, ModuleSema)
-
-def isSafeCallLoop(tgNode):
-    return (isinstance(tgNode.node, ast.AugAssign) and
-            isinstance(tgNode.node.value, ast.Num))
 
 def updateSet(res, updates):
     res |= updates
@@ -29,16 +26,7 @@ class EdgeType(object):
 
     ARGUMENT           = 'Argument'
     ASSIGN             = 'Assign'
-    ASSIGN_CUSTOM      = 'AssignCustom'
     ASSIGN_ELEMENT     = 'AssignElement'
-    ASSIGN_INDEX       = 'AssignIndex'
-    ASSIGN_INT         = 'AssignInt'
-    ASSIGN_ITER        = 'AssignIter'
-    ASSIGN_LIST        = 'AssignList'
-    ASSIGN_TUPLE       = 'AssignTuple'
-    ASSIGN_OBJECT      = 'AssignObject'
-    ASSIGN_SLICE       = 'AssignSlice'
-    ASSIGN_TRUE        = 'AssignTrue'
     ASSIGN_YIELD       = 'AssignYield'
     ATTR_INDEX         = 'AttrIndex'
     ATTR_SLICE         = 'AttrSlice'
@@ -47,30 +35,12 @@ class EdgeType(object):
     FUNC               = 'Func'
     KWARGUMENT         = 'KWArgument'
     LISTARGUMENT       = 'ListArgument'
-    REV_ARGUMENT       = 'RevArgument'
-    REV_ASSIGN         = 'RevAssign'
-    REV_ASSIGN_ELEMENT = 'RevAssignElement'
-    REV_ELEMENT        = 'RevElement'
-    REV_FUNC           = 'RevFunc'
-    REV_KWARGUMENT     = 'RevKWArgument'
-    REV_LISTARGUMENT   = 'RevListArgument'
 
     @staticmethod
     def updateRight(right, types):
         if len(types - right.nodeType) > 0:
             length = len(right.nodeType)
             updateSet(right.nodeType, types)
-            if len(right.nodeType) > length:
-                right.process()
-                right.walkEdges()
-
-    @staticmethod
-    def updateRightWithCondition(right, types, condition):
-        if len(types - right.nodeType) > 0:
-            length = len(right.nodeType)
-            for elem in types:
-                if condition(elem):
-                    right.nodeType.add(elem)
             if len(right.nodeType) > length:
                 right.process()
                 right.walkEdges()
@@ -84,94 +54,10 @@ class EdgeType(object):
 
     @staticmethod
     def processAssign(left, right, *args):
-        update_flag = True
-
-        # Remove simple loops in type variables graph (1)
-        try:
-            if (left, ()) in right.edges[EdgeType.ARGUMENT]:
-                if (isinstance(left, FunctionCallTGNode) and
-                    not isSafeCallLoop(left)):
-                    right.removeEdge(EdgeType.ARGUMENT, left)
-                    update_flag = False
-        except KeyError:
-            pass
-        # Remove simple loops in type variables graph (2)
-        subs = set()
-        if isinstance(left, (TupleTGNode, ListTGNode)):
-            try:
-                for node, args in left.edges[EdgeType.REV_ELEMENT]:
-                    if isinstance(node, SubscriptTGNode):
-                        subs.add(node)
-            except KeyError:
-                pass
-        elif isinstance(left, SubscriptTGNode):
-            subs.add(left)
-        for sub in subs:
-            try:
-                if (right, ()) in sub.edges[EdgeType.ASSIGN_OBJECT]:
-                    sub.removeEdge(EdgeType.ASSIGN_OBJECT, right)
-                    update_flag = False
-            except KeyError:
-                pass
-        # Remove simple loops in type variables graph (3)
-        opers = [left]
-        index = 0
-        while index < len(opers):
-            oper = opers[index]
-            
-            index += 1
-            
-            if (isinstance(oper, FunctionCallTGNode) and
-                not isSafeCallLoop(oper)):
-                for new_index in range(oper.getArgumentNodesNumber()):
-                    opers.append(oper.getArgumentNode(new_index))
-                continue
-
-            if oper == right:
-                update_flag = False
-                break
-
-            try:
-                if (right, ()) in oper.edges[EdgeType.ASSIGN_OBJECT]:
-                    oper.removeEdge(EdgeType.ASSIGN_OBJECT, right)
-                    update_flag = False
-                elif isinstance(right, AttributeTGNode):
-                    for node, args in oper.edges[EdgeType.ASSIGN_OBJECT]:
-                        if (isinstance(node, AttributeTGNode) and
-                            node.attr == right.attr and
-                            node.edges[EdgeType.ASSIGN_OBJECT] ==
-                            right.edges[EdgeType.ASSIGN_OBJECT]):
-                            oper.removeEdge(EdgeType.ASSIGN_OBJECT, right)
-                            update_flag = False
-                            break
-            except KeyError:
-                pass
-            
-        if update_flag:
-            EdgeType.updateRight(right, left.nodeType)
-
-    @staticmethod
-    def processAssignCustom(left, right, *args):
-        from ti.visitor import Visitor 
-        test  = args[0]
-        types = left.nodeType
-        if test:
-            def condition(x):
-                visitor = Visitor(None, False)
-                astCopy = copy.deepcopy(test.comparators[0])
-                visitor.visit(astCopy)
-                rType = getLink(astCopy).nodeType
-                lType = ti.lookup.lookupTypes(x, test.left.attr)
-                return lType.issuperset(rType)
-            EdgeType.updateRightWithCondition(right, types, condition)
-        else:
-            EdgeType.updateRight(right, types)
+        EdgeType.updateRight(right, left.nodeType)
 
     @staticmethod
     def processAssignElement(left, right, *args):
-        for node, _ in left.getEdges(EdgeType.REV_ELEMENT):
-            if node == right:
-                return
         index = args[0]
         types = left.getElementsTypes(index)
         EdgeType.updateRight(right, types)
@@ -181,76 +67,12 @@ class EdgeType(object):
         pass
 
     @staticmethod
-    def processAssignIter(left, right, *args):
-        flag = args[0]
-        def condition(x):
-            try:
-                x.getElements()
-                return flag
-            except:
-                return not flag
-        EdgeType.updateRightWithCondition(right, left.nodeType, condition)
-
-    @staticmethod
     def processAssignObject(left, right, *args):
         pass
 
     @staticmethod
     def processAssignSlice(left, right, *args):
         pass
-
-    @staticmethod
-    def processAssignTrue(left, right, *args):
-        flag = args[0]
-        def condition(x):
-            try:
-                return flag if x.value else not flag
-            except AttributeError:
-                pass
-            try:
-                return flag if x.ltype != types.NoneType else not flag
-            except AttributeError:
-                pass
-            try:
-                return flag if len(x.getElements()) > 0 else not flag
-            except AttributeError:
-                pass
-            return flag
-        EdgeType.updateRightWithCondition(right, left.nodeType, condition)
-
-    @staticmethod
-    def processAssignInt(left, right, *args):
-        flag = args[0]
-        def condition(x):
-            try:
-                return flag if isinstance(x, LiteralSema) and x.ltype == int \
-                            else not flag
-            except AttributeError:
-                pass
-            return flag
-        EdgeType.updateRightWithCondition(right, left.nodeType, condition)
-
-    @staticmethod
-    def processAssignList(left, right, *args):
-        flag = args[0]
-        def condition(x):
-            try:
-                return flag if isinstance(x, ListSema) else not flag
-            except AttributeError:
-                pass
-            return flag
-        EdgeType.updateRightWithCondition(right, left.nodeType, condition)
-
-    @staticmethod
-    def processAssignTuple(left, right, *args):
-        flag = args[0]
-        def condition(x):
-            try:
-                return flag if isinstance(x, TupleSema) else not flag
-            except AttributeError:
-                pass
-            return flag
-        EdgeType.updateRightWithCondition(right, left.nodeType, condition)
 
     @staticmethod
     def processAssignYield(left, right, *args):
@@ -290,13 +112,6 @@ class EdgeType(object):
                 continue
             obj.addElementsAtIndex(index, left.nodeType)
 
-        # Remove simple loops in type variables graph
-        try:
-            if (left, ()) in right.edges[EdgeType.ASSIGN]:
-                right.removeEdge(EdgeType.ASSIGN, left)
-        except KeyError:
-            pass
-
         right.walkEdges()
 
     @staticmethod
@@ -331,68 +146,23 @@ class EdgeType(object):
 class TGNode(object):
 
     def __init__(self):
-        self.edges    = {}
         self.nodeType = set()
 
     def addEdge(self, edgeType, node, *args):
-        if edgeType == EdgeType.ASSIGN:
-            node.addEdge(EdgeType.REV_ASSIGN, self)
-        elif edgeType == EdgeType.ELEMENT:
-            node.addEdge(EdgeType.REV_ELEMENT, self)
-        if not edgeType in self.edges:
-            self.edges[edgeType] = set()
-        self.edges[edgeType].add((node, args))
         self.walkEdge(edgeType, node, *args)
 
-    def removeEdge(self, edgeType, node):
-        self.edges[edgeType].discard((node, ()))
-    
     def walkEdge(self, edgeType, node, *args):
         if EdgeType.isNotReverse(edgeType):
             getattr(EdgeType, 'process' + edgeType)(self, node, *args)
 
     def walkEdges(self):
-        for edgeType, edgeValue in self.edges.items():
-            for node, args in edgeValue:
-                self.walkEdge(edgeType, node, *args)
-
-    def getEdges(self, edgeType):
-        try:
-            return self.edges[edgeType]
-        except KeyError:
-            return set()
+        pass
 
     def getElementsTypes(self, index):
         res = set()
         for singleType in self.nodeType:
             updateSet(res, singleType.getElementsAtIndex(index))
         return res
-
-    def commonRetrieve(self, attr, condition):
-        memo   = set()
-        result = set()
-
-        data = (memo, result)
-        self._commonRetrieve(attr, condition, data)
-
-        return result
-
-    def _commonRetrieve(self, attr, condition, data):
-        memo, result = data
-        if self in memo:
-            return
-        else:
-            memo.add(self)
-
-        callback = getattr(self, attr + 'Callback', None)
-        if callback:
-            callback(result)
-
-        for edgeType, edgeValue in self.edges.items():
-            if condition(edgeType):
-                continue
-            for node, args in edgeValue:
-                node._commonRetrieve(attr, condition, data)
 
     def __eq__(self, other):
         return self is other
@@ -408,7 +178,7 @@ class ConstTGNode(TGNode):
             value = node.n
         elif isinstance(node, ast.Str):
             value = node.s
-        elif (isinstance(node, ast.Name)   and node.id == 'None' or
+        elif (isinstance(node, ast.Name) and node.id == 'None' or
               isinstance(node, (ast.Return, ast.Yield)) and not node.value):
             value = None
         else:
@@ -421,13 +191,6 @@ class ConstTGNode(TGNode):
 
     def getValue(self):
         return self.value
-
-    def constantsCallback(self, result):
-        if self.value is not None:
-            newType = LiteralValueSema(self.value)
-            if newType not in self.nodeType:
-                self.nodeType.add(newType)
-                self.walkEdges()
 
 class VariableTGNode(TGNode):
 
@@ -507,18 +270,6 @@ class AttributeTGNode(TGNode):
         super(AttributeTGNode, self).__init__()
         self.attr = attr
 
-    def getObjects(self):
-       objects = set()
-       for node, args in self.getEdges(EdgeType.ASSIGN_OBJECT):
-           updateSet(objects, node.nodeType)
-       return objects
-
-    def getRights(self):
-       rights = set()
-       for node, args in self.getEdges(EdgeType.REV_ASSIGN):
-           updateSet(rights, node.nodeType)
-       return rights
-
     def processWithFlag(self, createNew):
        objects = self.getObjects()
        rights  = self.getRights()
@@ -563,46 +314,6 @@ class SubscriptTGNode(TGNode):
     def __init__(self, hasIndex):
         super(SubscriptTGNode, self).__init__()
         self.hasIndex = hasIndex
-
-    def getIndices(self):
-       indices = set()
-       for node, args in self.getEdges(EdgeType.ASSIGN_INDEX):
-           updateSet(indices, node.nodeType)
-       return indices
-
-    def getRights(self):
-       rights = set()
-       for node, args in self.getEdges(EdgeType.REV_ASSIGN):
-           updateSet(rights, node.nodeType)
-       return rights
-
-    def getSlices(self):
-       lowers = set()
-       for node, args in self.getEdges(EdgeType.ASSIGN_SLICE):
-           if args[0] != 0:
-               continue
-           updateSet(lowers, node.nodeType)
-       uppers = set()
-       for node, args in self.getEdges(EdgeType.ASSIGN_SLICE):
-           if args[0] != 1:
-               continue
-           updateSet(uppers, node.nodeType)
-       if len(uppers) == 0:
-           uppers.add(None)
-       steps = set()
-       for node, args in self.getEdges(EdgeType.ASSIGN_SLICE):
-           if args[0] != 2:
-               continue
-           updateSet(steps, node.nodeType)
-       if len(steps) == 0:
-           steps.add(None)
-       return (lowers, uppers, steps)
-           
-    def getObjects(self):
-       objects = set()
-       for node, args in self.getEdges(EdgeType.ASSIGN_OBJECT):
-           updateSet(objects, node.nodeType)
-       return objects
 
     def process(self):
        objects = self.getObjects()
@@ -711,18 +422,15 @@ class FunctionDefinitionTGNode(TGNode):
         nodeType = FunctionSema(self, scope)
         self.nodeType  = {nodeType}
 
-        self.name      = name
-        self.parent    = scope
-        self.templates = {}
+        self.name        = name
+        self.parent      = scope
+        self.templates   = dict()
 
-        self.params    = ScopeSema()
-        self.listParam = None
-        self.dictParam = None
+        self.params      = ScopeSema()
+        self.listParam   = None
+        self.dictParam   = None
 
-        self.defaults  = defaults if defaults else {}
-
-        self.globalDestructive = False
-
+        self.defaults    = defaults if defaults else dict()
         self.globalNames = set()
 
     def isListParam(self, param):
@@ -764,26 +472,6 @@ class FunctionDefinitionTGNode(TGNode):
 
     def hasDefaultReturn(self):
         return False
-
-    def rehashTemplates(self):
-        newTemplates = {}
-        for key, value in self.templates.items():
-            productElement, oldNode = key
-            if oldNode:
-                newNode = oldNode
-            else:
-                newNode = value.tgNode
-            newKey = productElement, newNode
-            newTemplates[newKey] = value
-        self.templates = newTemplates
-
-    def isGlobalDestructive(self):
-        return self.globalDestructive
-
-    def setGlobalDestructive(self):
-        if not self.globalDestructive:
-            self.rehashTemplates()
-            self.globalDestructive = True
 
     def getNodeName(self):
         return self.name
@@ -891,13 +579,11 @@ class FunctionCallTGNode(TGNode):
             args = node.args
 
         func.addEdge(EdgeType.FUNC, self)
-        self.addEdge(EdgeType.REV_FUNC, func)
 
         index = 0
         for arg in args:
             link = getLink(arg)
             link.addEdge(EdgeType.ARGUMENT, self)
-            self.addEdge(EdgeType.REV_ARGUMENT, link, index)
             index += 1
         self.argsNum = index
 
@@ -905,12 +591,10 @@ class FunctionCallTGNode(TGNode):
             for pair in node.keywords:
                 link = getLink(pair.value)
                 link.addEdge(EdgeType.KWARGUMENT, self)
-                self.addEdge(EdgeType.REV_KWARGUMENT, link, pair.arg)
 
             if node.starargs:
                 link = getLink(node.starargs)
                 link.addEdge(EdgeType.LISTARGUMENT, self)
-                self.addEdge(EdgeType.REV_LISTARGUMENT, link)
 
         self._isLocked = False
 
@@ -918,36 +602,6 @@ class FunctionCallTGNode(TGNode):
 
     def getArgumentNodesNumber(self):
         return self.argsNum
-
-    def getArgumentNode(self, index):
-        for node, args in self.getEdges(EdgeType.REV_ARGUMENT):
-            try:
-                if args[0] == index:
-                    return node
-            except IndexError:
-                pass
-        return None
-
-    def getFunctionNode(self):
-        edges = self.getEdges(EdgeType.REV_FUNC)
-        assert len(edges) == 1
-        for node, args in edges:
-            return node
-        return None
-
-    def getKWArgumentNodes(self):
-        res = {}
-        for node, args in self.getEdges(EdgeType.REV_KWARGUMENT):
-            key = args[0]
-            res[key] = node
-        return res
-
-    def getListArgumentNode(self):
-        edges = self.getEdges(EdgeType.REV_LISTARGUMENT)
-        assert len(edges) <= 1
-        for node, args in edges:
-            return node
-        return None
 
     def isLocked(self):
         return self._isLocked
@@ -1000,7 +654,7 @@ class FunctionTemplateTGNode(TGNode):
         if inst:
             self.nodeType.add(inst)
 
-        self.mapping = {}
+        self.mapping = dict()
         self.params  = params
         self.tgNode  = tgNode
 
@@ -1018,7 +672,7 @@ class FunctionTemplateTGNode(TGNode):
 
 class ClassTGNode(TGNode):
 
-    def __init__(self, name, bases, scope, count = False):
+    def __init__(self, name, bases, scope):
         super(ClassTGNode, self).__init__()
 
         nodeType = ClassSema(self)
@@ -1029,14 +683,6 @@ class ClassTGNode(TGNode):
         self.scope  = nodeType
         self.bases  = bases
         self.body   = ScopeSema()
-
-        self.templates = {}
-
-        self.instancesNumber = 0
-        if count:
-            self.instances = set()
-        else:
-            self.instances = None
 
     def getBases(self):
         return self.bases
@@ -1052,22 +698,6 @@ class ClassTGNode(TGNode):
 
     def getScope(self):
         return self.scope
-
-    def getTemplates(self):
-        return self.templates
-
-    def addInstance(self, inst):
-        try:
-            self.instances.add(inst)
-        except AttributeError:
-            pass
-        self.instancesNumber += 1
-
-    def getInstances(self):
-        return self.instances
-
-    def getInstancesNumber(self):
-        return self.instancesNumber
 
 class ModuleTGNode(TGNode):
 

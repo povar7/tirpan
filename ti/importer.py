@@ -8,16 +8,16 @@ import ast
 import os
 import sys
 
+import ti.builtin
 import ti.tgnode
-from   ti.builtin import *
-from   ti.parser  import Parser
-from   ti.sema    import ListSema, LiteralValueSema
-from   utils      import QuasiAlias, getLink, setLink
+import ti.parser
+import ti.sema
+import utils
 
 class ExecutedFiles(object):
 
     def __init__(self):
-        self._files = {}
+        self._files = dict()
 
     @staticmethod
     def getKey(filename):
@@ -35,7 +35,7 @@ class ExecutedFiles(object):
         if tgNode in self._files:
             res = self._files[tgNode]
         else:
-            res = {}
+            res = dict()
             self._files[tgNode] = res
         res[key] = module
 
@@ -50,8 +50,8 @@ class Importer(object):
 
     def __init__(self, relName, data):
         self.executedFiles = ExecutedFiles() 
-        self.importedFiles = {}
-        self.identTable    = {}
+        self.importedFiles = dict()
+        self.identTable    = dict()
         self.totalIdents   = 0
 
         filename = os.path.abspath(relName) 
@@ -64,7 +64,7 @@ class Importer(object):
     def getPaths(self, origin):
         paths = [os.path.dirname(origin)]
         sysPathType = getSysPathType()
-        assert isinstance(sysPathType, ListSema)
+        assert isinstance(sysPathType, ti.sema.ListSema)
         for elem in sysPathType.elems:
             for atom in elem:
                 value = getattr(atom, 'value', None)
@@ -84,7 +84,7 @@ class Importer(object):
     def processFile(self, relName, searchName, data):
         filename = os.path.abspath(relName)
         try:
-            parser = Parser(filename)
+            parser = ti.parser.Parser(filename)
         except IOError:
             print >> sys.stderr, 'Cannot open "%s" file' % filename
             exit(1)
@@ -98,8 +98,8 @@ class Importer(object):
         self.importedFiles[searchName] = module
         save = data.currentScope
         data.currentScope = module.getScope()
-        setLink(tree, module)
-        nodeType = {LiteralValueSema(relName)}
+        utils.setLink(tree, module)
+        nodeType = {ti.sema.LiteralValueSema(relName)}
         fileVariable = ti.tgnode.VariableTGNode('__file__', nodeType)
         data.currentScope.addVariable(fileVariable)
         parser.walk()
@@ -134,7 +134,7 @@ class Importer(object):
         data.currentScope = save
 
         name = parts[-1]
-        if len(packages) > 0 or isinstance(alias, QuasiAlias):
+        if len(packages) > 0 or isinstance(alias, utils.QuasiAlias):
             aliasName = None
         else:
             aliasName = name
@@ -154,7 +154,7 @@ class Importer(object):
         import config
         data = config.data
 
-        quasiAlias = QuasiAlias(moduleName)
+        quasiAlias = utils.QuasiAlias(moduleName)
 
         module = self.importFile(origin, quasiAlias)
         if not module:
@@ -230,13 +230,13 @@ class Importer(object):
         functions, variables, modules, classes = getAll()
         scope = module.getScope()
         for func in functions:
-            initBuiltinFunction(scope, *func)
+            ti.builtin.initBuiltinFunction(scope, *func)
         for var in variables:
-            initBuiltinVariable(scope, *var)
+            ti.builtin.initBuiltinVariable(scope, *var)
         for mod in modules:
             self.addStandardModule(globalScope, *mod)
         for cls in classes:
-            initBuiltinClass(scope, *cls)
+            ti.builtin.initBuiltinClass(scope, *cls)
 
     def addStandardModule(self, globalScope, name, asname = None):
         module = ti.tgnode.ExternalModuleTGNode(name, globalScope, asname)

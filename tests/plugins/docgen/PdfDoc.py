@@ -1,2 +1,0 @@
-class PdfDoc:
-    pass

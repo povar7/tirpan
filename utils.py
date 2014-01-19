@@ -5,6 +5,7 @@ Created on 26.05.2013
 '''
 
 import ast
+import types
 
 class QuasiAlias(object):
 
@@ -93,3 +94,29 @@ def findNode(tree, **kwargs):
 
 def sortParams(x, y):
     return cmp(x.number, y.number)
+
+def getNodeType(elem):
+    if elem.nodeType:
+        return elem.nodeType
+    else:
+        return {None}
+
+def makeSet(elem):
+    if elem is not None:
+        return {elem}
+    else:
+        return set()
+
+def quasi_cons(params, **kwargs):
+    obj = params[0]
+    return {obj}
+
+def quasi_none(params, **kwargs):
+    from ti.sema import getNoneSema
+    return {getNoneSema()}
+
+def quasi_zero(params, **kwargs):
+    return set()
+
+def quasi_zero_var():
+    return set()

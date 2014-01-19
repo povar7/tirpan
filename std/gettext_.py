@@ -27,16 +27,7 @@ def quasiGettextMethod(params, **kwargs):
     return quasiGettext(params[1:], **kwargs)
 
 def quasiTranslation(params, **kwargs):
-    cls = findGettextName(getNullTranslationsClassName())
-    if not cls:
-        return set()
-    origin = cls.getOrigin()
-    instances = origin.getInstances()
-    if len(instances) == 1:
-        res = list(instances)[0]
-    else:
-        res = cls.getClassInstance()
-    return {res}
+    return set()
 
 nullTranslationsClassName = 'NullTranslations'
 
@@ -49,8 +40,7 @@ nullTranslationsClass = (
                                 ['gettext', quasiGettextMethod, 2],
                             ],
                             [
-                            ],
-                            True
+                            ]
                         )
 
 functions = [

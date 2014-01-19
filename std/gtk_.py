@@ -24,18 +24,6 @@ def findGtkName(name):
     assert len(var.nodeType) == 1
     return list(var.nodeType)[0]
 
-def quasi_cons(params, **kwargs):
-    return {params[0]}
-
-def quasi_none(params, **kwargs):
-    return {typeNone}
-
-def quasi_zero(params, **kwargs):
-    return set()
-
-def quasi_zero_var():
-    return set()
-
 def quasiActionGroup(params, **kwargs):
     obj = params[0]
     var = lookupVariable(obj, '_actions', True, True)
@@ -116,8 +104,8 @@ def quasiGtkMain(params, **kwargs):
 
     funcTypes = set()
 
-    origin = cls.getOrigin()
-    for inst in origin.getInstances():
+    #TODO
+    for inst in set():
         var = lookupVariable(inst, '_actions')
         if not var:
             continue
@@ -253,8 +241,7 @@ actionGroupClass = (
                            ['set_visible'       , quasi_none      , 2],
                        ],
                        [
-                       ],
-                       True
+                       ]
                    )
 
 def getAssistantClassName():
