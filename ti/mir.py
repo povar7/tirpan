@@ -4,21 +4,24 @@ Created on 19.01.2014
 @author: bronikkk
 '''
 
-import ti.lookup
+import ti.builtin
+import ti.mvisitor
 
 def printChain(node):
-    while True:
-        try:
-            if not isinstance(node, EmptyMirNode):
-                print node.getString()
-            node = node.next
-        except:
-            return
+    while node:
+        print node.getString()
+        node = node.next
+
+def walkChain(node):
+    visitor = ti.mvisitor.MirVisitor()
+    while node:
+        visitor.visit(node)
+        node = node.next
 
 class MirNode(object):
 
     def __init__(self):
-        pass
+        self.prev = None
 
 class SerialMirNode(object):
 
@@ -61,6 +64,14 @@ class AttrRMirNode(SerialMirNode):
     def getString(self):
         return self.left + ' = ' + self.obj + '.' + self.attr
 
+class BeginMirNode(SerialMirNode):
+    
+    def __init__(self):
+        super(BeginMirNode, self).__init__()
+
+    def getString(SerialMirNode):
+        return '<begin>'
+
 class BinOpMirNode(SerialMirNode):
 
     def __init__(self, func, args):
@@ -72,7 +83,7 @@ class BinOpMirNode(SerialMirNode):
     def getString(self):
         l_op = self.args[0]
         r_op = self.args[1]
-        name = ti.lookup.getOperatorName(self.func)
+        name = ti.builtin.getOperatorName(self.func)
         res  = self.left + ' = ' + l_op + ' ' + name + ' ' + r_op
         return res
 
@@ -85,7 +96,7 @@ class BoolOpMirNode(SerialMirNode):
         self.args = args
 
     def getString(self):
-        name  = ti.lookup.getOperatorName(self.func)
+        name  = ti.builtin.getOperatorName(self.func)
         res   = self.left + ' = '
         first = True
         for arg in self.args:
@@ -151,7 +162,7 @@ class ClassMirNode(SerialMirNode):
 
     def __init__(self, node):
         super(ClassMirNode, self).__init__()
-        self.child = EmptyMirNode()
+        self.child = BeginMirNode()
         self.node  = node
 
     def getString(self):
@@ -178,16 +189,11 @@ class DictMirNode(SerialMirNode):
         res += '}'
         return res
 
-class EmptyMirNode(SerialMirNode):
-    
-    def __init__(self):
-        super(EmptyMirNode, self).__init__()
-
 class FuncMirNode(SerialMirNode):
 
     def __init__(self, node):
         super(FuncMirNode, self).__init__()
-        self.child = EmptyMirNode()
+        self.child = BeginMirNode()
         self.node  = node
 
     def getString(self):
@@ -328,6 +334,6 @@ class UnaryOpMirNode(SerialMirNode):
 
     def getString(self):
         oper = self.args[0]
-        name = ti.lookup.getOperatorName(self.func)
+        name = ti.builtin.getOperatorName(self.func)
         res  = self.left + ' = ' + name + oper
         return res

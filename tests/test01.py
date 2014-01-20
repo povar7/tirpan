@@ -7,7 +7,7 @@ class A(object):
         self.data = None
 
     def foo(self):
-        self.data = X('ru')
+        self.data = X('python')
 
     def bar(self):
         return self.data.name

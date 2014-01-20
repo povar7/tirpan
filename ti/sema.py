@@ -26,35 +26,6 @@ class Sema(object):
     def __hash__(self):
         return hash((self.__class__, self.getInstanceHash()))
 
-    def copy(self):
-        return self
-
-    def freeze(self):
-        pass
-
-    def getElementsAtIndex(self, index):
-        return set()
-
-    def getLink(self, node):
-        parent = self.getParent()
-        if parent:
-            return parent.getLink(node)
-        else:
-            return node.link
-
-    def getNumberOfElements(self):
-        return 0
-
-    def getString(self):
-        return '?'
-
-    def setLink(self, node, value):
-        parent = self.getParent()
-        if parent:
-            parent.setLink(node, value)
-        else:
-            node.link = value
-
 class LiteralSema(Sema):
 
     def __init__(self, ltype):
@@ -67,12 +38,6 @@ class LiteralSema(Sema):
 
     def getInstanceHash(self):
         return hash(self.ltype)
-
-    def getString(self):
-        if self.ltype == types.NoneType:
-            return None.__repr__()
-        else:
-            return '<%s value>' % str(self.ltype)
 
 class LiteralValueSema(LiteralSema):
 
@@ -91,9 +56,6 @@ class LiteralValueSema(LiteralSema):
     def getInstanceHash(self):
         return hash((self.ltype, self.value))
 
-    def getString(self):
-        return self.value.__repr__()
-
 class CollectionSema(Sema):
 
     def __init__(self):
@@ -105,43 +67,8 @@ class ListOrTupleSema(CollectionSema):
     def __init__(self, size = None):
         super(ListOrTupleSema, self).__init__()
         self.elems = []
-        for index in range(size + 1 if size is not None else 0):
+        for index in range(size + 1 if size != None else 0):
             self.elems.append(set())
-
-    def getElements(self):
-        res = set()
-        for elem in self.elems:
-            res |= elem
-        return res
-
-    def getElementsAtIndex(self, index):
-        try:
-            return self.elems[index + 1]
-        except:
-            if index is None or isinstance(index, (int, long)):
-                return self.getElements()
-            else:
-                return set()
-
-    def getNumberOfElements(self):
-        return max(0, len(self.elems) - 1)
-
-    def addElements(self, values):
-        for elem in self.elems:
-            elem |= values
-
-    def addElementsAtIndex(self, index, values):
-        assert not self.frozen
-        try:
-            self.elems[index + 1] |= values
-        except:
-            self.addElementsAtKey(index, values)
-
-    def addElementsAtKey(self, key, values):
-        self.elems[0] |= values
-
-    def getElementsAtKey(self, key):
-        return self.getElements()
 
     def isInstanceEqualTo(self, other):
         assert self.frozen == other.frozen
@@ -168,25 +95,6 @@ class ListOrTupleSema(CollectionSema):
             res.append(atomCopy)
         self.elems  = res
         self.frozen = True
-
-    def getString(self):
-        res = ''
-        if isinstance(self, TupleSema):
-            res += '('
-        else:
-            res += '['
-        first = True
-        for elem in self.getElements():
-            if not first:
-                res += ', '
-            else:
-                first = False
-            res += elem.getString()
-        if isinstance(self, TupleSema):
-            res += ')'
-        else:
-            res += ']'
-        return res
 
 class ListSema(ListOrTupleSema):
 
@@ -218,31 +126,6 @@ class DictSema(CollectionSema):
         else:
             return id(self)
 
-    def getElementsAtIndex(self, index):
-        return set(self.elems.keys())
-
-    def getElementsAtKey(self, key):
-        try:
-            return self.elems[key]
-        except:
-            res = set()
-            if self.default:
-                res.add(ListSema())
-            return res
-
-    def getElements(self):
-        return self.getElementsAtIndex(None)
-
-    def addElementsAtKey(self, key, values):
-        try:
-            oldValue = self.elems[key]
-        except:
-            res = set()
-            if self.default:
-                res.add(ListSema())
-            oldValue = self.elems[key] = res
-        oldValue |= values
-
     def copy(self):
         res = DictSema()
         for key, val in self.elems.items():
@@ -252,9 +135,6 @@ class DictSema(CollectionSema):
     def freeze(self):
         self.elems = freezeDict(self.elems)
         self.frozen = True
-
-    def getString(self):
-        return '<%s object>' % str(self.elems.__class__)
 
 class SetSema(CollectionSema):
     
@@ -274,15 +154,6 @@ class SetSema(CollectionSema):
             return hash(frozenset(self.elems.items()))
         else:
             return id(self)
-
-    def getElementsAtIndex(self, index):
-        return self.getElements()
-
-    def getElements(self):
-        return self.elems.copy()
-
-    def addElementsAtIndex(self, key, values):
-        self.elems |= values
 
     def copy(self):
         res = SetSema()
@@ -312,13 +183,6 @@ class FunctionSema(Sema):
     def getParent(self):
         return self.parent
 
-    def getString(self):
-        origin = self.getOrigin()
-        if origin.name:
-            return origin.name
-        else:
-            return '<lambda>'
-
 class ScopeInterface(object):
 
     def addVariable(self, var):
@@ -326,16 +190,10 @@ class ScopeInterface(object):
         variables[var.name] = var
 
     def findName(self, name,
-                 considerGlobals = False,
-                 scopeWrap       = None ,
-                 loseName        = False):
+                 considerGlobals = False, scopeWrap = None):
         variables = self.getVariables()
         if name in variables:
-            if loseName:
-                del variables[name]
-                return None
-            else:
-                return variables[name]
+            return variables[name]
         if (considerGlobals and
             self.hasGlobals() and name not in self.getGlobalNames()):
             if scopeWrap:
@@ -345,15 +203,12 @@ class ScopeInterface(object):
         if parent:
             if considerGlobals and isinstance(self, ModuleSema):
                 return None
-            return parent.findName(name, considerGlobals, scopeWrap, loseName)
-        return None
+            return parent.findName(name, considerGlobals, scopeWrap)
 
     def findOrAddName(self, name,
-                      considerGlobals = False,
-                      fileScope       = None ,
-                      loseName        = False):
+                      considerGlobals = False, fileScope = None):
         scopeWrap = ScopeWrap(fileScope)
-        res = self.findName(name, considerGlobals, scopeWrap, loseName)
+        res = self.findName(name, considerGlobals, scopeWrap)
         fileScope = scopeWrap.scope
         if not res:
             from ti.tgnode import VariableTGNode
@@ -388,24 +243,6 @@ class ScopeSema(Sema, ScopeInterface):
     def getParent(self):
         return self.parent
 
-    def getVariables(self):
-        return self.variables
-
-    def connectReturn(self, node):
-        parent = self.getParent()
-        if parent:
-            parent.connectReturn(node)
-
-    def connectYield(self, node):
-        parent = self.getParent()
-        if parent:
-            parent.connectYield(node)
-
-    def addGlobalNames(self, names):
-        parent = self.getParent()
-        if parent:
-            parent.addGlobalNames(names)
-
     def getScopeForAdding(self):
         if self.add:
             return self
@@ -415,12 +252,13 @@ class ScopeSema(Sema, ScopeInterface):
         else:
             return None
 
-    def getString(self):
+    def getVariables(self):
+        return self.variables
+
+    def addGlobalNames(self, names):
         parent = self.getParent()
         if parent:
-            return parent.getString()
-        else:
-            return '?'
+            parent.addGlobalNames(names)
 
 class ClassSema(Sema, ScopeInterface):
    
@@ -441,7 +279,10 @@ class ClassSema(Sema, ScopeInterface):
         return inst
 
     def getGlobalNames(self):
-        return set() 
+        return set()
+
+    def getOrigin(self):
+        return self.origin
 
     def getParent(self):
         origin = self.getOrigin()
@@ -459,13 +300,6 @@ class ClassSema(Sema, ScopeInterface):
 
     def getInstanceHash(self):
         return id(self)
-
-    def getOrigin(self):
-        return self.origin
-
-    def getString(self):
-        origin = self.getOrigin()
-        return '<class %s>' % origin.name
 
 class InstanceSema(Sema, ScopeInterface):
 
@@ -486,11 +320,6 @@ class InstanceSema(Sema, ScopeInterface):
 
     def getInstanceHash(self):
         return id(self)
-
-    def getString(self):
-        stub   = self.getStub()
-        origin = stub.getOrigin()
-        return '<%s object>' % origin.name
 
 class TemplateSema(Sema, ScopeInterface):
 
@@ -516,49 +345,11 @@ class TemplateSema(Sema, ScopeInterface):
         return scope.getVariables()
 
     def hasGlobals(self):
-        from ti.tgnode import ForFunctionDefinitionTGNode
         origin = self.getOrigin()
-        if isinstance(origin.function, ForFunctionDefinitionTGNode):
-            return False
         return True
-
-    def connectReturn(self, node):
-        from ti.tgnode import EdgeType, ForFunctionDefinitionTGNode
-        origin = self.getOrigin()
-        if isinstance(origin.function, ForFunctionDefinitionTGNode):
-            origin.parent.connectReturn(node)
-        else:
-            utils.getLink(node).addEdge(EdgeType.ASSIGN, origin)
-
-    def connectYield(self, node):
-        from ti.tgnode import EdgeType, ForFunctionDefinitionTGNode
-        origin = self.getOrigin()
-        if isinstance(origin.function, ForFunctionDefinitionTGNode):
-            origin.parent.connectYield(node)
-        else:
-            utils.getLink(node).addEdge(EdgeType.ASSIGN_YIELD, origin)
-
-    def getLink(self, node):
-        try:
-            origin = self.getOrigin()
-            return origin.mapping[node]
-        except KeyError:
-            return self.getParent().getLink(node)
-
-    def setLink(self, node, value):
-        origin = self.getOrigin()
-        origin.mapping[node] = value
 
     def getOrigin(self):
         return self.origin
-
-    def getString(self):
-        origin = self.getOrigin()
-        function = origin.function
-        if function.name:
-            return function.name
-        else:
-            return '<lambda>'
 
 class ModuleSema(Sema, ScopeInterface):
 
@@ -590,9 +381,6 @@ class ModuleSema(Sema, ScopeInterface):
     def getOrigin(self):
         return self.origin
 
-    def getString(self):
-        return '<module>'
-
 def freezeSet(elems):
     res = set()
     for elem in elems:
@@ -610,13 +398,13 @@ def freezeDict(elems):
         res[keyCopy] = valCopy
     return res
 
-boolSema = LiteralSema(bool)
-
 def isString(sema):
     try:
         return sema.ltype == basestring
     except AttributeError:
         return False
+
+boolSema = LiteralSema(bool)
 
 def getBoolSema():
     return boolSema

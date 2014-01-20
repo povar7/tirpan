@@ -4,27 +4,29 @@ Created on 15.06.2013
 @author: bronikkk
 '''
 
+import ast
+
 def initBuiltinFunction(scope, name, quasi, num,
                         defaults = None, listArgs = False, dictArgs = False):
     from ti.tgnode import ExternalFunctionDefinitionTGNode, EdgeType
     func = ExternalFunctionDefinitionTGNode(num, quasi, name, scope,
                                             defaults, listArgs, dictArgs)
-    var  = scope.findOrAddName(name, True)
-    func.addEdge(EdgeType.ASSIGN, var)
+    var  = scope.findOrAddName(name)
+    EdgeType.processAssign(func, var)
     scope.addVariable(var)
 
 def initBuiltinVariable(scope, name, typeFunction):
     from ti.tgnode import VariableTGNode, EdgeType 
     ext = VariableTGNode(None, typeFunction())
     var = scope.findOrAddName(name)
-    ext.addEdge(EdgeType.ASSIGN, var, True)
+    EdgeType.processAssign(ext, var)
     scope.addVariable(var)
 
 def initBuiltinClass(scope, name, methods, fields):
     from ti.tgnode import ClassTGNode, EdgeType
-    cls = ClassTGNode(name, [], scope)
+    cls = ClassTGNode(name, scope)
     var = scope.findOrAddName(name)
-    cls.addEdge(EdgeType.ASSIGN, var)
+    EdgeType.processAssign(cls, var)
     scope.addVariable(var)
     classScope = cls.getScope()
     for method in methods:
@@ -47,31 +49,48 @@ def initBuiltins(importer, globalScope):
     importer.importStandardModule(builtinModule, globalScope)
     builtinModule.isLoaded = True
 
-def getDictClass():
+def getClass(name):
     import config
-    from   std.builtin_ import getDictClassName
-    var = config.data.currentScope.findName(getDictClassName())
+    scope = config.data.currentScope
+    var   = scope.findName(name)
     assert len(var.nodeType) == 1
     return list(var.nodeType)[0]
+
+def getDictClass():
+    from std.builtin_ import getDictClassName
+    return getClass(getDictClassName())
 
 def getListClass():
-    import config
-    from   std.builtin_ import getListClassName
-    var = config.data.currentScope.findName(getListClassName())
-    assert len(var.nodeType) == 1
-    return list(var.nodeType)[0]
-
+    from std.builtin_ import getListClassName
+    return getClass(getListClassName())
+    
 def getBaseStringClass():
-    import config
-    from   std.builtin_ import getBaseStringClassName
-    var = config.data.currentScope.findName(getBaseStringClassName())
-    assert len(var.nodeType) == 1
-    return list(var.nodeType)[0]
+    from std.builtin_ import getBaseStringClassName
+    return getClass(getBaseStringClassName())
 
 def getSysPathType():
     from std.sys_ import findSysName
     return findSysName('path')
 
-def getPropertyClassName():
-    from std.builtin_ import getPropertyClassName as func
-    return func()
+operatorNames = {
+                    ast.Add      : '+'  ,
+                    ast.And      : 'and',
+                    ast.BitAnd   : '&'  ,
+                    ast.BitOr    : '|'  ,
+                    ast.Div      : '/'  ,
+                    ast.FloorDiv : '//' ,
+                    ast.Invert   : '~'  ,
+                    ast.LShift   : '<<' ,
+                    ast.Mult     : '*'  ,
+                    ast.Mod      : '%'  ,
+                    ast.Not      : '!'  ,
+                    ast.Or       : 'or' ,
+                    ast.Pow      : '**' ,
+                    ast.RShift   : '>>' ,
+                    ast.Sub      : '-'  ,
+                    ast.UAdd     : '+'  ,
+                    ast.USub     : '-'  ,
+                }
+
+def getOperatorName(node):
+    return operatorNames[node.__class__]

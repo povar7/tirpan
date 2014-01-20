@@ -88,8 +88,10 @@ class Importer(object):
         except IOError:
             print >> sys.stderr, 'Cannot open "%s" file' % filename
             exit(1)
+        mir    = parser.getMIR()
         tree   = parser.getAST()
-        module = ti.tgnode.UsualModuleTGNode(tree, filename, data.globalScope)
+        module = ti.tgnode.UsualModuleTGNode(mir, tree,
+                                             filename, data.globalScope)
         fileno = self.putIdent(module)
         if data.imports:
             print >> sys.stderr, '%d\t%s' % (fileno, module.name)
@@ -98,10 +100,6 @@ class Importer(object):
         self.importedFiles[searchName] = module
         save = data.currentScope
         data.currentScope = module.getScope()
-        utils.setLink(tree, module)
-        nodeType = {ti.sema.LiteralValueSema(relName)}
-        fileVariable = ti.tgnode.VariableTGNode('__file__', nodeType)
-        data.currentScope.addVariable(fileVariable)
         parser.walk()
         data.currentScope = save
         return module
@@ -165,15 +163,8 @@ class Importer(object):
         for alias in names:
             name = alias.name
             if name == '*':
-                variables = scope.getVariables()
-                for oldName in variables:
-                    if (oldName.startswith('_') or
-                        oldName in ['True', 'False']):
-                        continue
-                    oldVar = variables[oldName]
-                    newVar = VariableTGNode(oldName)
-                    data.currentScope.addVariable(newVar)
-                    oldVar.addEdge(EdgeType.ASSIGN, newVar)
+                #TODO
+                pass
             else:
                 if alias.asname:
                     aliasName = alias.asname
@@ -183,11 +174,11 @@ class Importer(object):
                 if oldVar:
                     newVar = VariableTGNode(aliasName)
                     data.currentScope.addVariable(newVar)
-                    oldVar.addEdge(EdgeType.ASSIGN, newVar)
+                    EdgeType.processAssign(oldVar, newVar)
 
         return module
 
-    def findName(self, name, paths):
+    def findFilename(self, name, paths):
         for path in paths:
             canonical = os.path.join(path, name)
             if os.path.isdir(canonical):
@@ -202,7 +193,7 @@ class Importer(object):
         from ti.tgnode import EdgeType
         if module:
             var = scope.findOrAddName(name)
-            module.addEdge(EdgeType.ASSIGN, var)
+            EdgeType.processAssign(module, var)
 
     def addModule(self, name, paths, aliasName, data):
         module = self.getModule(name, paths, data)
@@ -213,7 +204,7 @@ class Importer(object):
     def getModule(self, name, paths, data):
         if name in self.importedFiles:
             return self.importedFiles[name]
-        res = self.findName(name, paths)
+        res = self.findFilename(name, paths)
         if res is None:
             return None
         relName = res

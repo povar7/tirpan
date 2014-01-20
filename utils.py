@@ -16,7 +16,7 @@ class QuasiAlias(object):
 class QuasiNode(object):
 
     def __init__(self, link):
-        setLink(self, link)
+        pass
 
 class QuasiCall(object):
 
@@ -73,14 +73,6 @@ def getFileName(node):
 
 def getFileNumber(node):
     return getattr(node, 'fileno', None)
-
-def getLink(node):
-    import config
-    return config.data.currentScope.getLink(node)
-
-def setLink(node, value):
-    import config
-    config.data.currentScope.setLink(node, value)
 
 def findNode(tree, **kwargs):
     line = kwargs.get('line')

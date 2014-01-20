@@ -28,7 +28,7 @@ typeStr     = LiteralSema(basestring)
 
 def quasiAppend(params, **kwargs):
     if isinstance(params[0], ListSema):
-        if params[1] is None:
+        if not params[1]:
             return {typeNone}
         params[0].addElementsAtIndex(None, {params[1]})
     return {typeNone}
@@ -42,7 +42,7 @@ def quasiExtend(params, **kwargs):
 
 def quasiInsert(params, **kwargs):
     if isinstance(params[0], ListSema):
-        if params[2] is None:
+        if not params[2]:
             return {typeNone}
         params[0].addElementsAtIndex(None, {params[2]})
     return {typeNone}
@@ -81,7 +81,6 @@ def quasiExecfile(params, **kwargs):
         executedFiles.addFile(tgNode, filename, module)
         if config.data.imports:
             print >> sys.stderr, '%d\t%s' % (newNumber, module.name)
-        utils.setLink(tree, module)
         ourGlobals = params[1]
         save = config.data.currentScope
         newScope = ScopeSema(save)
@@ -159,15 +158,8 @@ def quasiLower(params, **kwargs):
     return makeSet(res)
 
 def quasiProperty(params, **kwargs):
-    obj = params[0]
-    var1 = lookupVariable(obj, '_fget', True, True)
-    if var1:
-        var1.nodeType = {params[1]}
-    var2 = lookupVariable(obj, '_fset', True, True)
-    if var2:
-        var2.nodeType = {params[2]}
-    var3 = lookupVariable(obj, getPropertyClassName(), True, True)
-    return {obj}
+    #TODO
+    return set()
 
 def quasiRange1(params, **kwargs):
     return quasiRange3(params + [typeInt, typeInt])
@@ -263,11 +255,7 @@ def quasiTypeVar():
     return {typeType}
 
 def quasiUnicode(params, **kwargs):
-    try:
-        res = LiteralValueSema(unicode(params[0].value))
-        return {res}
-    except AttributeError:
-        return {typeStr}
+    return {params[0]}
 
 def quasiUpdate(params, **kwargs):
     if (isinstance(params[0], DictSema) and
@@ -357,20 +345,6 @@ objectClass = (
                       ['__bases__', quasiObjectClassBases],
                   ]
               )
-
-propertyClassName = '#property#'
-
-def getPropertyClassName():
-    return propertyClassName
-
-propertyClass = (
-                    'property',
-                    [
-                        ['__init__', quasiProperty, 3],
-                    ],
-                    [
-                    ]
-                )
 
 def quasiAdd(params, **kwargs):
     left  = params[0]
@@ -746,7 +720,6 @@ classes   = [
                 listClass,
                 dictClass,
                 objectClass,
-                propertyClass,
             ]
 
 def getAll():

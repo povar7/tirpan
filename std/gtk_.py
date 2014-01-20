@@ -128,8 +128,6 @@ def quasiGtkMain(params, **kwargs):
     node = tgNode.node
     quasiCall = QuasiCall(func, args, node)
     link = FunctionCallTGNode(quasiCall)
-    setLink(quasiCall, link)
-    kwargs['CALLS'].append((config.data.currentScope, tgNode, quasiCall))
 
     return {typeNone}
 
@@ -175,8 +173,6 @@ def quasiRun(params, **kwargs):
     node = tgNode.node
     quasiCall = QuasiCall(func, args, node)
     link = FunctionCallTGNode(quasiCall)
-    setLink(quasiCall, link)
-    kwargs['CALLS'].append((config.data.currentScope, tgNode, quasiCall))
 
     return {typeNone}
 

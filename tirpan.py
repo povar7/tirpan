@@ -10,6 +10,7 @@ import argparse
 import signal
 
 import config
+import ti.mir
 
 def handle_pdb(sig, frame):
     import pdb
@@ -19,7 +20,8 @@ def run(filename, imports = False, verbose = False):
     config.initialize(filename, imports, verbose)
     importer = config.data.importer
     mainModule = importer.getIdent(0)
-    return mainModule.getAST()
+    mir = mainModule.getMIR()
+    ti.mir.walkChain(mir)
 
 if __name__ == '__main__':
     argParser = argparse.ArgumentParser()

@@ -15,13 +15,6 @@ import ti.visitor
 
 from utils import *
 
-MAX_TEMPLATES_NUMBER = 1024
-
-def skip_function(function):
-    origin = function.getOrigin()
-    templates = origin.getTemplates()
-    return len(templates) >= MAX_TEMPLATES_NUMBER
-
 def copyParam(param):
     paramCopy = copy.copy(param)
     paramCopy.nodeType = set()
@@ -200,9 +193,6 @@ def getProductElements(listArgumentType,
         yield elem, kwKeys
 
 def processProductElement(function, isInit, tgNode, productElement, kwKeys):
-    if skip_function(function):
-        return
-
     origin = function.getOrigin()
 
     if isInit:
@@ -224,8 +214,7 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
 
         save = config.data.currentScope
 
-        if (isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode) or
-            isinstance(origin, ti.tgnode.ForFunctionDefinitionTGNode)):
+        if isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode)
             astCopy  = origin.ast
             filename = getFileName(astCopy[0])
             visitor  = ti.visitor.Visitor(filename, False)
@@ -233,24 +222,12 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
             templateScope = template.getScope()
             config.data.currentScope = ti.sema.ScopeSema(templateScope)
 
-            if not isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode):
-                var = params.findName(origin.ITER_NAME)
-                targetCopy = copy.deepcopy(origin.target)
-                visitor.visit_common_target(var, targetCopy)
-
             for stmt in astCopy:
                 res = visitor.visit(stmt)
                 if res == visitor.SKIP_NEXT:
                     break
 
-            if not origin.name:
-                lambdaLink = getLink(astCopy[0])
-
             config.data.currentScope = save
-
-            if not origin.name:
-                lambdaLink.addEdge(ti.tgnode.EdgeType.ASSIGN, template)
-
         elif isinstance(origin, ti.tgnode.ExternalFunctionDefinitionTGNode):
             types = getParamsTypes(params)
             template.nodeType = origin.quasi(types,

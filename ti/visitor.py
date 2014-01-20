@@ -8,8 +8,6 @@ import ast
 
 import config
 import ti.mir
-import ti.tgnode
-import ti.sema
 
 class QuasiName(object):
 
@@ -27,7 +25,9 @@ class Visitor(ast.NodeVisitor):
 
     def add_node(self, new_node):
         self._mir_node.next = new_node
-        self._mir_node      = new_node
+        new_node.prev = self._mir_node
+
+        self._mir_node = new_node
 
         try:
             if new_node.left == None:
