@@ -65,14 +65,22 @@ def getFileName(node):
     fileNumber = getFileNumber(node)
     try:
         name = importer.getIdent(fileNumber).name
-    except AttributeError:
-        name = None
-    except KeyError:
+    except:
         name = None
     return name
 
 def getFileNumber(node):
     return getattr(node, 'fileno', None)
+
+def getFileScope(node):
+    import config
+    importer = config.data.importer
+    fileNumber = getFileNumber(node)
+    try:
+        scope = importer.getIdent(fileNumber).scope
+    except:
+        scope = None
+    return scope
 
 def findNode(tree, **kwargs):
     line = kwargs.get('line')

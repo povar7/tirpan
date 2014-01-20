@@ -15,6 +15,11 @@ from utils   import *
 
 classes = (CollectionSema, LiteralSema, ClassSema, InstanceSema, ModuleSema)
 
+def replaceSet(res, updates):
+    res.clear()
+    res |= updates
+    res.discard(None)
+
 def updateSet(res, updates):
     res |= updates
     res.discard(None)
@@ -35,11 +40,6 @@ class TGNode(object):
     def __hash__(self):
         return hash((self.__class__, id(self)))
 
-class ConstTGNode(TGNode):
-
-    def __init__(self, node):
-        super(ConstTGNode, self).__init__()
-
 class VariableTGNode(TGNode):
 
     def __init__(self, name, nodeType = None):
@@ -55,60 +55,24 @@ class VariableTGNode(TGNode):
     def setNumber(self, number):
         self.number = number
 
-class ListTGNode(TGNode):
-
-    def __init__(self, node):
-        super(ListTGNode, self).__init__()
-
-class TupleTGNode(TGNode):
-
-    def __init__(self, node):
-        super(TupleTGNode, self).__init__()
-
-class DictTGNode(TGNode):
-
-    def __init__(self):
-        super(DictTGNode, self).__init__()
-
-class SetTGNode(TGNode):
-
-    def __init__(self, node):
-        super(SetTGNode, self).__init__()
-
-class AttributeTGNode(TGNode):
-
-    def __init__(self, attr):
-        super(AttributeTGNode, self).__init__()
-
-class SubscriptTGNode(TGNode):
-
-    def __init__(self, hasIndex):
-        super(SubscriptTGNode, self).__init__()
-
 class FunctionDefinitionTGNode(TGNode):
 
     def __init__(self, name, scope, defaults):
         super(FunctionDefinitionTGNode, self).__init__()
 
-        nodeType = FunctionSema(self, scope)
-        self.nodeType  = {nodeType}
+        self.scope     = FunctionSema(self, scope)
+        self.nodeType  = {self.scope}
 
-        self.name        = name
-        self.parent      = scope
-        self.templates   = dict()
+        self.name      = name
+        self.parent    = scope
+        self.templates = dict()
 
-        self.params      = ScopeSema()
-        self.listParam   = None
-        self.dictParam   = None
+        self.params    = ScopeSema()
+        self.listParam = None
+        self.dictParam = None
 
         self.defaults    = defaults if defaults else dict()
         self.globalNames = set()
-
-    def isListParam(self, param):
-        return param and param is self.listParam
-
-    def isDictParam(self, param):
-        return param and param is self.dictParam
 
     def getAllParams(self):
         res = self.getOrdinaryParams()
@@ -118,16 +82,19 @@ class FunctionDefinitionTGNode(TGNode):
             res.append(self.dictParam)
         return res
 
-    def getOrdinaryParams(self):
-        variables = self.params.variables.values() 
-        unsorted = [var for var in variables if var.number]
-        return sorted(unsorted, sortParams)
+    def getDefaults(self):
+        return self.defaults
+
+    def getDictParam(self):
+        return self.dictParam
 
     def getListParam(self):
         return self.listParam
 
-    def getDictParam(self):
-        return self.dictParam
+    def getOrdinaryParams(self):
+        variables = self.params.variables.values() 
+        unsorted = [var for var in variables if var.number]
+        return sorted(unsorted, sortParams)
 
     def getParams(self):
         return self.params
@@ -135,8 +102,8 @@ class FunctionDefinitionTGNode(TGNode):
     def getParent(self):
         return self.parent
 
-    def getDefaults(self):
-        return self.defaults
+    def getScope(self):
+        return self.scope
 
     def getTemplates(self):
         return self.templates
@@ -144,42 +111,25 @@ class FunctionDefinitionTGNode(TGNode):
     def hasDefaultReturn(self):
         return False
 
+    def isDictParam(self, param):
+        return param and param is self.dictParam
+
+    def isListParam(self, param):
+        return param and param is self.listParam
+
 class UsualFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
-    def __init__(self, node, name, scope, visitor):
+    def __init__(self, node, name, scope):
         super(UsualFunctionDefinitionTGNode, self).__init__(name, scope, None)
 
-        if isinstance(node, ast.Lambda):
-            self.ast = [node.body]
-            self.defaultReturn = False
-        else:
-            self.ast = node.body
-            self.defaultReturn = not self.checkReturns(self.ast)
+        self.ast = node.body
+        self.mir = None
 
         if node.args.vararg:
             self.listParam = VariableTGNode(node.args.vararg)
 
         if node.args.kwarg:
             self.dictParam = VariableTGNode(node.args.kwarg)
-
-        save = config.data.currentScope
-        config.data.currentScope = self.getParams()
-        visitor.visit_arguments(node.args, self, save)
-        config.data.currentScope = save
-
-    def hasDefaultReturn(self):
-        return self.defaultReturn
-
-    @staticmethod
-    def checkReturns(body):
-        for stmt in body:
-            if isinstance(stmt, ast.Return):
-                return True
-            elif isinstance(stmt, ast.If):
-                if (UsualFunctionDefinitionTGNode.checkReturns(stmt.body) and
-                    UsualFunctionDefinitionTGNode.checkReturns(stmt.orelse)):
-                    return True
-        return False
 
 class ExternalFunctionDefinitionTGNode(FunctionDefinitionTGNode):
 
@@ -188,7 +138,6 @@ class ExternalFunctionDefinitionTGNode(FunctionDefinitionTGNode):
                                                                scope,
                                                                defaults)
 
-        self.calls = []
         self.quasi = quasi
 
         number = 0
@@ -207,48 +156,6 @@ class ExternalFunctionDefinitionTGNode(FunctionDefinitionTGNode):
             number += 1
             self.dictParam = VariableTGNode('kwargs')
             self.dictParam.setNumber(number)
-
-class FunctionCallTGNode(TGNode):
-
-    def __init__(self, node, var = None):
-        super(FunctionCallTGNode, self).__init__()
-        self.node = node
-
-        self._isLocked = True
-        self._isLocked = False
-
-        self.processCall()
-
-    def getArgumentNodesNumber(self):
-        return self.argsNum
-
-    def isLocked(self):
-        return self._isLocked
-
-    def processCall(self):
-        from ti.function import processFunc
-
-        if self._isLocked:
-            return
-        functionNode     = self.getFunctionNode()
-        oldArgumentNodes = []
-        KWArgumentNodes  = self.getKWArgumentNodes()
-        listArgumentNode = self.getListArgumentNode()
-        if listArgumentNode:
-            listArgumentTypes = []
-            for oneType in listArgumentNode.nodeType:
-                if isinstance(oneType, TupleSema):
-                    listArgumentTypes.append(oneType.elems[1:])
-        else:
-            listArgumentTypes = [[]]
-        for index in range(self.getArgumentNodesNumber()):
-            oldArgumentNodes.append(self.getArgumentNode(index))
-        for listArgumentType in listArgumentTypes:
-            argumentNodes = oldArgumentNodes[:]
-            for elem in listArgumentType:
-                argumentNodes.append(None)
-            processFunc(self, functionNode,
-                        argumentNodes, KWArgumentNodes, listArgumentType)
 
 class FunctionTemplateTGNode(TGNode):
 
@@ -276,31 +183,6 @@ class FunctionTemplateTGNode(TGNode):
 
     def getParams(self):
         return self.params
-
-    def getParent(self):
-        return self.parent
-
-    def getScope(self):
-        return self.scope
-
-class ClassTGNode(TGNode):
-
-    def __init__(self, name, scope):
-        super(ClassTGNode, self).__init__()
-
-        nodeType = ClassSema(self)
-        self.nodeType = {nodeType}
-
-        self.name   = name
-        self.parent = scope
-        self.scope  = nodeType
-        self.body   = ScopeSema()
-
-    def getBody(self):
-        return self.body
-
-    def getName(self):
-        return self.name
 
     def getParent(self):
         return self.parent

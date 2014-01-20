@@ -4,6 +4,7 @@ Created on 19.01.2014
 @author: bronikkk
 '''
 
+import config
 import ti.builtin
 import ti.mvisitor
 
@@ -12,8 +13,8 @@ def printChain(node):
         print node.getString()
         node = node.next
 
-def walkChain(node):
-    visitor = ti.mvisitor.MirVisitor()
+def walkChain(node, file_scope):
+    visitor = ti.mvisitor.MirVisitor(file_scope)
     while node:
         visitor.visit(node)
         node = node.next
@@ -158,15 +159,71 @@ class CallMirNode(SerialMirNode):
         res += ')'
         return res
 
+    def getArgumentNode(self, index):
+        scope = config.data.currentScope 
+        arg = self.args[index]
+        return scope.findName(arg)
+
+    def getArgumentNodesNumber(self):
+        return len(self.args)
+
+    def getFunctionNode(self):
+        scope = config.data.currentScope
+        return scope.findName(self.func)
+
+    def getListArgumentNode(self):
+        if self.star:
+            scope = config.data.currentScope
+            return scope.findName(self.star)
+        else:
+            return None
+
+    def getKWArgumentNodes(self):
+        res = dict()
+        scope = config.data.currentScope
+        for key, value in self.pairs.items():
+            var = scope.findName(value)
+            res[key] = var
+        return res
+
+    def process(self):
+        import ti.function
+
+        functionNode     = self.getFunctionNode()
+        oldArgumentNodes = []
+        KWArgumentNodes  = self.getKWArgumentNodes()
+        listArgumentNode = self.getListArgumentNode()
+        if listArgumentNode:
+            listArgumentTypes = []
+            for oneType in listArgumentNode.nodeType:
+                if isinstance(oneType, TupleSema):
+                    listArgumentTypes.append(oneType.elems[1:])
+        else:
+            listArgumentTypes = [[]]
+        for index in range(self.getArgumentNodesNumber()):
+            oldArgumentNodes.append(self.getArgumentNode(index))
+        types = set()
+        for listArgumentType in listArgumentTypes:
+            argumentNodes = oldArgumentNodes[:]
+            for elem in listArgumentType:
+                argumentNodes.append(None)
+            types |= ti.function.processFunc(self,
+                                             functionNode,
+                                             argumentNodes,
+                                             KWArgumentNodes,
+                                             listArgumentType)
+        return types
+
 class ClassMirNode(SerialMirNode):
 
     def __init__(self, node):
         super(ClassMirNode, self).__init__()
-        self.child = BeginMirNode()
-        self.node  = node
+        self.ast  = node.body
+        self.mir  = BeginMirNode()
+        self.name = node.name
 
     def getString(self):
-        return 'class ' + self.node.name
+        return 'class ' + self.name
 
 class DictMirNode(SerialMirNode):
 
@@ -193,11 +250,10 @@ class FuncMirNode(SerialMirNode):
 
     def __init__(self, node):
         super(FuncMirNode, self).__init__()
-        self.child = BeginMirNode()
-        self.node  = node
+        self.func = node
 
     def getString(self):
-        return 'def ' + self.node.name
+        return 'def ' + self.func.name
 
 class ListMirNode(SerialMirNode):
 

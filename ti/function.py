@@ -9,11 +9,16 @@ import itertools
 
 import config
 import ti.lookup
+import ti.mir
+import ti.mvisitor
 import ti.sema
 import ti.tgnode
 import ti.visitor
+import utils
 
-from utils import *
+classes = (ti.sema.FunctionSema, ti.sema.ClassSema)
+
+typeNone = ti.sema.getNoneSema()
 
 def copyParam(param):
     paramCopy = copy.copy(param)
@@ -57,7 +62,7 @@ def linkCall(function, isInit, kwKeys,
                 inst = argType.getClassInstance()
                 paramCopy.nodeType = {inst}
             else:
-                paramCopy.nodeType = makeSet(argType)
+                paramCopy.nodeType = utils.makeSet(argType)
         except IndexError:
             paramCopy.nodeType = set()
         scope.addVariable(paramCopy)
@@ -67,7 +72,7 @@ def linkCall(function, isInit, kwKeys,
         listParamCopy = copyParam(listParam)
         tupleType = ti.sema.TupleSema(0)
         for elem in listArgsTypes:
-            tupleType.elems.append(makeSet(elem))
+            tupleType.elems.append(utils.makeSet(elem))
         listParamCopy.nodeType = {tupleType}
         scope.addVariable(listParamCopy)
 
@@ -77,7 +82,7 @@ def linkCall(function, isInit, kwKeys,
         dictType  = ti.sema.DictSema()
         for key in kwKeys:
             keyElement = ti.sema.LiteralValueSema(key)
-            dictType.elems[keyElement] = makeSet(dictArgsTypes[index])
+            dictType.elems[keyElement] = utils.makeSet(dictArgsTypes[index])
             index += 1
         dictParamCopy.nodeType = {dictType}
         scope.addVariable(dictParamCopy)
@@ -167,7 +172,7 @@ def getProductElements(listArgumentType,
         if isinstance(elem, set):
             normResultTypes.append(elem)
         elif elem:
-            normResultTypes.append(getNodeType(elem))
+            normResultTypes.append(utils.getNodeType(elem))
         else:
             normResultTypes.append(listArgumentType[index])
             index += 1
@@ -176,7 +181,7 @@ def getProductElements(listArgumentType,
     # DON'T set index = 0
     for elem in listResult:
         if elem:
-            listResultTypes.append(getNodeType(elem))
+            listResultTypes.append(utils.getNodeType(elem))
         else:
             listResultTypes.append(listArgumentType[index])
             index += 1
@@ -185,7 +190,7 @@ def getProductElements(listArgumentType,
     dictResultTypes = []
     for pair in dictResult.items():
         kwKeys.append(pair[0])
-        dictResultTypes.append(getNodeType(pair[1]))
+        dictResultTypes.append(utils.getNodeType(pair[1]))
 
     for elem in itertools.product(itertools.product(*normResultTypes),
                                   itertools.product(*listResultTypes),
@@ -194,51 +199,38 @@ def getProductElements(listArgumentType,
 
 def processProductElement(function, isInit, tgNode, productElement, kwKeys):
     origin = function.getOrigin()
-
-    if isInit:
-        key = productElement, tgNode
-    else:
-        key = productElement, None
-
-    templates   = origin.getTemplates()
-    template    = templates.get(key)
-    newTemplate = template is None
-
-    if newTemplate:
-        params, inst = linkCall(function, isInit, kwKeys, *productElement)
+    params, inst = linkCall(function, isInit, kwKeys, *productElement)
+    if isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode):
+        tree = origin.ast
+        if len(tree) == 0:
+            return {typeNone}
+        first_node = tree[0]
+        filename   = utils.getFileName(first_node)
+        if not origin.mir:
+            origin.mir  = ti.mir.BeginMirNode()
+            ast_visitor = ti.visitor.Visitor(filename, origin.mir)
+            for stmt in tree:
+                ast_visitor.visit(stmt)
         template = ti.tgnode.FunctionTemplateTGNode(params, origin,
                                                     inst  , tgNode)
-    
-    if newTemplate:
-        templates[key] = template
-
-        save = config.data.currentScope
-
-        if isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode)
-            astCopy  = origin.ast
-            filename = getFileName(astCopy[0])
-            visitor  = ti.visitor.Visitor(filename, False)
-            
-            templateScope = template.getScope()
-            config.data.currentScope = ti.sema.ScopeSema(templateScope)
-
-            for stmt in astCopy:
-                res = visitor.visit(stmt)
-                if res == visitor.SKIP_NEXT:
-                    break
-
-            config.data.currentScope = save
-        elif isinstance(origin, ti.tgnode.ExternalFunctionDefinitionTGNode):
-            types = getParamsTypes(params)
-            template.nodeType = origin.quasi(types,
-                                             CALLS=origin.calls,
-                                             TGNODE=tgNode)
-            template.walkEdges()
-            del templates[key]
+        scope = config.data.currentScope
+        config.data.currentScope = ti.sema.ScopeSema(template.getScope())
+        file_scope = utils.getFileScope(first_node)
+        ti.mir.walkChain(origin.mir, file_scope)
+        config.data.currentScope = scope
+        if inst:
+            return {inst}
+        else:
+            return set()
+    elif isinstance(origin, ti.tgnode.ExternalFunctionDefinitionTGNode):
+        types = getParamsTypes(params)
+        return origin.quasi(types, TGNODE=tgNode)
 
 def processFunc(node, functionNode, argumentNodes, KWArgumentNodes,
                 listArgumentType):
-    classes = (ti.sema.FunctionSema, ti.sema.ClassSema)
+    types = set()
+    if not functionNode:
+        return types
     for function, isInit in ti.lookup.getFunctions(functionNode):
         if not isinstance(function, classes):
             continue
@@ -248,5 +240,6 @@ def processFunc(node, functionNode, argumentNodes, KWArgumentNodes,
             continue
         for productElement, kwKeys in getProductElements(listArgumentType,
                                                          *matchResult):
-            processProductElement(function, isInit,
-                                  node, productElement, kwKeys)
+            types |= processProductElement(function, isInit,
+                                           node, productElement, kwKeys)
+    return types

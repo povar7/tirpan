@@ -145,7 +145,11 @@ class Visitor(ast.NodeVisitor):
         return new_node
 
     def visit_ClassDef(self, node):
-        self.add_node(ti.mir.ClassMirNode(node))
+        new_node = ti.mir.ClassMirNode(node)
+        self.add_node(new_node)
+        visitor = Visitor(self.filename, new_node.mir)
+        for stmt in node.body:
+            visitor.visit(stmt)
 
     def visit_Dict(self, node):
         elems = {}
@@ -185,6 +189,8 @@ class Visitor(ast.NodeVisitor):
         return new_node
 
     def visit_Name(self, node):
+        if node.id == 'None':
+            return self.visit_common_literal(None)
         if not self.leftpart:
             return QuasiName(node.id)
     

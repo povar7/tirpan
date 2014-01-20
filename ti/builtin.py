@@ -6,6 +6,8 @@ Created on 15.06.2013
 
 import ast
 
+import ti.sema
+
 def initBuiltinFunction(scope, name, quasi, num,
                         defaults = None, listArgs = False, dictArgs = False):
     from ti.tgnode import ExternalFunctionDefinitionTGNode, EdgeType
@@ -23,16 +25,15 @@ def initBuiltinVariable(scope, name, typeFunction):
     scope.addVariable(var)
 
 def initBuiltinClass(scope, name, methods, fields):
-    from ti.tgnode import ClassTGNode, EdgeType
-    cls = ClassTGNode(name, scope)
-    var = scope.findOrAddName(name)
-    EdgeType.processAssign(cls, var)
+    import ti.tgnode
+    sema = ti.sema.ClassSema(name, scope)
+    var  = scope.findOrAddName(name)
     scope.addVariable(var)
-    classScope = cls.getScope()
+    ti.tgnode.updateSet(var.nodeType, {sema})
     for method in methods:
-        initBuiltinFunction(classScope, *method)
+        initBuiltinFunction(sema, *method)
     for field in fields:
-        initBuiltinVariable(classScope, *field)
+        initBuiltinVariable(sema, *field)
 
 class QuasiModule(object):
 

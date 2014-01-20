@@ -26,6 +26,9 @@ class Sema(object):
     def __hash__(self):
         return hash((self.__class__, self.getInstanceHash()))
 
+    def getString(self):
+        return '?'
+
 class LiteralSema(Sema):
 
     def __init__(self, ltype):
@@ -38,6 +41,9 @@ class LiteralSema(Sema):
 
     def getInstanceHash(self):
         return hash(self.ltype)
+
+    def getString(self):
+        return '\'%s\' object' % str(self.ltype.__name__)
 
 class LiteralValueSema(LiteralSema):
 
@@ -185,6 +191,12 @@ class FunctionSema(Sema):
 
 class ScopeInterface(object):
 
+    def addName(self, name):
+        import ti.tgnode
+        var = ti.tgnode.VariableTGNode(name)
+        self.addVariable(var)
+        return var
+
     def addVariable(self, var):
         variables = self.getVariables()
         variables[var.name] = var
@@ -211,13 +223,11 @@ class ScopeInterface(object):
         res = self.findName(name, considerGlobals, scopeWrap)
         fileScope = scopeWrap.scope
         if not res:
-            from ti.tgnode import VariableTGNode
-            res = VariableTGNode(name)
             if considerGlobals and fileScope:
-                fileScope.addVariable(res)
+                res = fileScope.addName(name)
             else:
                 scope = self.getScopeForAdding()
-                scope.addVariable(res)
+                res = scope.addName(name)
         return res
 
     def findNameHere(self, name):
@@ -262,18 +272,18 @@ class ScopeSema(Sema, ScopeInterface):
 
 class ClassSema(Sema, ScopeInterface):
    
-    def __init__(self, origin):
+    def __init__(self, name, parent):
         super(ClassSema, self).__init__()
-        self.origin = origin
+        self.body   = ScopeSema()
+        self.name   = name
+        self.parent = parent
 
     def getBody(self):
-        origin = self.getOrigin()
-        return origin.getBody()
+        return self.body
 
     def getClassInstance(self):
         from ti.tgnode import VariableTGNode
         inst = InstanceSema(self)
-        origin = self.getOrigin()
         var = VariableTGNode('__class__', {self})
         inst.getBody().addVariable(var)
         return inst
@@ -281,12 +291,8 @@ class ClassSema(Sema, ScopeInterface):
     def getGlobalNames(self):
         return set()
 
-    def getOrigin(self):
-        return self.origin
-
     def getParent(self):
-        origin = self.getOrigin()
-        return origin.getParent()
+        return self.parent
 
     def getVariables(self):
         scope = self.getBody()

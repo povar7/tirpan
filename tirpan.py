@@ -21,7 +21,10 @@ def run(filename, imports = False, verbose = False):
     importer = config.data.importer
     mainModule = importer.getIdent(0)
     mir = mainModule.getMIR()
-    ti.mir.walkChain(mir)
+    scope = config.data.currentScope
+    config.data.currentScope = mainModule.getScope()
+    ti.mir.walkChain(mir, config.data.currentScope)
+    config.data.currentScope = scope
 
 if __name__ == '__main__':
     argParser = argparse.ArgumentParser()
