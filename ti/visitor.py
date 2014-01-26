@@ -191,6 +191,10 @@ class Visitor(ast.NodeVisitor):
     def visit_Name(self, node):
         if node.id == 'None':
             return self.visit_common_literal(None)
+        elif node.id == 'True':
+            return self.visit_common_literal(True)
+        elif node.id == 'False':
+            return self.visit_common_literal(False)
         if not self.leftpart:
             return QuasiName(node.id)
     
