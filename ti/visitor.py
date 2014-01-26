@@ -171,7 +171,7 @@ class Visitor(ast.NodeVisitor):
         config.data.currentScope.addGlobalNames(node.names)
 
     def visit_If(self, node):
-        new_node = ti.mir.IfMirNode()
+        new_node = ti.mir.IfMirNode(node)
         new_join = ti.mir.JoinMirNode()
         self.add_node(new_node)
         self._mir_node = new_node.cond

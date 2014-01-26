@@ -28,7 +28,7 @@ def walkChain(node, file_scope):
                 node = if_node.false
             else:
                 node = node.next
-        if isinstance(node, SerialMirNode):
+        elif isinstance(node, SerialMirNode):
             visitor.visit(node, ifstack)
             node = node.next
 
@@ -270,8 +270,9 @@ class FuncMirNode(SerialMirNode):
 
 class IfMirNode(MirNode):
 
-    def __init__(self):
+    def __init__(self, node):
         super(IfMirNode, self).__init__()
+        self.node  = node
         self.cond  = BeginMirNode()
         self.true  = BeginMirNode()
         self.false = BeginMirNode()
