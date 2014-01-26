@@ -27,7 +27,7 @@ def replaceTypes(var, updates, state):
         dict_up = {elem : {state} for elem in updates}
         if isinstance(res, set):
             if_node, flag = state
-            res = {elem : {(if_node, not flag)} for elem in res}
+            res = {elem : {None} for elem in res}
         addTypes(res, dict_up)
     else:
         res = updates
