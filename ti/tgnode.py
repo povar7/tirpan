@@ -15,10 +15,23 @@ from utils   import *
 
 classes = (CollectionSema, LiteralSema, ClassSema, InstanceSema, ModuleSema)
 
-def replaceSet(res, updates):
-    res.clear()
-    res |= updates
-    res.discard(None)
+def addTypes(left, right):
+    for key, value in right.items():
+        if key not in left:
+            left[key] = set()
+        left[key] |= value
+
+def replaceTypes(var, updates, state):
+    res = var.nodeType
+    if state:
+        dict_up = {elem : {state} for elem in updates}
+        if isinstance(res, set):
+            if_node, flag = state
+            res = {elem : {(if_node, not flag)} for elem in res}
+        addTypes(res, dict_up)
+    else:
+        res = updates
+    var.nodeType = res
 
 def updateSet(res, updates):
     res |= updates

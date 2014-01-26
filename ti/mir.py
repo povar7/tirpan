@@ -14,10 +14,23 @@ def printChain(node):
         node = node.next
 
 def walkChain(node, file_scope):
+    ifstack = []
     visitor = ti.mvisitor.MirVisitor(file_scope)
     while node:
-        visitor.visit(node)
-        node = node.next
+        if isinstance(node, IfMirNode):
+            if_node = node
+            ifstack.append((if_node, True))
+            node = if_node.true
+        elif isinstance(node, JoinMirNode):
+            if_node, flag = ifstack.pop()
+            if flag:
+                ifstack.append((if_node, False))
+                node = if_node.false
+            else:
+                node = node.next
+        if isinstance(node, SerialMirNode):
+            visitor.visit(node, ifstack)
+            node = node.next
 
 class MirNode(object):
 
@@ -254,6 +267,19 @@ class FuncMirNode(SerialMirNode):
 
     def getString(self):
         return 'def ' + self.func.name
+
+class IfMirNode(MirNode):
+
+    def __init__(self):
+        super(IfMirNode, self).__init__()
+        self.cond  = BeginMirNode()
+        self.true  = BeginMirNode()
+        self.false = BeginMirNode()
+
+class JoinMirNode(SerialMirNode):
+
+    def __init__(self):
+        super(JoinMirNode, self).__init__()
 
 class ListMirNode(SerialMirNode):
 

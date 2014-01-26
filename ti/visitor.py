@@ -151,6 +151,9 @@ class Visitor(ast.NodeVisitor):
         for stmt in node.body:
             visitor.visit(stmt)
 
+    def visit_Compare(self, node):
+        return self.visit_common_literal(True)
+
     def visit_Dict(self, node):
         elems = {}
         for index in range(len(node.keys)):
@@ -166,6 +169,23 @@ class Visitor(ast.NodeVisitor):
 
     def visit_Global(self, node):
         config.data.currentScope.addGlobalNames(node.names)
+
+    def visit_If(self, node):
+        new_node = ti.mir.IfMirNode()
+        new_join = ti.mir.JoinMirNode()
+        self.add_node(new_node)
+        self._mir_node = new_node.cond
+        tmp_node = self.visit(node.test)
+        tst_node = ti.mir.AssignMirNode(None, tmp_node.left)
+        self.add_node(tst_node)
+        self._mir_node = new_node.true
+        for stmt in node.body:
+            self.visit(stmt)
+        self.add_node(new_join)
+        self._mir_node = new_node.false
+        for stmt in node.orelse:
+            self.visit(stmt)
+        self.add_node(new_join)
 
     def visit_Import(self, node):
         importer = config.data.importer

@@ -65,15 +65,15 @@ def getVariableForObject(obj, attr):
         var = lookupScope.findNameHere(attr)
         return var
 
-def setTypes(objects, attr, types):
+def setTypes(objects, attr, types, state):
     for obj in objects:
-        setTypesForObject(obj, attr, types)
+        setTypesForObject(obj, attr, types, state)
 
-def setTypesForObject(obj, attr, types):
+def setTypesForObject(obj, attr, types, state):
     if isinstance(obj, ti.sema.InstanceSema):
         lookupScope = obj.getBody()
         var = lookupScope.findNameHere(attr)
         if not var:
             var = ti.tgnode.VariableTGNode(attr)
             lookupScope.addVariable(var)
-        ti.tgnode.replaceSet(var.nodeType, types)
+        ti.tgnode.replaceTypes(var, types, state)
