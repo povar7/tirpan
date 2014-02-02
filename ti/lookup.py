@@ -72,6 +72,7 @@ def getTypesForObject(obj, attr, old, stack):
             cond = var.nodeType[elem]
         except TypeError:
             cond = set()
+        cond = ti.formula.addCondition(cond, old)
         cond = ti.formula.addStack(cond, stack)
         if isinstance(obj, classes) and isinstance(elem, ti.sema.FunctionSema):
             elem = copy.copy(elem)
@@ -95,9 +96,13 @@ def getVariableForObject(obj, attr):
 
 def setTypes(objects, attr, types, stack):
     for obj in objects:
-        setTypesForObject(obj, attr, types, stack)
+        try:
+            old = objects[obj]
+        except TypeError:
+            old = set()
+        setTypesForObject(obj, attr, types, old, stack)
 
-def setTypesForObject(obj, attr, types, stack):
+def setTypesForObject(obj, attr, types, old, stack):
     if isinstance(obj, ti.sema.InstanceSema):
         lookupScope = obj.getBody()
         var = lookupScope.findNameHere(attr)

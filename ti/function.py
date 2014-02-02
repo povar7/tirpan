@@ -90,9 +90,8 @@ def linkCall(function, isInit, kwKeys,
     return scope, inst
 
 def matchCall(function, isInit, argumentNodes, KWArgumentNodes):
-    origin = function.getOrigin()
-
     if isinstance(function, ti.sema.FunctionSema):
+        origin   = function.getOrigin()
         params   = origin.getAllParams()
         defaults = origin.getDefaults()
         parent   = function.parent
@@ -198,7 +197,10 @@ def getProductElements(listArgumentType,
         yield elem, kwKeys
 
 def processProductElement(function, isInit, tgNode, productElement, kwKeys):
-    origin = function.getOrigin()
+    try:
+        origin = function.getOrigin()
+    except AttributeError:
+        origin = None
     params, inst = linkCall(function, isInit, kwKeys, *productElement)
     if isinstance(origin, ti.tgnode.UsualFunctionDefinitionTGNode):
         tree = origin.ast
@@ -218,13 +220,14 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
         file_scope = utils.getFileScope(first_node)
         ti.mir.walkChain(origin.mir, file_scope)
         config.data.currentScope = scope
-        if inst:
-            return {inst}
-        else:
-            return set()
     elif isinstance(origin, ti.tgnode.ExternalFunctionDefinitionTGNode):
         types = getParamsTypes(params)
         return origin.quasi(types, TGNODE=tgNode)
+
+    if inst:
+        return {inst}
+    else:
+        return set()
 
 def processFunc(node, functionNode, argumentNodes, KWArgumentNodes,
                 listArgumentType):

@@ -327,6 +327,10 @@ class InstanceSema(Sema, ScopeInterface):
     def getInstanceHash(self):
         return id(self)
 
+    def getString(self):
+        origin = self.getStub()
+        return '\'%s\' object' % origin.name
+
 class TemplateSema(Sema, ScopeInterface):
 
     def __init__(self, origin):

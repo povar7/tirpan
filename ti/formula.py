@@ -117,11 +117,13 @@ def calculateJunction(conds, and_flag, not_flag):
         result.add(tuple(tmp))
     return result
 
-def addCondition(cond, new_cond):
-    if len(new_cond) == 0:
-        return cond
+def addCondition(cond1, cond2):
+    if len(cond1) == 0:
+        return cond2
+    elif len(cond2) == 0:
+        return cond1
     else:
-        return calculateJunction([cond, new_cond], True, True)
+        return calculateJunction([cond1, cond2], True, True)
 
 def addStack(cond, stack):
     if not stack:
