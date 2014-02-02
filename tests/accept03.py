@@ -10,7 +10,7 @@ import os
 import subprocess
 import sys
 
-CORRECT_NUMBER = 2
+CORRECT_NUMBER = 1
 
 atests_dir = os.path.dirname(sys.argv[0])
 tirpan_dir = os.path.join(atests_dir, '..')

@@ -21,7 +21,7 @@ def addTypes(left, right):
         if key not in left:
             left[key] = set()
         left[key] |= value
-
+    
 def replaceTypes(var, updates, stack):
     res = var.nodeType
     if stack:
@@ -34,12 +34,13 @@ def replaceTypes(var, updates, stack):
                 cond = set()
             updict[elem] = addCondition(value, cond)
         if isinstance(res, set):
-            new_res = dict()
+            new_res = CustomDict()
             value   = {Default(new_res)}
             for elem in res:
                 new_res[elem] = value 
             res = new_res
         addTypes(res, updict)
+        res.setChanged()
     else:
         res = updates
     var.nodeType = res

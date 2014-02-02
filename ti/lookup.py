@@ -10,7 +10,6 @@ import sys
 import ti.formula
 import ti.sema
 import ti.tgnode
-import utils
 
 classes = (ti.sema.CollectionSema, ti.sema.LiteralSema, ti.sema.InstanceSema)
 NOATTR_MSG = 'AttributeError: %s has no attribute \'%s\''
@@ -29,22 +28,6 @@ def addNewType(var, elem, cond):
     else:
         types.add(elem)
     var.nodeType = types
-
-def getCondition(conj):
-    res = ''
-    first = True
-    value = sorted(conj, sortIfs)
-    for if_node, flag in conj:
-        filename = utils.getFileName(if_node.node)
-        lineno   = utils.getLine    (if_node.node)
-        if first:
-            first = False
-            prefix = ''
-        else:
-            prefix = ' and '
-        added = '%s:%d == %s' % (filename, lineno, flag)
-        res += prefix + added
-    return res
 
 def getFunctions(functionNode):
     for elem in functionNode.nodeType:
@@ -65,10 +48,10 @@ def getTypes(objects, attr, stack):
     types = set()
     for obj in objects:
         try:
-            old_cond = objects[obj]
+            old = objects[obj]
         except TypeError:
-            old_cond = set()
-        new_types = getTypesForObject(obj, attr, old_cond, stack)
+            old = set()
+        new_types = getTypesForObject(obj, attr, old, stack)
         for elem in new_types:
             try:
                 cond = new_types[elem]
@@ -77,17 +60,11 @@ def getTypes(objects, attr, stack):
             addNewType(res_var, elem, cond)
     return res_var.nodeType
 
-def getTypesForObject(obj, attr, old_cond, stack):
+def getTypesForObject(obj, attr, old, stack):
     var = getVariableForObject(obj, attr)
     if not var:
         print >> sys.stderr, NOATTR_MSG % (obj.getString(), attr)
-        if not old_cond:
-            print >> sys.stderr, '\tCondition: always'
-        else:
-            printCondition(old_cond)
-            default = ti.formula.findDefault(old_cond)
-            if default:
-                printCondition(default.getValue())
+        ti.formula.printCondition(old)
         return set()
     res_var = QuasiVar() 
     for elem in var.nodeType:
@@ -97,12 +74,10 @@ def getTypesForObject(obj, attr, old_cond, stack):
             cond = set()
         cond = ti.formula.addStack(cond, stack)
         if isinstance(obj, classes) and isinstance(elem, ti.sema.FunctionSema):
-            elemCopy = copy.copy(elem)
-            if not isinstance(elemCopy.parent, ti.sema.InstanceSema):
-                elemCopy.parent = obj
-            addNewType(res_var, elemCopy, cond)
-        else:
-            addNewType(res_var, elem    , cond)
+            elem = copy.copy(elem)
+            if not isinstance(elem.parent, ti.sema.InstanceSema):
+                elem.parent = obj
+        addNewType(res_var, elem, cond)
     return res_var.nodeType
 
 def getVariableForObject(obj, attr):
@@ -118,11 +93,6 @@ def getVariableForObject(obj, attr):
         var = lookupScope.findNameHere(attr)
         return var
 
-def printCondition(cond):
-    for elem in cond:
-        if not isinstance(elem, ti.tgnode.Default):
-            print >> sys.stderr, '\tCondition: ' + getCondition(elem)
-
 def setTypes(objects, attr, types, stack):
     for obj in objects:
         setTypesForObject(obj, attr, types, stack)
@@ -135,6 +105,3 @@ def setTypesForObject(obj, attr, types, stack):
             var = ti.tgnode.VariableTGNode(attr)
             lookupScope.addVariable(var)
         ti.tgnode.replaceTypes(var, types, stack)
-
-def sortIfs(x, y):
-    return utils.getLine(x[0].node) < utils.getLine(y[0].node)
