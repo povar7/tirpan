@@ -5,112 +5,41 @@ Created on 26.05.2013
 '''
 
 import ast
-import itertools
 import types
 
 import config
 import ti.lookup
 
-from ti.sema import *
-from utils   import *
+from ti.formula import *
+from ti.sema    import *
+from utils      import *
 
 classes = (CollectionSema, LiteralSema, ClassSema, InstanceSema, ModuleSema)
-
-bool_tuple = (False, True)
-
-class Default(object):
-
-    def __init__(self):
-        self.data = None
-
-def findDefault(value):
-    for elem in value:
-        if isinstance(elem, Default):
-            return elem
-    return None
 
 def addTypes(left, right):
     for key, value in right.items():
         if key not in left:
             left[key] = set()
         left[key] |= value
-    conds = getConditions(left)
-    default = invertConditions(conds) 
-    for value in left.values():
-        obj = findDefault(value)
-        if obj:
-            obj.data = default
-
-def calculateAtom(atom, mapping):
-    if_node, flag = atom
-    return mapping[if_node] == flag
-
-def calculateAnd(conj, mapping):
-    return all(calculateAtom(atom, mapping) for atom in conj)
-
-def calculateCondition(cond, mapping):
-    return any(calculateAnd(conj, mapping) for conj in cond)
-
-def calculateConditions(conds, mapping):
-    return not any(calculateCondition(cond, mapping) for cond in conds)
-
-def getConditions(left):
-    res = []
-    for value in left.values():
-        if not findDefault(value):
-            res.append(value)
-    return res
-
-def getVariablesForConj(conj):
-    res = set()
-    for if_node, _ in conj:
-        res.add(if_node)
-    return res
-
-def getVariablesForCond(cond):
-    res = set()
-    for conj in cond:
-        res |= getVariablesForConj(conj)
-    return res
-
-def getVariablesForConds(conds):
-    res = set()
-    for cond in conds:
-        res |= getVariablesForCond(cond)
-    return tuple(res)
-
-def invertConditions(conds):
-    res = set()
-    mapping = {}
-    variables = getVariablesForConds(conds)
-    number_of = len(variables)
-    for elem_tuple in itertools.product(bool_tuple, repeat=number_of):
-        index = 0
-        for elem in elem_tuple:
-            variable = variables[index]
-            mapping[variable] = elem
-            index += 1
-        value = calculateConditions(conds, mapping)
-        if not value:
-            continue
-        index = 0
-        tmp_res = set()
-        for elem in elem_tuple:
-            variable = variables[index]
-            tmp_res.add((variable, elem))
-            index += 1
-        res.add(tuple(tmp_res))
-    return res
 
 def replaceTypes(var, updates, stack):
     res = var.nodeType
     if stack:
-        tmp   = tuple(stack)
-        value = {tmp}
-        dict_up = {elem : value for elem in updates}
+        value  = {tuple(stack)}
+        updict = dict()
+        for elem in updates:
+            try:
+                cond = updates[elem]
+            except TypeError:
+                cond = set()
+            updict[elem] = addCondition(value, cond)
         if isinstance(res, set):
-            res = {elem : {Default()} for elem in res}
-        addTypes(res, dict_up)
+            new_res = dict()
+            value   = {Default(new_res)}
+            for elem in res:
+                new_res[elem] = value 
+            res = new_res
+        addTypes(res, updict)
     else:
         res = updates
     var.nodeType = res

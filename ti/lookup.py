@@ -7,6 +7,7 @@ Created on 15.06.2013
 import copy
 import sys
 
+import ti.formula
 import ti.sema
 import ti.tgnode
 import utils
@@ -64,10 +65,10 @@ def getTypes(objects, attr, stack):
     types = set()
     for obj in objects:
         try:
-            cond = objects[obj]
+            old_cond = objects[obj]
         except TypeError:
-            cond = set()
-        new_types = getTypesForObject(obj, attr, cond, stack)
+            old_cond = set()
+        new_types = getTypesForObject(obj, attr, old_cond, stack)
         for elem in new_types:
             try:
                 cond = new_types[elem]
@@ -76,17 +77,17 @@ def getTypes(objects, attr, stack):
             addNewType(res_var, elem, cond)
     return res_var.nodeType
 
-def getTypesForObject(obj, attr, cond, stack):
+def getTypesForObject(obj, attr, old_cond, stack):
     var = getVariableForObject(obj, attr)
     if not var:
         print >> sys.stderr, NOATTR_MSG % (obj.getString(), attr)
-        if not cond:
+        if not old_cond:
             print >> sys.stderr, '\tCondition: always'
         else:
-            printCondition(cond)
-            obj = ti.tgnode.findDefault(cond)
-            if obj:
-                printCondition(obj.data)
+            printCondition(old_cond)
+            default = ti.formula.findDefault(old_cond)
+            if default:
+                printCondition(default.getValue())
         return set()
     res_var = QuasiVar() 
     for elem in var.nodeType:
@@ -94,6 +95,7 @@ def getTypesForObject(obj, attr, cond, stack):
             cond = var.nodeType[elem]
         except TypeError:
             cond = set()
+        cond = ti.formula.addStack(cond, stack)
         if isinstance(obj, classes) and isinstance(elem, ti.sema.FunctionSema):
             elemCopy = copy.copy(elem)
             if not isinstance(elemCopy.parent, ti.sema.InstanceSema):
