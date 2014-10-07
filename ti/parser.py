@@ -32,7 +32,7 @@ class Parser(object):
         frame = '=' * len(caption)
         print caption
         print frame
-        ti.mir.printChain(self.getMIR())
+        ti.mir.printMir(self.getMIR())
         print frame
     
     def walk(self):

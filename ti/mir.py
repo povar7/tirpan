@@ -7,11 +7,36 @@ Created on 19.01.2014
 import config
 import ti.builtin
 import ti.mvisitor
+import ti.sema
 
-def printChain(node):
-    while node:
-        print node.getString()
+def printMir(node):
+    from collections import deque
+    visit_queue = deque([node])
+    block_id = {node: 0}
+    def get_id(node):
+        try:
+            return block_id[node]
+        except KeyError:
+            n = len(block_id)
+            block_id[node] = n
+            visit_queue.append(node)
+            return n
+
+    while visit_queue:
+        node = visit_queue.popleft()
+        print '\nBLOCK', get_id(node)
         node = node.next
+        while node and not isinstance(node, JoinMirNode)\
+                and not isinstance(node, IfMirNode):
+            print node.getString()
+            node = node.next
+        if node:
+            if isinstance(node, JoinMirNode):
+                print 'GOTO', get_id(node)
+            elif isinstance(node, IfMirNode):
+                print 'IF', node.cond
+                print 'THEN', get_id(node.true)
+                print 'ELSE', get_id(node.false)
 
 def walkChain(node, file_scope):
     ifstack = []
@@ -209,7 +234,7 @@ class CallMirNode(SerialMirNode):
         if listArgumentNode:
             listArgumentTypes = []
             for oneType in listArgumentNode.nodeType:
-                if isinstance(oneType, TupleSema):
+                if isinstance(oneType, ti.sema.TupleSema):
                     listArgumentTypes.append(oneType.elems[1:])
         else:
             listArgumentTypes = [[]]
@@ -268,16 +293,16 @@ class FuncMirNode(SerialMirNode):
     def getString(self):
         return 'def ' + self.func.name
 
-class IfMirNode(MirNode):
+class IfMirNode(SerialMirNode):
 
-    def __init__(self, node):
+    def __init__(self, node, cond, true = None, false = None):
         super(IfMirNode, self).__init__()
         self.node  = node
-        self.cond  = BeginMirNode()
-        self.true  = BeginMirNode()
-        self.false = BeginMirNode()
+        self.cond  = cond  # Branch condition variable name
+        self.true  = BeginMirNode() if true  == None else true
+        self.false = BeginMirNode() if false == None else false
 
-class JoinMirNode(SerialMirNode):
+class JoinMirNode(MirNode):
 
     def __init__(self):
         super(JoinMirNode, self).__init__()
