@@ -60,18 +60,33 @@ class Visitor(ast.NodeVisitor):
         except AttributeError:
             return
 
-    def visit_common_boolop(self, operation, operands):
+    def visit_common_boolop(self, is_and, operands, true_goto, false_goto):
+        # TODO implement non-branching use case
         assert(len(operands) >= 2)
-        args = [self.visit(operands[0])]
+        new_node = ti.mir.BeginMirNode()
         if len(operands) > 2:
-            tail_value = self.visit_common_boolop(operation, operands[1:])
+            self.visit_common_boolop(is_and, operands[:-1],
+                                     new_node   if is_and else true_goto,
+                                     false_goto if is_and else  new_node)
         else:
-            tail_value = self.visit(operands[1])
-        args.append(tail_value)
-        new_node = ti.mir.BoolOpMirNode(operation, args)
-        self.add_node(new_node)
-        return new_node.left
-    
+            operands[0]. true_goto = new_node   if is_and else true_goto
+            operands[0].false_goto = false_goto if is_and else  new_node
+            head_value = self.visit(operands[0])
+            if head_value:  # Then condition was not a boolean operator
+                if_node = ti.mir.IfMirNode(operands[0], head_value,
+                                           operands[0]. true_goto,
+                                           operands[0].false_goto)
+                self.add_node(if_node)
+
+        self._mir_node = new_node
+        operands[-1]. true_goto =  true_goto
+        operands[-1].false_goto = false_goto
+        tail_value = self.visit(operands[-1])
+        if tail_value:  # Then condition was not a boolean operator
+            if_node = ti.mir.IfMirNode(operands[-1], tail_value,
+                                       true_goto, false_goto)
+            self.add_node(if_node)
+
     def visit_common_literal(self, value):
         new_node = ti.mir.LiteralMirNode(value)
         self.add_node(new_node)
@@ -107,7 +122,10 @@ class Visitor(ast.NodeVisitor):
         return new_node.left
 
     def visit_BoolOp(self, node):
-        return self.visit_common_boolop(node.op, node.values)
+        return self.visit_common_boolop(isinstance(node.op, ast.And),
+                                        node.values,
+                                        getattr(node,  'true_goto', None),
+                                        getattr(node, 'false_goto', None))
 
     def visit_Call(self, node):
         func = self.visit(node.func)
@@ -157,7 +175,7 @@ class Visitor(ast.NodeVisitor):
             ti.mir.BeginMirNode() if node.orelse else new_join
         cond_value = self.visit(node.test)
         if cond_value:  # Then condition was not a boolean operator
-            new_node = ti.mir.IfMirNode(node, cond_value,
+            new_node = ti.mir.IfMirNode(node.test, cond_value,
                                         node.test.true_goto,
                                         node.test.false_goto)
             self.add_node(new_node)
