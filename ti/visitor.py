@@ -150,19 +150,29 @@ class Visitor(ast.NodeVisitor):
         config.data.currentScope.addGlobalNames(node.names)
 
     def visit_If(self, node):
-        cond_value = self.visit(node.test)
-        new_node = ti.mir.IfMirNode(node, cond_value)
         new_join = ti.mir.JoinMirNode()
-        self.add_node(new_node)
-        self._mir_node = new_node.true
-        for stmt in node.body:
-            self.visit(stmt)
-        self.add_node(new_join)
-        self._mir_node = new_node.false
-        for stmt in node.orelse:
-            self.visit(stmt)
-        self.add_node(new_join)
-        new_join.prev = new_node
+        node.test.true_goto =\
+            ti.mir.BeginMirNode() if node.body   else new_join
+        node.test.false_goto =\
+            ti.mir.BeginMirNode() if node.orelse else new_join
+        cond_value = self.visit(node.test)
+        if cond_value:  # Then condition was not a boolean operator
+            new_node = ti.mir.IfMirNode(node, cond_value,
+                                        node.test.true_goto,
+                                        node.test.false_goto)
+            self.add_node(new_node)
+        if node.body:
+            self._mir_node = node.test.true_goto
+            for stmt in node.body:
+                self.visit(stmt)
+            self.add_node(new_join)
+        if node.orelse:
+            self._mir_node = node.test.false_goto
+            for stmt in node.orelse:
+                self.visit(stmt)
+            self.add_node(new_join)
+        self._mir_node = new_join
+        del node.test.true_goto, node.test.false_goto  # Cleanup
 
     def visit_Import(self, node):
         importer = config.data.importer

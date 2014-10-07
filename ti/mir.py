@@ -37,6 +37,8 @@ def printMir(node):
                 print 'IF', node.cond
                 print 'THEN', get_id(node.true)
                 print 'ELSE', get_id(node.false)
+        else:
+            print 'RETURN'
 
 def walkChain(node, file_scope):
     ifstack = []
@@ -293,7 +295,7 @@ class FuncMirNode(SerialMirNode):
     def getString(self):
         return 'def ' + self.func.name
 
-class IfMirNode(SerialMirNode):
+class IfMirNode(MirNode):
 
     def __init__(self, node, cond, true = None, false = None):
         super(IfMirNode, self).__init__()
@@ -302,7 +304,7 @@ class IfMirNode(SerialMirNode):
         self.true  = BeginMirNode() if true  == None else true
         self.false = BeginMirNode() if false == None else false
 
-class JoinMirNode(MirNode):
+class JoinMirNode(SerialMirNode):
 
     def __init__(self):
         super(JoinMirNode, self).__init__()
