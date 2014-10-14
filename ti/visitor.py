@@ -28,10 +28,10 @@ class Visitor(ast.NodeVisitor):
 
         self._mir_node = new_node
 
-        try:
+        if hasattr(new_node, 'left'):
             if new_node.left == None:
                 new_node.left = self.new_temp_name()
-        except AttributeError:
+        else:
             return
 
     def visit_common_assign(self, target, value, level = None):
@@ -58,10 +58,7 @@ class Visitor(ast.NodeVisitor):
             self.add_node(temp_node)
             new_node = ti.mir.AssignMirNode(name, temp_node.left)
         self.add_node(new_node)
-        try:
-            return new_node.left
-        except AttributeError:
-            return
+        return getattr(new_node, 'left', None)
 
     def visit_common_if(self, cond_node,
                         true_goto = None, false_goto = None,
@@ -153,12 +150,13 @@ class Visitor(ast.NodeVisitor):
         return new_node.left
 
     def visit_BoolOp(self, node):
-        try:
+        if hasattr(node, 'mir_true_goto'):
+            # We were called specially inside boolean expression
             self.visit_common_boolop(isinstance(node.op, ast.And),
                                      node.values,
                                      node.mir_true_goto, node.mir_false_goto,
-                                     getattr(node, 'mir_result_join', None))
-        except AttributeError:  # We were not called specially and should
+                                     node.mir_result_join)
+        else:  # We were not called specially and should
             # process boolean expression for value
             result_join = ti.mir.JoinMirNode()
             result_name = self.new_temp_name()
@@ -291,7 +289,69 @@ class Visitor(ast.NodeVisitor):
         return new_node.left
 
     def visit_UnaryOp(self, node):
-        args = [self.visit(arg) for arg in (node.operand,)]
-        new_node = ti.mir.UnaryOpMirNode(node.op, args)
-        self.add_node(new_node)
-        return new_node.left
+        if isinstance(node.op, ast.Not):  # Handle boolean Not specially
+            if hasattr(node, 'mir_true_goto'):
+                # We were called specially inside boolean expression
+                true_goto   = node.mir_true_goto
+                false_goto  = node.mir_false_goto
+                result_join = node.mir_result_join
+                if true_goto is None:
+                    # If our result is True (i.e. our argument is false)
+                    # we should set whole expression's result to True
+                    # and not to the last computed value as always
+                    assert result_join
+                    true_goto = ti.mir.BeginMirNode()
+                    saved_node = self._mir_node
+                    self._mir_node = true_goto
+                    true_value = self.visit_common_literal(True)
+                    true_assign = ti.mir.AssignMirNode(result_join.result_name,
+                                                       true_value)
+                    self.add_node(true_assign)
+                    self.add_node(result_join)
+                    self._mir_node = saved_node
+                if false_goto is None: # Same for False result
+                    assert result_join
+                    false_goto = ti.mir.BeginMirNode()
+                    saved_node = self._mir_node
+                    self._mir_node = false_goto
+                    false_value = self.visit_common_literal(False)
+                    false_assign = ti.mir.AssignMirNode(
+                        result_join.result_name, false_value)
+                    self.add_node(false_assign)
+                    self.add_node(result_join)
+                    self._mir_node = saved_node
+                # Call visit_common_if with true/false destinations swapped
+                # Also don't pass result_join because no result should escape
+                self.visit_common_if(node.operand, false_goto, true_goto)
+                return
+
+            else:  # We were not called specially and should return True
+                # or False depending on operand result
+                saved_node = self._mir_node
+                new_join = ti.mir.JoinMirNode()
+
+                true_goto = ti.mir.BeginMirNode()
+                self._mir_node = true_goto
+                true_value = self.visit_common_literal(True)
+                true_assign = ti.mir.AssignMirNode(None, true_value)
+                self.add_node(true_assign)
+                self.add_node(new_join)
+
+                false_goto = ti.mir.BeginMirNode()
+                self._mir_node = false_goto
+                false_value = self.visit_common_literal(False)
+                false_assign = ti.mir.AssignMirNode(true_assign.left,
+                                                    false_value)
+                self.add_node(false_assign)
+                self.add_node(new_join)
+
+                self._mir_node = saved_node
+                self.visit_common_if(node.operand, false_goto, true_goto)
+                self._mir_node = new_join
+                return true_assign.left
+
+        else:  # Any other unary operator
+            args = [self.visit(arg) for arg in (node.operand,)]
+            new_node = ti.mir.UnaryOpMirNode(node.op, args)
+            self.add_node(new_node)
+            return new_node.left
