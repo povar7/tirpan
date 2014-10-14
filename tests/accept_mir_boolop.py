@@ -98,7 +98,7 @@ def do_check(lines, correct):
         elif block['aliases'].get(result, None) == 'False':
             assert not block['cond']
             assert not blocks_by_cond.has_key('F')
-            blocks_by_cond['R'] = block
+            blocks_by_cond['F'] = block
         elif not block['goto']:
             assert not block['cond']
             assert not blocks_by_cond.has_key('R')
@@ -111,6 +111,9 @@ def do_check(lines, correct):
     # print 'True : ', blocks_by_cond.get('T', None)
     # print 'False : ', blocks_by_cond.get('F', None)
     # print 'Return : ', blocks_by_cond['R']
+    # for i, block in blocks.items():
+    #     print i, ':', block
+    # print
     for i, rule in rules.items():
         assert blocks_by_cond[i]['goto'] == blocks_by_cond[rule['goto']]['id']
         assert blocks_by_cond[i]['else'] == blocks_by_cond[rule['else']]['id']
