@@ -13,7 +13,8 @@ bool_tuple = (False, True)
 
 class CustomDict(dict):
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(CustomDict, self).__init__(*args, **kwargs)
         self.changed = False
 
     def hasChanged(self):

@@ -79,7 +79,7 @@ def quasiExecfile(params, **kwargs):
         module    = UsualModuleTGNode(tree, filename, None, oldScope)
         newNumber = importer.putIdent(module)
         executedFiles.addFile(tgNode, filename, module)
-        if config.data.imports:
+        if config.data.print_imports:
             print >> sys.stderr, '%d\t%s' % (newNumber, module.name)
         ourGlobals = params[1]
         save = config.data.currentScope

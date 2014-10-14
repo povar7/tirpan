@@ -29,7 +29,7 @@ class Visitor(ast.NodeVisitor):
         self._mir_node = new_node
 
         if hasattr(new_node, 'left'):
-            if new_node.left == None:
+            if new_node.left is None:
                 new_node.left = self.new_temp_name()
         else:
             return
@@ -100,7 +100,7 @@ class Visitor(ast.NodeVisitor):
     def visit_common_boolop(self, is_and, operands,
                             true_goto = None, false_goto = None,
                             result_join = None):
-        assert(len(operands) >= 2)
+        assert len(operands) >= 2
         new_node = ti.mir.BeginMirNode()
         if len(operands) > 2:
             self.visit_common_boolop(is_and, operands[:-1],

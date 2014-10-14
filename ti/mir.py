@@ -24,7 +24,7 @@ def printMir(node):
 
     while visit_queue:
         node = visit_queue.popleft()
-        print '\nBLOCK', get_id(node)
+        print '#BLOCK', get_id(node)
         node = node.next
         while node and not isinstance(node, JoinMirNode)\
                 and not isinstance(node, IfMirNode):
@@ -32,13 +32,14 @@ def printMir(node):
             node = node.next
         if node:
             if isinstance(node, JoinMirNode):
-                print 'GOTO', get_id(node)
+                print '#GOTO', get_id(node)
             elif isinstance(node, IfMirNode):
-                print 'IF', node.cond
-                print 'THEN', get_id(node.true)
-                print 'ELSE', get_id(node.false)
+                print '#IF', node.cond
+                print '#THEN', get_id(node.true)
+                print '#ELSE', get_id(node.false)
         else:
-            print 'RETURN'
+            print '#RETURN'
+        print
 
 def walkChain(node, file_scope):
     ifstack = []
@@ -110,7 +111,7 @@ class BeginMirNode(SerialMirNode):
     def __init__(self):
         super(BeginMirNode, self).__init__()
 
-    def getString(SerialMirNode):
+    def getString(self):
         return '<begin>'
 
 class BinOpMirNode(SerialMirNode):
@@ -301,8 +302,8 @@ class IfMirNode(MirNode):
         super(IfMirNode, self).__init__()
         self.node  = node
         self.cond  = cond  # Branch condition variable name
-        self.true  = BeginMirNode() if true  == None else true
-        self.false = BeginMirNode() if false == None else false
+        self.true  = BeginMirNode() if true  is None else true
+        self.false = BeginMirNode() if false is None else false
 
 class JoinMirNode(SerialMirNode):
 

@@ -23,8 +23,8 @@ def handle_pdb(sig, frame):
     pdb.set_trace()
 
 
-def run(filename, imports = False, verbose = False):
-    config.initialize(filename, imports, verbose)
+def run(filename, **params):
+    config.initialize(filename, **params)
     importer = config.data.importer
     mainModule = importer.getIdent(0)
     mir = mainModule.getMIR()
@@ -40,8 +40,12 @@ if __name__ == '__main__':
                            help='name of analyzed Python source file')
     argParser.add_argument('-i', '--imports', action='store_true',
                            help='print imports')
+    argParser.add_argument('-m', '--mir', action='store_true',
+                           help='print MIR')
+    argParser.add_argument('-M', '--mir-only', action='store_true',
+                           help='print MIR for given file and exit')
     argParser.add_argument('-V', '--verbose', action='store_true',
-                           help='print imports')
+                           help='print everything')
     args = argParser.parse_args()
 
     try:  # Try to setup debugger hook.
@@ -49,4 +53,5 @@ if __name__ == '__main__':
     except:   # Not critical so ignore any errors
         pass  # (e.g. no SIGUSR1 is present on Windows)
 
-    run(args.filename, args.imports, args.verbose)
+    run(args.filename, print_imports = args.imports, verbose = args.verbose,
+        print_mir = args.mir or args.mir_only, mir_only = args.mir_only)

@@ -38,5 +38,8 @@ class Parser(object):
     def walk(self):
         self.visitor.visit(self.ast)
         
-        if config.data.verbose:
-            self.printMIR() 
+        if config.data.print_mir:
+            self.printMIR()
+        if config.data.mir_only:
+            from sys import exit
+            exit(0)

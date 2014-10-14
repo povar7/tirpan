@@ -93,7 +93,7 @@ class Importer(object):
         module = ti.tgnode.UsualModuleTGNode(mir, tree,
                                              filename, data.globalScope)
         fileno = self.putIdent(module)
-        if data.imports:
+        if data.print_imports:
             print >> sys.stderr, '%d\t%s' % (fileno, module.name)
         for node in ast.walk(tree):
             node.fileno = fileno
