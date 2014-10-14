@@ -13,7 +13,7 @@ atests_dir = os.path.dirname(__file__)  # Tests directory (contains this module)
 tirpan_dir = os.path.join(atests_dir, '..')  # TIRPAN root directory
 
 
-def do_tirpan(script_file):
+def do_tirpan(script_file, *args):
     """Get TIRPAN output (incl. stderr) for script
 
     Returns list of output lines (without newline chars).
@@ -22,7 +22,8 @@ def do_tirpan(script_file):
     # Run TIRPAN and capture STDOUT and STDERR
     output = subprocess.check_output(['python',  # Windows refuses to run .py
                                       os.path.join(tirpan_dir, 'tirpan.py'),
-                                      os.path.join(atests_dir, script_file)],
+                                      os.path.join(atests_dir, script_file)]
+                                     + list(args),
                                      stderr=subprocess.STDOUT)
     return output.splitlines()
 
