@@ -16,14 +16,15 @@ def tirpan_get_mir(script_file, *args):
     Returns hierarchy of ti.mir.MirNode descendants
     """
 
+    tmpname = os.path.join(atests_dir, script_file + '.tmp')
     try:
-        do_tirpan(script_file, '--dump-mir', atemp_file, *args)
+        do_tirpan(script_file, '--dump-mir', tmpname, *args)
     except:
         sys.stderr.write('Tirpan failed to parse {} script:\n'.format(
             script_file))
         raise
     try:
-        return ti.mir.loadMir(atemp_file)
+        return ti.mir.loadMir(tmpname)
     except:
         sys.stderr.write(
             'Tirpan failed to produce MIR dump for {} script:\n'.format(
