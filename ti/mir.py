@@ -9,6 +9,16 @@ import ti.builtin
 import ti.mvisitor
 import ti.sema
 
+def dumpMir(node, filename):
+    import cPickle
+    with open(filename, 'wb') as f:
+        cPickle.dump(node, f, cPickle.HIGHEST_PROTOCOL)
+
+def loadMir(filename):
+    import cPickle
+    with open(filename, 'rb') as f:
+        return cPickle.load(f)
+
 def printMir(node):
     from collections import deque
     visit_queue = deque([node])
@@ -259,6 +269,7 @@ class ClassMirNode(SerialMirNode):
 
     def __init__(self, node):
         super(ClassMirNode, self).__init__()
+        # TODO eliminate AST
         self.ast  = node.body
         self.mir  = BeginMirNode()
         self.name = node.name
@@ -291,6 +302,7 @@ class FuncMirNode(SerialMirNode):
 
     def __init__(self, node):
         super(FuncMirNode, self).__init__()
+        # TODO eliminate AST
         self.func = node
 
     def getString(self):
@@ -300,6 +312,7 @@ class IfMirNode(MirNode):
 
     def __init__(self, node, cond, true = None, false = None):
         super(IfMirNode, self).__init__()
+        # TODO eliminate AST
         self.node  = node
         self.cond  = cond  # Branch condition variable name
         self.true  = BeginMirNode() if true  is None else true

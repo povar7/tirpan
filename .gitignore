@@ -4,3 +4,4 @@
 .*.swp
 tags
 defects.txt
+/tests/tmpfile

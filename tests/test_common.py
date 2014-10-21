@@ -8,9 +8,13 @@ Common code for running TIRPAN tests.
 
 import os
 import subprocess
+import sys
 
-atests_dir = os.path.dirname(__file__)  # Tests directory (contains this module)
+atests_dir = os.path.dirname(__file__)  # Tests directory
 tirpan_dir = os.path.join(atests_dir, '..')  # TIRPAN root directory
+atemp_file = os.path.join(atests_dir, 'tmpfile')  # Common temporary file
+
+sys.path[1:1] = [tirpan_dir]
 
 
 def do_tirpan(script_file, *args):

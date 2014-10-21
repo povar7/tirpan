@@ -40,6 +40,3 @@ class Parser(object):
         
         if config.data.print_mir:
             self.printMIR()
-        if config.data.mir_only:
-            from sys import exit
-            exit(0)

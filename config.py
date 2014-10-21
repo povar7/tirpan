@@ -9,7 +9,7 @@ class Config(object):
 
         # Defaults
         self.print_mir = False
-        self.mir_only = False
+        self.dump_mir = None
         self.verbose = False
         self.print_imports = False
 
@@ -20,8 +20,6 @@ class Config(object):
         # Process passed
         if self.verbose:
             self.print_mir = self.print_imports = True
-        if self.mir_only:
-            self.print_mir = True
 
         # Other initialization
         self.globalScope  = ti.sema.ScopeSema(None)
