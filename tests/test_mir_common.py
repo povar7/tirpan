@@ -13,7 +13,7 @@ import ti.mir
 def tirpan_get_mir(script_file, *args):
     """Run TIRPAN to get script MIR
 
-    Returns hierarchy of ti.mir.MirNode descendants
+    Returns MIR for given script
     """
 
     tmpname = os.path.join(atests_dir, script_file + '.tmp')
@@ -24,12 +24,20 @@ def tirpan_get_mir(script_file, *args):
             script_file))
         raise
     try:
-        return ti.mir.loadMir(tmpname)
+        res = ti.mir.loadMir(tmpname)
+        os.remove(tmpname)
+        return res
     except:
         sys.stderr.write(
             'Tirpan failed to produce MIR dump for {} script:\n'.format(
             script_file))
         raise
+
+
+class SimpleNamespace(object):
+    def __init__(self, **pairs):
+        for name, value in pairs.iteritems():
+            setattr(self, name, value)
 
 
 def walk_mir_nodes(mir, callback):
@@ -58,34 +66,101 @@ def walk_mir_nodes(mir, callback):
                 queue_node(node.false)
 
 
-def find_mir_nodes(mir, callbacks):
+def find_mir_nodes(mir, **callbacks):
     sz = len(callbacks)
-    res = [None] * sz
+    res = dict()
     def clbk(node):
-        for i in xrange(sz):
-            if callbacks[i](node):
-                assert res[i] is None, 'found two matching nodes (at least)'
-                res[i] = node
+        for name, func in callbacks.iteritems():
+            if func(node):
+                assert not res.has_key(name), \
+                    "found two matching nodes (at least) for callback '{}'"\
+                    .format(name)
+                res[name] = node
     walk_mir_nodes(mir, clbk)
-    return res
+    for name in callbacks.iterkeys():
+        assert res.has_key(name), \
+            "'no matching node found for callback '{}'"\
+            .format(name)
+    return SimpleNamespace(**res)
 
 
 def join_noskip(node):
     assert not isinstance(node, ti.mir.JoinMirNode), 'unexpected join node'
 
+
 def no_op(*l, **d):
     pass
 
-def walk_down_mir(start, finish, callback = no_op):
+
+def find_node_down_mir(start, callback):
     node = start.next
-    while node is not finish and node \
-            and not isinstance(node, ti.mir.IfMirNode):
+    while not callback(node) and isinstance(node, ti.mir.SerialMirNode):
         callback(node)
         node = node.next
-    assert node is finish, 'did not reach finish node'
+    assert callback(node), 'could not reach node'
+    return node
 
 
-def check_class_and_location(node, class_, line, col):
-    return isinstance(node, class_) \
-           and node.node.lineno == line \
-           and 1 + node.node.col_offset == col
+class same_node_checker(object):
+    def __init__(self, node):
+        self.node = node
+
+    def __call__(self, node):
+        return node is self.node
+
+
+class isinstance_checker(object):
+    def __init__(self, cls, inverted = False):
+        self.cls = cls
+        self.inv = inverted
+
+    def __call__(self, node):
+        return self.inv ^ isinstance(node, self.cls)
+
+
+class assert_filter(object):
+    def __init__(self, chained_call, assert_call):
+        self.chained_call = chained_call
+        self.assert_call = assert_call
+
+    def __call__(self, node):
+        res = self.chained_call(node)
+        if res:
+            return res
+        assert self.assert_call(node)
+        return res
+
+
+class class_and_location_checker(object):
+    def __init__(self, cls, line, col):
+        self.cls = cls
+        self.line = line
+        self.col = col
+
+    def __call__(self, node):
+        return isinstance(node, self.cls) \
+           and node.node.lineno == self.line \
+           and 1 + node.node.col_offset == self.col
+
+
+class func_checker(object):
+    def __init__(self, func_name):
+        self.func = func_name
+
+    def __call__(self, node):
+        return isinstance(node, ti.mir.CallMirNode) and node.func == self.func
+
+
+class if_cond_checker(object):
+    def __init__(self, cond_name):
+        self.cond = cond_name
+
+    def __call__(self, node):
+        return isinstance(node, ti.mir.IfMirNode) and node.cond == self.cond
+
+
+def find_node_down_mir_nojoin(start, callback):
+    return find_node_down_mir(start,
+                   assert_filter(callback,
+                                 isinstance_checker(ti.mir.JoinMirNode, True)))
+

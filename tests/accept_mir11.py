@@ -8,7 +8,7 @@ Created on 28.10.2014
 
 from test_mir_common import *
 
-mir = tirpan_get_mir('test_mir01.py')
+mir = tirpan_get_mir('test_mir11.py')
 
 n = find_mir_nodes(mir,
                    x_call = func_checker('x'),
@@ -20,7 +20,7 @@ n.join = find_node_down_mir_nojoin(n.a_call,
                                    isinstance_checker(ti.mir.JoinMirNode))
 
 find_node_down_mir_nojoin(mir, same_node_checker(n.x_call))
-find_node_down_mir_nojoin(n.x_if.true, same_node_checker(n.a_call))
-find_node_down_mir_nojoin(n.x_if.false, same_node_checker(n.b_call))
+find_node_down_mir_nojoin(n.x_if.true, same_node_checker(n.b_call))
+find_node_down_mir_nojoin(n.x_if.false, same_node_checker(n.a_call))
 find_node_down_mir_nojoin(n.b_call, same_node_checker(n.join))
 find_node_down_mir_nojoin(n.join, same_node_checker(None))

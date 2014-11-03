@@ -8,7 +8,7 @@ Created on 28.10.2014
 
 from test_mir_common import *
 
-mir = tirpan_get_mir('test_mir01.py')
+mir = tirpan_get_mir('test_mir18.py')
 
 n = find_mir_nodes(mir,
                    x_call = func_checker('x'),

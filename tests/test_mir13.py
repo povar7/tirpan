@@ -1,4 +1,4 @@
-if x():
+if not x() and y():
     a()
 else:
     b()
