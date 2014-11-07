@@ -79,17 +79,9 @@ def find_mir_nodes(mir, **callbacks):
     walk_mir_nodes(mir, clbk)
     for name in callbacks.iterkeys():
         assert res.has_key(name), \
-            "'no matching node found for callback '{}'"\
+            "no matching node found for callback '{}'"\
             .format(name)
     return SimpleNamespace(**res)
-
-
-def join_noskip(node):
-    assert not isinstance(node, ti.mir.JoinMirNode), 'unexpected join node'
-
-
-def no_op(*l, **d):
-    pass
 
 
 def find_node_down_mir(start, callback):
@@ -99,6 +91,25 @@ def find_node_down_mir(start, callback):
         node = node.next
     assert callback(node), 'could not reach node'
     return node
+
+
+def find_node_down_mir_nojoin(start, callback):
+    return find_node_down_mir(start,
+                   assert_filter(callback,
+                                 isinstance_checker(ti.mir.JoinMirNode, True)))
+
+
+class assert_filter(object):
+    def __init__(self, chained_call, assert_call):
+        self.chained_call = chained_call
+        self.assert_call = assert_call
+
+    def __call__(self, node):
+        res = self.chained_call(node)
+        if res:
+            return res
+        assert self.assert_call(node)
+        return res
 
 
 class same_node_checker(object):
@@ -116,19 +127,6 @@ class isinstance_checker(object):
 
     def __call__(self, node):
         return self.inv ^ isinstance(node, self.cls)
-
-
-class assert_filter(object):
-    def __init__(self, chained_call, assert_call):
-        self.chained_call = chained_call
-        self.assert_call = assert_call
-
-    def __call__(self, node):
-        res = self.chained_call(node)
-        if res:
-            return res
-        assert self.assert_call(node)
-        return res
 
 
 class class_and_location_checker(object):
@@ -159,8 +157,10 @@ class if_cond_checker(object):
         return isinstance(node, ti.mir.IfMirNode) and node.cond == self.cond
 
 
-def find_node_down_mir_nojoin(start, callback):
-    return find_node_down_mir(start,
-                   assert_filter(callback,
-                                 isinstance_checker(ti.mir.JoinMirNode, True)))
+class assign_to_checker(object):
+    def __init__(self, left_name):
+        self.left = left_name
 
+    def __call__(self, node):
+        return isinstance(node, ti.mir.AssignMirNode)\
+               and node.left == self.left

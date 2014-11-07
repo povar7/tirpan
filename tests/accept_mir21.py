@@ -43,12 +43,10 @@ find_node_down_mir_nojoin(n.v_if.false, same_node_checker(n.b_call))
 n.w_if = find_node_down_mir_nojoin(n.w_call, if_cond_checker(n.w_call.left))
 find_node_down_mir_nojoin(n.w_if.true, same_node_checker(n.a_call))
 find_node_down_mir_nojoin(n.w_if.false, same_node_checker(n.b_call))
-n.uvw_join = find_node_down_mir_nojoin(n.a_call,
-                                       isinstance_checker(ti.mir.JoinMirNode))
+n.uvw_join = find_node_down_mir(n.a_call, isinstance_checker(ti.mir.JoinMirNode))
 find_node_down_mir_nojoin(n.b_call, same_node_checker(n.uvw_join))
 
 
-n.xyz_join = find_node_down_mir_nojoin(n.uvw_join,
-                                       isinstance_checker(ti.mir.JoinMirNode))
+n.xyz_join = find_node_down_mir(n.uvw_join, isinstance_checker(ti.mir.JoinMirNode))
 find_node_down_mir_nojoin(n.c_call, same_node_checker(n.xyz_join))
 find_node_down_mir_nojoin(n.xyz_join, same_node_checker(None))
