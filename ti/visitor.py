@@ -164,6 +164,10 @@ class Visitor(ast.NodeVisitor):
             self.visit_common_boolop(isinstance(node.op, ast.And),
                                      node.values, None, None, result_join)
             del result_join.result_name
+            if hasattr(result_join, 'true_block'):
+                del result_join.true_block
+            if hasattr(result_join, 'false_block'):
+                del result_join.false_block
             self._mir_node = result_join
             return result_name
 
@@ -300,29 +304,37 @@ class Visitor(ast.NodeVisitor):
                     # we should set whole expression's result to True
                     # and not to the last computed value as always
                     assert result_join
-                    true_goto = ti.mir.BeginMirNode()
-                    saved_node = self._mir_node
-                    self._mir_node = true_goto
-                    true_value = self.visit_common_literal(True)
-                    true_assign = ti.mir.AssignMirNode(result_join.result_name,
-                                                       true_value)
-                    self.add_node(true_assign)
-                    self.add_node(result_join)
-                    self._mir_node = saved_node
+                    if hasattr(result_join, 'true_block'):
+                        true_goto = result_join.true_block
+                    else:
+                        true_goto = ti.mir.BeginMirNode()
+                        saved_node = self._mir_node
+                        self._mir_node = true_goto
+                        true_value = self.visit_common_literal(True)
+                        true_assign = ti.mir.AssignMirNode(result_join.result_name,
+                                                           true_value)
+                        self.add_node(true_assign)
+                        self.add_node(result_join)
+                        self._mir_node = saved_node
+                        result_join.true_block = true_goto
                 if false_goto is None: # Same for False result
                     assert result_join
-                    false_goto = ti.mir.BeginMirNode()
-                    saved_node = self._mir_node
-                    self._mir_node = false_goto
-                    false_value = self.visit_common_literal(False)
-                    false_assign = ti.mir.AssignMirNode(
-                        result_join.result_name, false_value)
-                    self.add_node(false_assign)
-                    self.add_node(result_join)
-                    self._mir_node = saved_node
+                    if hasattr(result_join, 'false_block'):
+                        false_goto = result_join.false_block
+                    else:
+                        false_goto = ti.mir.BeginMirNode()
+                        saved_node = self._mir_node
+                        self._mir_node = false_goto
+                        false_value = self.visit_common_literal(False)
+                        false_assign = ti.mir.AssignMirNode(
+                            result_join.result_name, false_value)
+                        self.add_node(false_assign)
+                        self.add_node(result_join)
+                        self._mir_node = saved_node
+                        result_join.false_block = false_goto
                 # Call visit_common_if with true/false destinations swapped
-                # Also don't pass result_join because no result should escape
-                self.visit_common_if(node.operand, false_goto, true_goto)
+                self.visit_common_if(node.operand, false_goto, true_goto,
+                                     result_join)
                 return
 
             else:  # We were not called specially and should return True

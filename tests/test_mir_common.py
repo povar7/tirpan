@@ -158,9 +158,22 @@ class if_cond_checker(object):
 
 
 class assign_to_checker(object):
-    def __init__(self, left_name):
+    def __init__(self, left_name, node_classes = {ti.mir.AssignMirNode}):
         self.left = left_name
+        self.classes = node_classes
 
     def __call__(self, node):
-        return isinstance(node, ti.mir.AssignMirNode)\
-               and node.left == self.left
+        if self.left == getattr(node, 'left', None):
+            for cls in self.classes:
+                if isinstance(node, ti.mir.AssignMirNode):
+                    return True
+        return False
+
+
+class literal_value_checker(object):
+    def __init__(self, literal_value):
+        self.value = literal_value
+
+    def __call__(self, node):
+        return isinstance(node, ti.mir.LiteralMirNode) \
+               and node.value == self.value
