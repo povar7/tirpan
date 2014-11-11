@@ -1,0 +1,59 @@
+This file contains general information about project structure.
+See module and class/function docstrings for more detailed documentation.
+
+
+tirpan.py
+This script is TIRPAN's entry point.
+It contains command line argument parsing and run() function that takes main
+script filename and various configuration parameters as keyword arguments.
+It can be imported as module to run() TIRPAN manually.
+
+config.py
+It contains object named 'data' that holds configuration options and some
+program-wide state information (like curren global and local variable scopes).
+It also contains initialize() function that takes the same arguments as run(),
+initializes 'data' structure, loads the main script and all the imported
+modules recursively.
+
+utils.py
+Contains some utility functions mostly used in 'std' subpackage.
+(Some are used nowhere in TIRPAN right now.)
+
+std subpackage
+It contains a lot of gags that should replace many real Python modules
+during static analysis.
+# Note: this package might not always be working properly. Requires checking.
+
+
+And last but not least:
+
+ti subpackage
+The most important one. It contains modules used internally by TIRPAN.
+It contains following modules:
+
+importer.py
+It is used to handle module importing in analyzed modules. Also keeps track
+of already imported ones.
+
+builtin.py
+Handles gag module imports (from std)
+
+parser.py
+visitor.py
+Parse script files from source to AST (using standard Python ast module) and
+then to MIR (in visitor.py). The Visitor class performs convertion from
+AST to MIR.
+
+mir.py
+Contains declarations of MIR node classes.
+
+mvisitor.py
+Contains MirVisitor class that is used by ti.mir.walkChain() to process
+each individual MIR node. It is intended to generate data flow graph. (TODO)
+
+tgnode.py
+sema.py
+function.py
+formula.py
+All these take part in dataflow graph generation and error checking.
+The code is quite messy and needs to be redone almost completely.

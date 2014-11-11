@@ -1,8 +1,40 @@
-'''
+"""
+Module ti.mir
+
+This module is responsible only for MIR representation.
+Mir generation is done mostly in ti.visitor.
+Mir processing is also handled by other modules.
+
+ti.mir.dumpMir and ti.mir.loadMir are used to store MIR to file
+and restore it from file respectively.
+
+ti.mir.printMir is used to pretty-print MIR to stdout
+
+NOTE:
+It is useful to examine already built MIR to understand its structure.
+Proper documentation is in future plans.
+
+
 Created on 19.01.2014
 
 @author: bronikkk
-'''
+@author: evg-zhabotinsky
+"""
+
+# FIXME: MIR generation
+# Some node classes are not properly generated yes and their object layout
+# may change when they will be handled properly.
+# See ti.visitor module for more information.
+
+# FIXME: absent fields
+# Class definitions in this module do not mention some fields that objects
+# usually contain due to how Python works and the way this code was written.
+
+# FIXME: eliminate AST references
+# At present MIR structure contains references to AST tree used to build it
+# These are NOT intended for use and WILL BE REMOVED.
+# One of the reasons is that they end up in files alongside MIR dump.
+
 
 import config
 import ti.builtin
@@ -52,6 +84,7 @@ def printMir(node):
         print
 
 def walkChain(node, file_scope):
+    # TODO: rewrite this function
     ifstack = []
     visitor = ti.mvisitor.MirVisitor(file_scope)
     while node:
