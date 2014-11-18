@@ -165,7 +165,7 @@ class assign_to_checker(object):
     def __call__(self, node):
         if self.left == getattr(node, 'left', None):
             for cls in self.classes:
-                if isinstance(node, ti.mir.AssignMirNode):
+                if isinstance(node, cls):
                     return True
         return False
 

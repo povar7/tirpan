@@ -123,7 +123,8 @@ class Visitor(ast.NodeVisitor):
     def visit_Assign(self, node):
         value = self.visit(node.value)
         target = node.targets[0]
-        if not isinstance(target, ast.Tuple):
+        if (not isinstance(target, ast.Tuple)
+                and not isinstance(target, ast.List)):
             return self.visit_common_assign(target, value)
         else:
             index = 0
