@@ -87,8 +87,15 @@ def find_mir_nodes(mir, **callbacks):
 def find_node_down_mir(start, callback):
     node = start.next
     while not callback(node) and isinstance(node, ti.mir.SerialMirNode):
-        callback(node)
         node = node.next
+    assert callback(node), 'could not reach node'
+    return node
+
+
+def find_node_up_mir(start, callback):
+    node = getattr(start, 'prev', None)
+    while node is not None and not callback(node):
+        node = getattr(node, 'prev', None)
     assert callback(node), 'could not reach node'
     return node
 
@@ -158,12 +165,14 @@ class if_cond_checker(object):
 
 
 class assign_to_checker(object):
-    def __init__(self, left_name, node_classes = {ti.mir.AssignMirNode}):
+    def __init__(self, left_name, node_classes = None):
         self.left = left_name
         self.classes = node_classes
 
     def __call__(self, node):
         if self.left == getattr(node, 'left', None):
+            if self.classes is None:
+                return True
             for cls in self.classes:
                 if isinstance(node, cls):
                     return True
