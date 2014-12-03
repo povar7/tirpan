@@ -18,7 +18,7 @@ def tirpan_get_mir(script_file, *args):
 
     tmpname = os.path.join(atests_dir, script_file + '.tmp')
     try:
-        do_tirpan(script_file, '--dump-mir', tmpname, *args)
+        do_tirpan(script_file, '--mir-only', '--dump-mir', tmpname, *args)
     except:
         sys.stderr.write('Tirpan failed to parse {} script:\n'.format(
             script_file))

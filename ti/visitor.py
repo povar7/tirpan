@@ -368,3 +368,16 @@ class Visitor(ast.NodeVisitor):
             new_node = ti.mir.UnaryOpMirNode(node.op, args)
             self.add_node(new_node)
             return new_node.left
+
+    def visit_While(self, node):
+        new_join = ti.mir.JoinMirNode()
+        true_goto = ti.mir.BeginMirNode() if node.body else new_join
+        false_goto = ti.mir.BeginMirNode()
+        self.add_node(new_join)
+        self.visit_common_if(node.test, true_goto, false_goto)
+        if node.body:
+            self._mir_node = true_goto
+            for stmt in node.body:
+                self.visit(stmt)
+            self.add_node(new_join)
+        self._mir_node = false_goto

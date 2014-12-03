@@ -30,6 +30,8 @@ def run(filename, **params):
     mir = mainModule.getMIR()
     if config.data.dump_mir:
         ti.mir.dumpMir(mir, config.data.dump_mir)
+    if config.data.mir_only:
+        return
     scope = config.data.currentScope
     config.data.currentScope = mainModule.getScope()
     ti.mir.walkChain(mir, config.data.currentScope)
@@ -46,6 +48,8 @@ if __name__ == '__main__':
                            help='dump MIR to file')
     argParser.add_argument('-M', '--print-mir', action='store_true',
                            help='pretty-print MIR to stdout')
+    argParser.add_argument('-p', '--mir-only', action='store_true',
+                           help='stop after generating MIR')
     argParser.add_argument('-V', '--verbose', action='store_true',
                            help='print everything')
     args = argParser.parse_args()
@@ -56,4 +60,5 @@ if __name__ == '__main__':
         pass  # (e.g. no SIGUSR1 is present on Windows)
 
     run(args.filename, print_imports = args.imports, verbose = args.verbose,
-        print_mir = args.print_mir, dump_mir = args.dump_mir)
+        print_mir = args.print_mir, dump_mir = args.dump_mir,
+        mir_only = args.mir_only)

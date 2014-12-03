@@ -12,6 +12,7 @@ class Config(object):
         self.dump_mir = None
         self.verbose = False
         self.print_imports = False
+        self.mir_only = False
 
         # Passed parameters
         for name, value in params.items():
