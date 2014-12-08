@@ -1,0 +1,67 @@
+This file contains description of MIR structure.
+MIR stands for "Medium Intermediate Representation".
+In this case it is mostly a Control Flow Graph.
+
+For description of how some common Python constructs are represented in MIR
+see *_mir.txt files.
+
+Every MIR node is represented in Python code as an object of specific class
+defined in ti.mir module. All these classes are descendants of either
+ti.mir.MirNode or ti.mir.SerialMirNode class.
+
+Every node describes an atomic action of program execution. Different actions
+are represented by nodes of different classes. Every node has either "prev" or
+"next" field (or both) which point to MIR nodes for previous and next actions
+respectively. Most nodes also have fields specific to their class.
+
+Variable names might be either real variable names from represented program or
+internal names that represent variables that store intermediate computation
+results. The latter start with "@" symbol and are assigned to only once on
+any non-cyclic path.
+
+
+When None is used as MIR node it represents an end of MIR chain.
+
+
+ti.mir.MirNode
+is meant to be a basic class for nodes that have no well defined
+"next" node. The most common example is ti.mir.IfMirNode which has "true" and
+"false" fields instead.
+
+
+ti.mir.SerialMirNode
+is meant as a basic class for all other nodes.
+
+
+ti.mir.BeginMirNode
+represents a starting point of linear MIR chain. It stands for no action
+itself. It has no well defined "prev" node. Instead it might be referenced by
+other node to specify where control flow goes in some situation.
+
+
+ti.mir.JoinMirNode
+is meant to represent a starting point of MIR chain that can be referenced by
+many other nodes. The example is a node that terminates both branches of IF
+construct and marks a starting point of code that goes after IF.
+
+
+ti.mir.IfMirNode
+is meant to represent branching on condition. Field "cond" is a name of
+variable that stores branching condition. Complex conditions are computed
+beforehand or represented by many IF nodes. Execution continues from node
+pointed by "true" field if condition value is True and by "false" field
+otherwise.
+
+Notes:
+
+1) ti.mir.BeginMirNode vs ti.mir.JoinMirNode
+
+It is still unclear whether both Begin and Join MIR nodes are needed or if
+they should be merged into one class. The only difference between them is that
+Begin node should only have one other node referencing it or none at all.
+However, such cases are rare and Begin node is still used in some cases
+where many nodes point at it. One example is Begin node that marks a start
+of one of IF branches when IF condition contains boolean expression which
+is subject to lazy evaluation and is represented in MIR as a branching graph.
+
+One simple specific example of the above is 

@@ -1,0 +1,51 @@
+Python code:
+
+    for el in col:
+        <code>
+
+        
+How does it really work (Python code):
+
+    @iter = col.__iter__()
+    while True:
+        try:
+            el = @iter.next()
+        except StopIteration:
+            break
+        <code>
+        
+Real collections that can be iterated provide an __iter__ method that returns
+iterator object. Every next element (including first) is retrieved from
+iterator object with next() method. This method raises StopIteration exception
+when it has no more elements to return.
+
+
+MIR graph description:
+(Some unneeded details omitted.)
+(See for_mir.png file for diagram.)
+
+    start:
+    @iter = col.__iter__()
+    loop:
+    el = @iter.next()
+    IF @iter.@stop() THEN GOTO end
+    <code>
+    GOTO loop
+    end:
+
+"continue" and "break" statement inside <code> are converted to jumps to
+"loop" and "end" labels respectively.
+
+@iter is a temporary name generated for variable to store iterator object.
+@stop is a special method that determines if the last call to next() method
+was successful for that iterator object.
+
+Handling exceptions is a difficult task for static analysis so we work around
+exception-based nature of FOR loops by marking object that is returned by
+__iter__ method as an iterator object. Then we  mark it as "finished" whenever
+unhandled StopIteration exception is raised within its next() method. The
+special @stop method just returns whether iterator has finished.
+
+For standard collections like lists we provide fake __iter__ method that
+returns a fake iterator object that handles next() and @stop() methods
+accordingly and is better suited for static analysis.
