@@ -24,44 +24,34 @@ When None is used as MIR node it represents an end of MIR chain.
 
 
 ti.mir.MirNode
-is meant to be a basic class for nodes that have no well defined
-"next" node. The most common example is ti.mir.IfMirNode which has "true" and
-"false" fields instead.
+is the base class for all nodes. They have neither "next" nor
+"prev" fields so no nodes of this class exist (only of its descendant classes).
 
+ti.mir.HasNextMirNode
+is the base class for nodes that have ordinary "next" field.
+It is derived from MirNode class.
+
+ti.mir.HasPrevMirNode
+is the base class for nodes that have ordinary "prev" field.
+It is derived from MirNode class.
+The most common example is ti.mir.IfMirNode which has "true" and
+"false" fields instead of "next".
 
 ti.mir.SerialMirNode
-is meant as a basic class for all other nodes.
-
-
-ti.mir.BeginMirNode
-represents a starting point of linear MIR chain. It stands for no action
-itself. It has no well defined "prev" node. Instead it might be referenced by
-other node to specify where control flow goes in some situation.
-
+is the base class for nodes that have both ordinary "prev" and "next" fields.
+It is derived from both HasNextMirNode and HasPrevMirNode classes.
+Most nodes belong to that class.
 
 ti.mir.JoinMirNode
-is meant to represent a starting point of MIR chain that can be referenced by
-many other nodes. The example is a node that terminates both branches of IF
-construct and marks a starting point of code that goes after IF.
-
+represents a starting point of linear MIR chain. It stands for no action
+itself. Its "prev" field is (instead of an ordinary link) a list of all nodes
+that have their "next" field pointing to it.
+It is perfectly valid if this list is empty (e.g. function entry point).
+It is derived from HasNextMirNode.
 
 ti.mir.IfMirNode
-is meant to represent branching on condition. Field "cond" is a name of
-variable that stores branching condition. Complex conditions are computed
-beforehand or represented by many IF nodes. Execution continues from node
-pointed by "true" field if condition value is True and by "false" field
-otherwise.
-
-Notes:
-
-1) ti.mir.BeginMirNode vs ti.mir.JoinMirNode
-
-It is still unclear whether both Begin and Join MIR nodes are needed or if
-they should be merged into one class. The only difference between them is that
-Begin node should only have one other node referencing it or none at all.
-However, such cases are rare and Begin node is still used in some cases
-where many nodes point at it. One example is Begin node that marks a start
-of one of IF branches when IF condition contains boolean expression which
-is subject to lazy evaluation and is represented in MIR as a branching graph.
-
-One simple specific example of the above is 
+represents branching on condition. Field "cond" is a name of variable that
+stores branching condition. Complex conditions are computed beforehand or
+represented by many IF nodes. Execution continues from node pointed by "true"
+field if condition value is True and by "false" field otherwise.
+It is derived from HasPrevMirNode.
