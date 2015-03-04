@@ -14,11 +14,10 @@ n = find_mir_nodes(mir,
                    x_call = func_checker('x'),
                    y_call = func_checker('y'),
                    z_call = func_checker('z'),
-                   a_call = func_checker('a'),
-                   join = isinstance_checker(ti.mir.JoinMirNode))
+                   a_call = func_checker('a'))
 
 
-find_node_down_mir_nojoin(mir, same_node_checker(n.join))
+n.join = find_node_down_mir_nojoin(mir, isinstance_checker(ti.mir.JoinMirNode))
 find_node_down_mir_nojoin(n.join, same_node_checker(n.x_call))
 n.x_if = find_node_down_mir_nojoin(n.x_call, if_cond_checker(n.x_call.left))
 find_node_down_mir_nojoin(n.x_if.false, same_node_checker(n.y_call))
