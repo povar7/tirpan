@@ -84,7 +84,7 @@ class Visitor(ast.NodeVisitor):
                 # cond_value is result in one of cases so construct a
                 # result assignment Mir for that branch
                 assert result_join
-                result_goto = ti.mir.BeginMirNode()
+                result_goto = ti.mir.JoinMirNode()
                 saved_node = self._mir_node
                 self._mir_node = result_goto
                 result_node = ti.mir.AssignMirNode(result_join.result_name,
@@ -101,7 +101,7 @@ class Visitor(ast.NodeVisitor):
                             true_goto = None, false_goto = None,
                             result_join = None):
         assert len(operands) >= 2
-        new_node = ti.mir.BeginMirNode()
+        new_node = ti.mir.JoinMirNode()
         if len(operands) > 2:
             self.visit_common_boolop(is_and, operands[:-1],
                                      new_node   if is_and else true_goto,
@@ -214,8 +214,8 @@ class Visitor(ast.NodeVisitor):
 
     def visit_If(self, node):
         new_join = ti.mir.JoinMirNode()
-        true_goto  = ti.mir.BeginMirNode() if node.body   else new_join
-        false_goto = ti.mir.BeginMirNode() if node.orelse else new_join
+        true_goto  = ti.mir.JoinMirNode() if node.body   else new_join
+        false_goto = ti.mir.JoinMirNode() if node.orelse else new_join
         self.visit_common_if(node.test, true_goto, false_goto)
         if node.body:
             self._mir_node = true_goto
@@ -308,7 +308,7 @@ class Visitor(ast.NodeVisitor):
                     if hasattr(result_join, 'true_block'):
                         true_goto = result_join.true_block
                     else:
-                        true_goto = ti.mir.BeginMirNode()
+                        true_goto = ti.mir.JoinMirNode()
                         saved_node = self._mir_node
                         self._mir_node = true_goto
                         true_value = self.visit_common_literal(True)
@@ -323,7 +323,7 @@ class Visitor(ast.NodeVisitor):
                     if hasattr(result_join, 'false_block'):
                         false_goto = result_join.false_block
                     else:
-                        false_goto = ti.mir.BeginMirNode()
+                        false_goto = ti.mir.JoinMirNode()
                         saved_node = self._mir_node
                         self._mir_node = false_goto
                         false_value = self.visit_common_literal(False)
@@ -343,14 +343,14 @@ class Visitor(ast.NodeVisitor):
                 saved_node = self._mir_node
                 new_join = ti.mir.JoinMirNode()
 
-                true_goto = ti.mir.BeginMirNode()
+                true_goto = ti.mir.JoinMirNode()
                 self._mir_node = true_goto
                 true_value = self.visit_common_literal(True)
                 true_assign = ti.mir.AssignMirNode(None, true_value)
                 self.add_node(true_assign)
                 self.add_node(new_join)
 
-                false_goto = ti.mir.BeginMirNode()
+                false_goto = ti.mir.JoinMirNode()
                 self._mir_node = false_goto
                 false_value = self.visit_common_literal(False)
                 false_assign = ti.mir.AssignMirNode(true_assign.left,
@@ -371,8 +371,8 @@ class Visitor(ast.NodeVisitor):
 
     def visit_While(self, node):
         new_join = ti.mir.JoinMirNode()
-        true_goto = ti.mir.BeginMirNode() if node.body else new_join
-        false_goto = ti.mir.BeginMirNode()
+        true_goto = ti.mir.JoinMirNode() if node.body else new_join
+        false_goto = ti.mir.JoinMirNode()
         self.add_node(new_join)
         self.visit_common_if(node.test, true_goto, false_goto)
         if node.body:

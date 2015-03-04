@@ -13,7 +13,7 @@ import ti.visitor
 class Parser(object):
 
     def __init__(self, filename):
-        self.mir = ti.mir.BeginMirNode()
+        self.mir = ti.mir.JoinMirNode()
         self.filename = filename
 
         with open(self.filename) as inputFile:

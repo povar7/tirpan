@@ -149,14 +149,6 @@ class AttrRMirNode(SerialMirNode):
     def getString(self):
         return self.left + ' = ' + self.obj + '.' + self.attr
 
-class BeginMirNode(SerialMirNode):
-    
-    def __init__(self):
-        super(BeginMirNode, self).__init__()
-
-    def getString(self):
-        return '<begin>'
-
 class BinOpMirNode(SerialMirNode):
 
     def __init__(self, func, args):
@@ -304,7 +296,7 @@ class ClassMirNode(SerialMirNode):
         super(ClassMirNode, self).__init__()
         # TODO eliminate AST
         self.ast  = node.body
-        self.mir  = BeginMirNode()
+        self.mir  = JoinMirNode()
         self.name = node.name
 
     def getString(self):
@@ -348,8 +340,8 @@ class IfMirNode(MirNode):
         # TODO eliminate AST
         self.node  = node
         self.cond  = cond  # Branch condition variable name
-        self.true  = BeginMirNode() if true  is None else true
-        self.false = BeginMirNode() if false is None else false
+        self.true  = JoinMirNode() if true  is None else true
+        self.false = JoinMirNode() if false is None else false
 
 class JoinMirNode(SerialMirNode):
 

@@ -209,7 +209,7 @@ def processProductElement(function, isInit, tgNode, productElement, kwKeys):
         first_node = tree[0]
         filename   = utils.getFileName(first_node)
         if not origin.mir:
-            origin.mir  = ti.mir.BeginMirNode()
+            origin.mir  = ti.mir.JoinMirNode()
             ast_visitor = ti.visitor.Visitor(filename, origin.mir)
             for stmt in tree:
                 ast_visitor.visit(stmt)
