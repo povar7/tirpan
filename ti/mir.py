@@ -106,16 +106,43 @@ def walkChain(node, file_scope):
 class MirNode(object):
 
     def __init__(self):
-        self.prev = None
-
-class SerialMirNode(object):
-
-    def __init__(self):
-        super(SerialMirNode, self).__init__()
-        self.next = None
+        super(MirNode, self).__init__()
 
     def getString(self):
         return ''
+
+class HasPrevMirNode(MirNode):
+
+    def __init__(self):
+        super(HasPrevMirNode, self).__init__()
+        self.prev = None
+
+class HasNextMirNode(MirNode):
+
+    def __init__(self):
+        super(HasNextMirNode, self).__init__()
+        self.next = None
+
+class SerialMirNode(HasPrevMirNode, HasNextMirNode):
+
+    def __init__(self):
+        super(SerialMirNode, self).__init__()
+
+class JoinMirNode(HasNextMirNode):
+
+    def __init__(self):
+        super(JoinMirNode, self).__init__()
+        self.prev = []
+
+class IfMirNode(HasPrevMirNode):
+
+    def __init__(self, node, cond, true = None, false = None):
+        super(IfMirNode, self).__init__()
+        # TODO eliminate AST
+        self.node  = node
+        self.cond  = cond  # Branch condition variable name
+        self.true  = JoinMirNode() if true  is None else true
+        self.false = JoinMirNode() if false is None else false
 
 class AssignMirNode(SerialMirNode):
 
@@ -332,21 +359,6 @@ class FuncMirNode(SerialMirNode):
 
     def getString(self):
         return 'def ' + self.func.name
-
-class IfMirNode(MirNode):
-
-    def __init__(self, node, cond, true = None, false = None):
-        super(IfMirNode, self).__init__()
-        # TODO eliminate AST
-        self.node  = node
-        self.cond  = cond  # Branch condition variable name
-        self.true  = JoinMirNode() if true  is None else true
-        self.false = JoinMirNode() if false is None else false
-
-class JoinMirNode(SerialMirNode):
-
-    def __init__(self):
-        super(JoinMirNode, self).__init__()
 
 class ListMirNode(SerialMirNode):
 
