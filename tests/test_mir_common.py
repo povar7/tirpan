@@ -13,7 +13,8 @@ import ti.mir
 def tirpan_get_mir(script_file, *args):
     """Run TIRPAN to get script MIR
 
-    Returns MIR for given script
+    Returns MIR for given script.
+    Also runs common integrity checks before returning.
     """
 
     tmpname = os.path.join(atests_dir, script_file + '.tmp')
@@ -27,12 +28,53 @@ def tirpan_get_mir(script_file, *args):
     try:
         res = ti.mir.loadMir(tmpname)
         os.remove(tmpname)
-        return res
     except:
         sys.stderr.write(
             'Tirpan failed to produce MIR dump for {} script:\n'.format(
                 script_file))
         raise
+
+    check_mir_integrity(res)
+    return res
+
+
+def check_mir_integrity(mir):
+    # Special check for entry node
+    assert (isinstance(mir, ti.mir.JoinMirNode) and isinstance(mir.prev, set)
+            and not len(mir.prev))
+
+    prevs = dict()  # JoinMirNode / HasPrevMirNode -> set(MirNode)
+
+    def mark_prev(node, prev):
+        assert isinstance(prev, ti.mir.MirNode)
+        if isinstance(node, ti.mir.JoinMirNode):
+            assert isinstance(node.prev, set)
+            if node not in prevs:
+                prevs[node] = s = node.prev.copy()
+            else:
+                s = prevs[node]
+            s.remove(prev)
+            if not len(s):
+                prevs.pop(node)
+        else:
+            assert (isinstance(node, ti.mir.HasPrevMirNode)
+                    and node.prev is prev)
+
+    def process_node(node):
+        if isinstance(node, ti.mir.HasNextMirNode):
+            if node.next is not None:
+                mark_prev(node.next, node)
+        elif isinstance(node, ti.mir.IfMirNode):
+            assert isinstance(node.true, ti.mir.JoinMirNode)
+            assert isinstance(node.false, ti.mir.JoinMirNode)
+            assert node.true is not node.false, 'Useless IfMirNode'
+            mark_prev(node.true, node)
+            mark_prev(node.false, node)
+        else:
+            assert isinstance(node, ti.mir.MirNode)
+
+    walk_mir_nodes(mir, process_node)
+    assert not len(prevs)
 
 
 class SimpleNamespace(object):
