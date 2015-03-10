@@ -41,9 +41,10 @@ def tirpan_get_mir(script_file, *args):
 def check_mir_integrity(mir):
     # Special check for entry node
     assert (isinstance(mir, ti.mir.JoinMirNode) and isinstance(mir.prev, set)
-            and not len(mir.prev))
+            and not len(mir.prev) and isinstance(mir.block, ti.mir.BasicBlock))
 
     prevs = dict()  # JoinMirNode / HasPrevMirNode -> set(MirNode)
+    bblocks = set()
 
     def mark_prev(node, prev):
         assert isinstance(prev, ti.mir.MirNode)
@@ -56,11 +57,20 @@ def check_mir_integrity(mir):
             s.remove(prev)
             if not len(s):
                 prevs.pop(node)
+            assert prev.block.last is prev
         else:
             assert (isinstance(node, ti.mir.HasPrevMirNode)
                     and node.prev is prev)
+            assert node.block is prev.block
 
     def process_node(node):
+        assert isinstance(node, ti.mir.MirNode)
+        assert isinstance(node.block, ti.mir.BasicBlock)
+        if isinstance(node, ti.mir.JoinMirNode):
+            assert node.block.first is node
+            assert node.block not in bblocks
+            bblocks.add(node.block)
+
         if isinstance(node, ti.mir.HasNextMirNode):
             if node.next is not None:
                 mark_prev(node.next, node)
