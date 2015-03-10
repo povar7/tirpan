@@ -132,7 +132,7 @@ class JoinMirNode(HasNextMirNode):
 
     def __init__(self):
         super(JoinMirNode, self).__init__()
-        self.prev = []
+        self.prev = set()
 
 class IfMirNode(HasPrevMirNode):
 

@@ -44,7 +44,7 @@ Most nodes belong to that class.
 
 ti.mir.JoinMirNode
 represents a starting point of linear MIR chain. It stands for no action
-itself. Its "prev" field is (instead of an ordinary link) a list of all nodes
+itself. Its "prev" field is (instead of an ordinary link) a set of all nodes
 that have their "next" field pointing to it.
 It is perfectly valid if this list is empty (e.g. function entry point).
 It is derived from HasNextMirNode.
