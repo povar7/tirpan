@@ -107,6 +107,7 @@ class MirNode(object):
 
     def __init__(self):
         super(MirNode, self).__init__()
+        self.block = None
 
     def getString(self):
         return ''
@@ -133,6 +134,7 @@ class JoinMirNode(HasNextMirNode):
     def __init__(self):
         super(JoinMirNode, self).__init__()
         self.prev = set()
+        self.block = BasicBlock(self)
 
 class IfMirNode(HasPrevMirNode):
 
@@ -500,3 +502,9 @@ class UnaryOpMirNode(SerialMirNode):
         name = ti.builtin.getOperatorName(self.func)
         res  = self.left + ' = ' + name + oper
         return res
+
+class BasicBlock(object):
+
+    def __init__(self, first = None, last = None):
+        self.first = first
+        self.last = first if last is None else last

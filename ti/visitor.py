@@ -24,10 +24,12 @@ class Visitor(ast.NodeVisitor):
 
     def add_node(self, new_node):
         self._mir_node.next = new_node
-        if isinstance(new_node.prev, set):
+        if isinstance(new_node, ti.mir.JoinMirNode):
             new_node.prev.add(self._mir_node)
         else:
             new_node.prev = self._mir_node
+            new_node.block = self._mir_node.block
+            new_node.block.last = new_node
 
         self._mir_node = new_node
 

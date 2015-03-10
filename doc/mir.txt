@@ -55,3 +55,11 @@ stores branching condition. Complex conditions are computed beforehand or
 represented by many IF nodes. Execution continues from node pointed by "true"
 field if condition value is True and by "false" field otherwise.
 It is derived from HasPrevMirNode.
+
+
+
+Basic blocks
+They are represented by ti.mir.BasicBlock instances.
+They have "first" and "last" fields that point to
+their first and last MIR nodes.
+Every MIR node has a reference to its basic block.
