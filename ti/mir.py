@@ -143,6 +143,8 @@ class IfMirNode(HasPrevMirNode):
         self.cond  = cond  # Branch condition variable name
         self.true  = JoinMirNode() if true  is None else true
         self.false = JoinMirNode() if false is None else false
+        self.true.prev.add(self)
+        self.false.prev.add(self)
 
 class AssignMirNode(SerialMirNode):
 
