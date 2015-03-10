@@ -31,7 +31,7 @@ def tirpan_get_mir(script_file, *args):
     except:
         sys.stderr.write(
             'Tirpan failed to produce MIR dump for {} script:\n'.format(
-            script_file))
+                script_file))
         raise
 
 
@@ -45,6 +45,7 @@ def walk_mir_nodes(mir, callback):
     from collections import deque
     visit_queue = deque()
     seen = set()
+
     def queue_node(node):
         if node not in seen:
             seen.add(node)
@@ -68,20 +69,20 @@ def walk_mir_nodes(mir, callback):
 
 
 def find_mir_nodes(mir, **callbacks):
-    sz = len(callbacks)
     res = dict()
+
     def clbk(node):
         for name, func in callbacks.iteritems():
             if func(node):
-                assert not res.has_key(name), \
-                    "found two matching nodes (at least) for callback '{}'"\
-                    .format(name)
+                assert name not in res,\
+                    ("found two matching nodes (at least) for callback '{}'"
+                     .format(name))
                 res[name] = node
     walk_mir_nodes(mir, clbk)
     for name in callbacks.iterkeys():
-        assert res.has_key(name), \
-            "no matching node found for callback '{}'"\
-            .format(name)
+        assert name in res,\
+            ("no matching node found for callback '{}'"
+             .format(name))
     return SimpleNamespace(**res)
 
 
@@ -102,9 +103,8 @@ def find_node_up_mir(start, callback):
 
 
 def find_node_down_mir_nojoin(start, callback):
-    return find_node_down_mir(start,
-                   assert_filter(callback,
-                                 isinstance_checker(ti.mir.JoinMirNode, True)))
+    return find_node_down_mir(start, assert_filter(callback,
+        isinstance_checker(ti.mir.JoinMirNode, True)))
 
 
 class assert_filter(object):
@@ -144,9 +144,9 @@ class class_and_location_checker(object):
         self.col = col
 
     def __call__(self, node):
-        return isinstance(node, self.cls) \
-           and node.node.lineno == self.line \
-           and 1 + node.node.col_offset == self.col
+        return (isinstance(node, self.cls)
+                and node.node.lineno == self.line
+                and 1 + node.node.col_offset == self.col)
 
 
 class func_checker(object):
@@ -185,5 +185,5 @@ class literal_value_checker(object):
         self.value = literal_value
 
     def __call__(self, node):
-        return isinstance(node, ti.mir.LiteralMirNode) \
-               and node.value == self.value
+        return (isinstance(node, ti.mir.LiteralMirNode)
+                and node.value == self.value)
