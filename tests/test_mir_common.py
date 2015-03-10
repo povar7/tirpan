@@ -137,10 +137,10 @@ def find_node_down_mir(start, callback):
 
 
 def find_node_up_mir(start, callback):
-    node = getattr(start, 'prev', None)
-    while node is not None and not callback(node):
-        node = getattr(node, 'prev', None)
-    assert callback(node), 'could not reach node'
+    node = start.prev
+    while isinstance(node, ti.mir.MirNode) and not callback(node):
+        node = node.prev
+    assert isinstance(node, ti.mir.MirNode), 'could not reach node'
     return node
 
 
