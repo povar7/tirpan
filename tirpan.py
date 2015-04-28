@@ -11,6 +11,7 @@ import signal
 
 import config
 import ti.mir
+import ti.dfg_wrap
 
 
 def handle_pdb(sig, frame):
@@ -28,13 +29,17 @@ def run(filename, **params):
     importer = config.data.importer
     mainModule = importer.getIdent(0)
     mir = mainModule.getMIR()
+
+    #TODO:
+    ti.dfg_wrap.forward_analysis(ti.dfg_wrap.initialize_dfg_nodes(mir))
+
     if config.data.dump_mir:
         ti.mir.dumpMir(mir, config.data.dump_mir)
     if config.data.mir_only:
         return
     scope = config.data.currentScope
     config.data.currentScope = mainModule.getScope()
-    ti.mir.walkChain(mir, config.data.currentScope)
+    #ti.mir.walkChain(mir, config.data.currentScope)
     config.data.currentScope = scope
 
 
