@@ -6,3 +6,4 @@ tags
 defects.txt
 /tests/tmpfile
 *.tmp
+/.idea/
